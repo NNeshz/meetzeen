@@ -9,8 +9,8 @@ const geist = Geist({
 })
 
 export const metadata: Metadata = {
-  title: "Template — La manera más sencilla de iniciar un proyecto",
-  description: "Haz que tu proyecto sea muy fácil de iniciar.",
+  title: "Meetzeen — Organiza tus citas de manera sencilla",
+  description: "Ahorra tiempo, no pierdas clientes y conoce tu negocio.",
 };
 
 export default function RootLayout({

@@ -1,5 +1,5 @@
 {
-  "name": "template",
+  "name": "meetzeen",
   "private": true,
   "scripts": {
     "build": "turbo run build",
@@ -7,8 +7,8 @@
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "check-types": "turbo run check-types",
-    "shadcn": "bun --filter @template/ui shadcn",
-    "prisma": "bun --filter @template/database prisma-command",
+    "shadcn": "bun --filter @meetzeen/ui shadcn",
+    "prisma": "bun --filter @meetzeen/database prisma-command",
     "clean-workspaces": "turbo clean-workspace && rm -rf node_modules"
   },
   "devDependencies": {

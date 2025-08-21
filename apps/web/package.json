@@ -1,5 +1,5 @@
 {
-  "name": "@template/web",
+  "name": "@meetzeen/web",
   "version": "0.1.0",
   "type": "module",
   "private": true,
@@ -11,14 +11,14 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
-    "@template/ui": "*",
+    "@meetzeen/ui": "*",
     "next": "^15.4.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },
   "devDependencies": {
-    "@template/eslint-config": "*",
-    "@template/typescript-config": "*",
+    "@meetzeen/eslint-config": "*",
+    "@meetzeen/typescript-config": "*",
     "@types/node": "^22.15.3",
     "@types/react": "19.1.0",
     "@types/react-dom": "19.1.1",

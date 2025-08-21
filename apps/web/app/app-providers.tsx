@@ -2,8 +2,8 @@
 
 import type React from "react";
 import type { ReactNode } from "react";
-import { ThemeProvider } from "@template/ui/src/providers/theme-provider";
-import { Toaster } from "@template/ui/src/components/sonner";
+import { ThemeProvider } from "@meetzeen/ui/src/providers/theme-provider";
+import { Toaster } from "@meetzeen/ui/src/components/sonner";
 
 export const AppProviders = ({ children }: { children?: ReactNode }) => {
   return (
