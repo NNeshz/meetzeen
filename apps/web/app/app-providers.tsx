@@ -10,8 +10,8 @@ export const AppProviders = ({ children }: { children?: ReactNode }) => {
     <>
       <ThemeProvider
         attribute="class"
-        defaultTheme="system"
-        themes={["light", "dark", "system"]}
+        defaultTheme="dark"
+        themes={["light", "dark"]}
         enableSystem
         disableTransitionOnChange
       >

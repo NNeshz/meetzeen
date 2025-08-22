@@ -1,6 +1,6 @@
 import { Button } from "@meetzeen/ui/src/components/button";
 import { Badge } from "@meetzeen/ui/src/components/badge";
-import { IconCalendar } from "@tabler/icons-react"
+import { IconArrowRight, IconPointFilled } from "@tabler/icons-react"
 
 export function Hero() {
   return (
@@ -14,27 +14,26 @@ export function Hero() {
           backgroundRepeat: 'no-repeat'
         }}
       >
-        <div className="absolute inset-0 bg-black/20" />
+        <div className="absolute inset-0" />
         
         <div className="relative z-10 text-center px-4 max-w-5xl mx-auto space-y-4 tracking-tighter">
 
-          <Badge variant={"secondary"} className="px-4 py-2 rounded-full">
-            <IconCalendar className="inline-block w-8 h-8 mr-2" />
+          <Badge className="rounded-full shadow-2xl">
+            <IconPointFilled className="inline-block size-8" />
             Te regalamos 50 citas 
           </Badge>
         
-          <h1 className="text-4xl md:text-6xl font-semibold text-muted">
-            Organizado. Simple. Eficiente.
+          <h1 className="text-4xl md:text-8xl font-semibold text-white">
+            Citas automaticas,<br/>tiempo recuperado
           </h1>
-          <h2 className="text-4xl md:text-6xl font-semibold text-muted">
-            Todo en completa calma
-          </h2>
-          <p className="text-lg md:text-xl text-muted max-w-xl mx-auto">
-            Organiza tus citas de la manera más simple y sencilla, conoce la manera en la cual puedes 
-            ahorrar tiempo.
+          
+          <p className="text-base md:text-xl text-white/90 max-w-2xl mx-auto text-pretty">
+            Transforma la manera de agendar tus citas con nuestra plataforma inteligente.
+            Programa, modifica o cancela tus citas en cualquier momento con unos cuantos clicks.
           </p>
-          <Button size={"lg"} variant={"secondary"} className="rounded-full">
+          <Button size={"lg"} className="rounded-full">
             Comienza ahora
+            <IconArrowRight className="inline-block size-4" />
           </Button>
         </div>
       </section>
