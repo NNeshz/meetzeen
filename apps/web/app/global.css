@@ -4,8 +4,13 @@
 
 html {
     scroll-behavior: smooth;
+    font-family: 'Inter', sans-serif;
 }
 
 body::-webkit-scrollbar {
     width: 0px;
+}
+
+body {
+    background-color: #010101;
 }
