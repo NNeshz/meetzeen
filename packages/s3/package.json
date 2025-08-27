@@ -1,0 +1,11 @@
+{
+  "name": "@meetzeen/s3",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "1.2.12",
+    "sharp": "^0.33.4"
+  },
+  "peerDependencies": {
+    "typescript": "5.5.4"
+  }
+}
