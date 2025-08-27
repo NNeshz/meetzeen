@@ -1,18 +1,7 @@
 "use client"
 
 import * as React from "react"
-import {
-  AudioWaveform,
-  BookOpen,
-  Bot,
-  Command,
-  Frame,
-  GalleryVerticalEnd,
-  Map,
-  PieChart,
-  Settings2,  
-  SquareTerminal,
-} from "lucide-react"
+import { IconCalendar, IconSettings, IconCalendarCog, IconHome, IconBrandAppgallery } from "@tabler/icons-react"
 
 import { NavMain } from "@/modules/dashboard/components/nav-main"
 import { NavUser } from "@/modules/dashboard/components/nav-user"
@@ -27,130 +16,57 @@ import {
 
 // This is sample data.
 const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  teams: [
-    {
-      name: "Acme Inc",
-      logo: GalleryVerticalEnd,
-      plan: "Enterprise",
-    },
-    {
-      name: "Acme Corp.",
-      logo: AudioWaveform,
-      plan: "Startup",
-    },
-    {
-      name: "Evil Corp.",
-      logo: Command,
-      plan: "Free",
-    },
-  ],
   navMain: [
     {
-      title: "Playground",
-      url: "#",
-      icon: SquareTerminal,
+      title: "Inicio",
+      url: "/dashboard",
+      icon: IconHome,
       isActive: true,
+    },
+    {
+      title: "Citas",
+      url: "#",
+      icon: IconCalendar,
       items: [
         {
-          title: "History",
+          title: "Proximas",
           url: "#",
         },
         {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Settings",
+          title: "Historial",
           url: "#",
         },
       ],
     },
     {
-      title: "Models",
+      title: "Horarios",
       url: "#",
-      icon: Bot,
+      icon: IconCalendarCog,
       items: [
         {
-          title: "Genesis",
+          title: "Dias",
           url: "#",
         },
         {
-          title: "Explorer",
-          url: "#",
-        },
-        {
-          title: "Quantum",
+          title: "Horarios",
           url: "#",
         },
       ],
     },
     {
-      title: "Documentation",
+      title: "Configuración",
       url: "#",
-      icon: BookOpen,
+      icon: IconSettings,
       items: [
         {
-          title: "Introduction",
+          title: "Negocio",
           url: "#",
         },
         {
-          title: "Get Started",
-          url: "#",
-        },
-        {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
+          title: "Equipo",
           url: "#",
         },
       ],
-    },
-    {
-      title: "Settings",
-      url: "#",
-      icon: Settings2,
-      items: [
-        {
-          title: "General",
-          url: "#",
-        },
-        {
-          title: "Team",
-          url: "#",
-        },
-        {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
-          url: "#",
-        },
-      ],
-    },
-  ],
-  projects: [
-    {
-      name: "Design Engineering",
-      url: "#",
-      icon: Frame,
-    },
-    {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: PieChart,
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: Map,
     },
   ],
 }
@@ -159,13 +75,13 @@ export function DashboardSidebar({ ...props }: React.ComponentProps<typeof Sideb
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <TeamSwitcher icon={IconBrandAppgallery} title="Meetzeen" />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
