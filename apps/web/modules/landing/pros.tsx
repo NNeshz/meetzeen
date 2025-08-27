@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { Card, CardContent } from "@meetzeen/ui/src/components/card";
 
 export function Pros() {
   return (
@@ -12,7 +13,7 @@ export function Pros() {
           </h2>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="aspect-square rounded-2xl border bg-card text-card-foreground shadow p-4 pb-0 flex flex-col">
+            <Card className="aspect-square p-4 pb-0 flex flex-col">
               <div className="relative h-3/4 w-full">
                 <Image
                   src="/landing/hero.png"
@@ -21,7 +22,7 @@ export function Pros() {
                   className="rounded object-cover"
                 />
               </div>
-              <div className="h-1/4 flex flex-col justify-center">
+              <CardContent className="h-1/4 flex flex-col justify-center px-0">
                 <p className="text-left font-bold tracking-tight text-foreground md:text-xl lg:text-2xl">
                   Gestiona tu tiempo eficientemente
                 </p>
@@ -29,9 +30,10 @@ export function Pros() {
                   Meetzeen nace con la idea de ayudar a empresas y emprendedores
                   a poder lograr una libertad en tiempo
                 </p>
-              </div>
-            </div>
-            <div className="aspect-square rounded-2xl border bg-card text-card-foreground shadow p-4 pb-0 flex flex-col">
+              </CardContent>
+            </Card>
+            
+            <Card className="aspect-square p-4 pb-0 flex flex-col">
               <div className="relative h-3/4 w-full">
                 <Image
                   src="/landing/hero.png"
@@ -40,7 +42,7 @@ export function Pros() {
                   className="rounded object-cover"
                 />
               </div>
-              <div className="h-1/4 flex flex-col justify-center">
+              <CardContent className="h-1/4 flex flex-col justify-center px-0">
                 <p className="text-left font-bold tracking-tight text-foreground md:text-xl lg:text-2xl">
                   Gestiona tu tiempo eficientemente
                 </p>
@@ -48,18 +50,19 @@ export function Pros() {
                   Meetzeen nace con la idea de ayudar a empresas y emprendedores
                   a poder lograr una libertad en tiempo
                 </p>
-              </div>
-            </div>
-            <div className="aspect-square rounded-2xl border bg-card text-card-foreground shadow p-4 pb-0 flex flex-col">
+              </CardContent>
+            </Card>
+            
+            <Card className="aspect-square p-4 pb-0 flex flex-col">
               <div className="relative h-3/4 w-full">
                 <Image
                   src="/landing/hero.png"
-                  alt="Feature 1"
+                  alt="Feature 3"
                   fill
                   className="rounded object-cover"
                 />
               </div>
-              <div className="h-1/4 flex flex-col justify-center">
+              <CardContent className="h-1/4 flex flex-col justify-center px-0">
                 <p className="text-left font-bold tracking-tight text-foreground md:text-xl lg:text-2xl">
                   Gestiona tu tiempo eficientemente
                 </p>
@@ -67,18 +70,19 @@ export function Pros() {
                   Meetzeen nace con la idea de ayudar a empresas y emprendedores
                   a poder lograr una libertad en tiempo
                 </p>
-              </div>
-            </div>
-            <div className="aspect-square rounded-2xl border bg-card text-card-foreground shadow p-4 pb-0 flex flex-col">
+              </CardContent>
+            </Card>
+            
+            <Card className="aspect-square p-4 pb-0 flex flex-col">
               <div className="relative h-3/4 w-full">
                 <Image
                   src="/landing/hero.png"
-                  alt="Feature 2"
+                  alt="Feature 4"
                   fill
                   className="rounded object-cover"
                 />
               </div>
-              <div className="h-1/4 flex flex-col justify-center">
+              <CardContent className="h-1/4 flex flex-col justify-center px-0">
                 <p className="text-left font-bold tracking-tight text-foreground md:text-xl lg:text-2xl">
                   Gestiona tu tiempo eficientemente
                 </p>
@@ -86,8 +90,8 @@ export function Pros() {
                   Meetzeen nace con la idea de ayudar a empresas y emprendedores
                   a poder lograr una libertad en tiempo
                 </p>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
