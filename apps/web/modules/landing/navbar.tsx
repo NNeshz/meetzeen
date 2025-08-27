@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 import { Button, buttonVariants } from "@meetzeen/ui/src/components/button";
 import { cn } from "@meetzeen/ui/src/lib/utils";
+import { authClient } from "@meetzeen/auth/client";
 
 const links = [
   {
@@ -24,6 +25,7 @@ const links = [
 
 export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const session = authClient.useSession();
 
   return (
     <>
@@ -51,17 +53,34 @@ export function Navbar() {
                 </li>
               ))}
             </ul>
-            <Link
-              href="/auth"
-              className={cn(
-                buttonVariants({
-                  variant: "default",
-                  className: "flex items-center gap-2",
-                })
-              )}
-            >
-              Iniciar sesión
-            </Link>
+            {
+              session?.data?.user ? (
+                <Link
+                  href="/dashboard"
+                  className={cn(
+                    buttonVariants({
+                      variant: "default",
+                      className: "flex items-center gap-2",
+                    })
+                  )}
+                >
+                  Dashboard
+                </Link>
+              ) : (
+                <Link
+                  href="/auth"
+                  className={cn(
+                    buttonVariants({
+                      variant: "default",
+                      className: "flex items-center gap-2",
+                    })
+                  )}
+                >
+                  Iniciar sesión
+                </Link>
+              )
+
+            }
           </div>
 
           {/* Mobile Menu Button */}
@@ -149,15 +168,29 @@ export function Navbar() {
 
             {/* Bottom button */}
             <div className="flex gap-4 mt-10">
-              <Link
-                href="/auth"
-                className={cn(
-                  buttonVariants({ variant: "default", className: "w-full flex items-center justify-center gap-2" })
-                )}
-                onClick={() => setMenuOpen(false)}
-              >
-                Iniciar sesión
-              </Link>
+              {
+                session?.data?.user ? (
+                  <Link
+                    href="/dashboard"
+                    className={cn(
+                      buttonVariants({ variant: "default", className: "w-full flex items-center justify-center gap-2" })
+                    )}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Dashboard
+                  </Link>
+                ) : (
+                  <Link
+                    href="/auth"
+                    className={cn(
+                      buttonVariants({ variant: "default", className: "w-full flex items-center justify-center gap-2" })
+                    )}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Iniciar sesión
+                  </Link>
+                )
+              }
             </div>
           </motion.div>
         )}
