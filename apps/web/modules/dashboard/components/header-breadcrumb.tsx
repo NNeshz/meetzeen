@@ -14,8 +14,17 @@ import {
 
 export function HeaderBreadcrumb() {
   const pathname = usePathname();
-  
-  console.log(pathname);
+  const homePath = "/dashboard"
+
+  const getName = (path: string) : string => {
+    if (path === homePath) {
+      return "Inicio"
+    }
+
+    return path.split("/").pop() || ""
+  }
+
+  const name = getName(pathname)
 
   return (
     <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
@@ -34,8 +43,8 @@ export function HeaderBreadcrumb() {
             </BreadcrumbItem>
             <BreadcrumbSeparator className="hidden md:block" />
             <BreadcrumbItem>
-              <BreadcrumbLink href="/dashboard">
-                Algo va aquí
+              <BreadcrumbLink>
+                {name}
               </BreadcrumbLink>
             </BreadcrumbItem>
           </BreadcrumbList>
