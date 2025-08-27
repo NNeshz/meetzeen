@@ -1,11 +1,18 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { Instrument_Sans, Geist } from "next/font/google";
 import "./global.css";
 import { AppProviders } from "./app-providers";
+
+const instrumentSans = Instrument_Sans({
+  subsets: ["latin"],
+  variable: "--font-instrument-sans",
+  weight: ["400", "500", "600", "700"]
+})
 
 const geist = Geist({
   subsets: ["latin"],
   variable: "--font-geist",
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"]
 })
 
 export const metadata: Metadata = {
@@ -20,7 +27,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body className={`${geist.variable} ${geist.className} antialiased`}>
+      <body className={`${instrumentSans.variable} ${geist.variable} ${instrumentSans.className} antialiased`}>
         <AppProviders>{children}</AppProviders>
       </body>
     </html>
