@@ -60,11 +60,11 @@ const data = {
       items: [
         {
           title: "Negocio",
-          url: "#",
+          url: "/dashboard/negocio",
         },
         {
           title: "Equipo",
-          url: "#",
+          url: "/dashboard/equipo",
         },
       ],
     },

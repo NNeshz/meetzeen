@@ -1,4 +1,18 @@
 -- CreateTable
+CREATE TABLE "public"."Company" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "phoneNumber" TEXT NOT NULL,
+    "imageUrl" TEXT NOT NULL,
+    "slogan" TEXT,
+    "userId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Company_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "public"."User" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
@@ -6,9 +20,8 @@ CREATE TABLE "public"."User" (
     "phoneNumber" TEXT,
     "email" TEXT NOT NULL,
     "emailVerified" BOOLEAN NOT NULL,
-    "phoneNumberVerified" BOOLEAN,
     "isAnonymous" BOOLEAN,
-    "role" TEXT NOT NULL,
+    "role" TEXT,
     "banned" BOOLEAN,
     "banReason" TEXT,
     "banExpires" TIMESTAMP(3),
@@ -102,6 +115,18 @@ CREATE TABLE "public"."Invitation" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Company_userId_key" ON "public"."Company"("userId");
+
+-- CreateIndex
+CREATE INDEX "Company_name_idx" ON "public"."Company"("name");
+
+-- CreateIndex
+CREATE INDEX "Company_phoneNumber_idx" ON "public"."Company"("phoneNumber");
+
+-- CreateIndex
+CREATE INDEX "Company_userId_idx" ON "public"."Company"("userId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "User_phoneNumber_key" ON "public"."User"("phoneNumber");
 
 -- CreateIndex
@@ -112,6 +137,9 @@ CREATE UNIQUE INDEX "Session_token_key" ON "public"."Session"("token");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Organization_slug_key" ON "public"."Organization"("slug");
+
+-- AddForeignKey
+ALTER TABLE "public"."Company" ADD CONSTRAINT "Company_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."Session" ADD CONSTRAINT "Session_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE CASCADE ON UPDATE CASCADE;

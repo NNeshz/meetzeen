@@ -13,7 +13,7 @@ export default function DashboardLayout({
         <DashboardSidebar />
         <SidebarInset>
           <HeaderBreadcrumb />
-          <div className="px-4">{children}</div>
+          <div className="px-4 pb-4">{children}</div>
         </SidebarInset>
       </SidebarProvider>
     </div>

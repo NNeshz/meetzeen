@@ -11,23 +11,24 @@ datasource db {
 }
 
 model User {
-  id                  String        @id
-  name                String
-  image               String
-  phoneNumber         String?       @unique
-  email               String        @unique
-  emailVerified       Boolean
-  isAnonymous         Boolean?
-  role                String?
-  banned              Boolean?
-  banReason           String?
-  banExpires          DateTime?
-  createdAt           DateTime
-  updatedAt           DateTime
-  accounts            Account[]
-  invitations         Invitation[]
-  members             Member[]
-  sessions            Session[]
+  id            String       @id
+  name          String
+  image         String
+  phoneNumber   String?      @unique
+  email         String       @unique
+  emailVerified Boolean
+  isAnonymous   Boolean?
+  role          String?
+  banned        Boolean?
+  banReason     String?
+  banExpires    DateTime?
+  createdAt     DateTime
+  updatedAt     DateTime
+  accounts      Account[]
+  invitations   Invitation[]
+  members       Member[]
+  sessions      Session[]
+  company       Company?
 }
 
 model Session {
