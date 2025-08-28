@@ -8,7 +8,6 @@ import {
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
-  BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@meetzeen/ui/src/components/breadcrumb";
 
@@ -44,7 +43,7 @@ export function HeaderBreadcrumb() {
             <BreadcrumbSeparator className="hidden md:block" />
             <BreadcrumbItem>
               <BreadcrumbLink>
-                {name}
+                {name.charAt(0).toUpperCase() + name.slice(1)}
               </BreadcrumbLink>
             </BreadcrumbItem>
           </BreadcrumbList>

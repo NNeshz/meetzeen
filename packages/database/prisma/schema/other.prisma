@@ -1,0 +1,17 @@
+model Company {
+  id          String  @id @default(uuid())
+  name        String
+  phoneNumber String
+  imageUrl    String
+  slogan      String?
+
+  userId      String  @unique
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
+  @@index([phoneNumber])
+  @@index([userId])
+}
