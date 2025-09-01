@@ -1,9 +1,18 @@
 model Company {
   id          String  @id @default(uuid())
-  name        String
-  phoneNumber String
   imageUrl    String
+  name        String
+  slugName    String
+  phoneNumber String
   slogan      String?
+  address     String?
+  workDays    String[]
+  startHour   String
+  startMinute String
+  startAmPm   String
+  endHour     String
+  endMinute   String
+  endAmPm     String
 
   userId      String  @unique
   user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)

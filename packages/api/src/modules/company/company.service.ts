@@ -6,7 +6,7 @@ import {
   UpdateCompanySchema,
   UpdateCompanyDTO,
   CompanyResponseDTO,
-} from "@meetzeen/api/src/modules/company/types/create-company";
+} from "@meetzeen/api/src/modules/company/types/create-company.d";
 
 export class CompanyService {
   private imageService: ImageService;
@@ -16,7 +16,6 @@ export class CompanyService {
   }
 
   async createCompany(form: FormData, userId: string) {
-    // Verificar si el usuario ya tiene una empresa
     const existingCompany = await prismaClient.company.findUnique({
       where: { userId },
     });
@@ -49,10 +48,19 @@ export class CompanyService {
     const company: CompanyResponseDTO = await prismaClient.company.create({
       data: {
         name: validData.name,
+        slugName: validData.slugName,
         phoneNumber: validData.phoneNumber,
         slogan: validData.slogan,
         imageUrl: imageUrl,
         userId: userId,
+        address: validData.address,
+        workDays: validData.workDays,
+        startHour: validData.startHour,
+        startMinute: validData.startMinute,
+        startAmPm: validData.startAmPm,
+        endHour: validData.endHour,
+        endMinute: validData.endMinute,
+        endAmPm: validData.endAmPm,
       },
       include: {
         user: {

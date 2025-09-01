@@ -83,9 +83,82 @@ export function CompanyForm() {
     },
   })
 
-  function onSubmit(values: CompanyFormValues) {
-    console.log(values)
+  async function compressImage(file: File, maxWidth = 1000, quality = 0.8): Promise<File> {
+    return new Promise((resolve, reject) => {
+      const img = new window.Image()
+      const reader = new FileReader()
+  
+      reader.onload = (e) => {
+        if (!e.target?.result) return reject("Error al leer la imagen")
+        img.src = e.target.result as string
+      }
+  
+      img.onload = () => {
+        const canvas = document.createElement("canvas")
+        const ctx = canvas.getContext("2d")
+        if (!ctx) return reject("No se pudo obtener el contexto del canvas")
+  
+        const scale = Math.min(maxWidth / img.width, 1) // solo reducir si es más grande
+        const width = img.width * scale
+        const height = img.height * scale
+        canvas.width = width
+        canvas.height = height
+  
+        ctx.drawImage(img, 0, 0, width, height)
+  
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) return reject("Error al comprimir la imagen")
+            const compressedFile = new File([blob], file.name, { type: "image/webp" })
+            resolve(compressedFile)
+          },
+          "image/webp", // formato webp con buena compresión
+          quality
+        )
+      }
+  
+      reader.onerror = (err) => reject(err)
+      reader.readAsDataURL(file)
+    })
   }
+  
+  async function onSubmit(values: CompanyFormValues) {
+    try {
+      // 1. Comprimir imagen
+      const compressedImage = await compressImage(values.image, 1000, 0.8)
+  
+      // 2. Construir objeto data
+      const data = {
+        name: values.name,
+        slugName: values.slugName,
+        phoneNumber: values.phoneNumber,
+        slogan: values.slogan,
+        address: values.address,
+        workDays: values.workDays,
+        startHour: values.startHour,
+        startMinute: values.startMinute,
+        startAmPm: values.startAmPm,
+        endHour: values.endHour,
+        endMinute: values.endMinute,
+        endAmPm: values.endAmPm,
+      }
+  
+      // 3. Crear FormData
+      const formData = new FormData()
+      formData.append("data", JSON.stringify(data))
+      formData.append("logo", compressedImage)
+  
+      // Aquí puedes mandarlo a tu API
+      // const res = await fetch("/api/company", { method: "POST", body: formData })
+  
+      console.log("FormData listo para enviar", formData)
+      toast.success("Formulario preparado con éxito 🚀")
+    } catch (error) {
+      console.error(error)
+      toast.error("Error al preparar el formulario")
+    }
+  }
+  
 
   function handleImageChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]

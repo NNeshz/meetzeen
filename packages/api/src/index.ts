@@ -3,6 +3,8 @@ import { cors } from "@elysiajs/cors";
 import "./utils/envs";
 import { betterAuthPlugin } from "@meetzeen/api/src/utils/better-auth-plugin";
 
+import { companyRoute } from "@meetzeen/api/src/modules/company/company.route";
+
 export const api = new Elysia({
   prefix: "/api",
 })
@@ -13,5 +15,6 @@ export const api = new Elysia({
   credentials: true,
   allowedHeaders: ["Authorization", "Content-Type"],
 }))
+.use(companyRoute)
   
 export type Api = typeof api;

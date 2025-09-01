@@ -22,7 +22,7 @@ export const companyRoute = new Elysia({
     }
   )
   .get(
-    "/my-company",
+    "/myCompany",
     async ({ companyService, user }) => {
       if (!user) {
         throw new Error("Usuario no autenticado");
