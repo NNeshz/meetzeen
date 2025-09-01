@@ -63,9 +63,17 @@ const data = {
           url: "/dashboard/negocio",
         },
         {
+          title: "Categorias",
+          url: "/dashboard/categorias",
+        },
+        {
           title: "Equipo",
           url: "/dashboard/equipo",
         },
+        {
+          title: "Servicios",
+          url: "/dashboard/servicios",
+        }
       ],
     },
   ],

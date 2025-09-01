@@ -6,7 +6,7 @@ import {
 } from "@tabler/icons-react";
 import { Button } from "@meetzeen/ui/src/components/button";
 
-export function EquipoPagination() {
+export function CategoriasPagination() {
   return (
     <div className="flex items-center gap-2">
       <Button variant="outline" size="icon" className="hover:bg-transparent">
