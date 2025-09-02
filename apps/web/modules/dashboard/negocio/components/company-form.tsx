@@ -1,16 +1,16 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import Image from "next/image"
-import { IconCamera, IconUpload, IconX } from "@tabler/icons-react"
+import Image from "next/image";
+import { IconCamera, IconUpload, IconX } from "@tabler/icons-react";
 
-import { z } from "zod"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useState, useRef } from "react"
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useState, useRef, useEffect } from "react";
 
-import { Button } from "@meetzeen/ui/components/button"
+import { Button } from "@meetzeen/ui/components/button";
 import {
   Form,
   FormControl,
@@ -19,30 +19,84 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@meetzeen/ui/components/form"
-import { Input } from "@meetzeen/ui/components/input"
-import { Checkbox } from "@meetzeen/ui/components/checkbox"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@meetzeen/ui/components/select"
-import { toast } from "sonner"
+} from "@meetzeen/ui/components/form";
+import { Input } from "@meetzeen/ui/components/input";
+import { Checkbox } from "@meetzeen/ui/components/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@meetzeen/ui/components/select";
+import { toast } from "sonner";
+import { Loading } from "@/modules/dashboard/components/loading";
+import { Error } from "@/modules/dashboard/components/error";
 
-const HOURS = ["12", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11"]
-const MINUTES = ["00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55"]
-const AM_PM = ["AM", "PM"]
+import { useCreateCompany } from "@/modules/dashboard/negocio/hooks/useNegocio";
+
+import { Negocio } from "@/modules/dashboard/negocio/types/read-negocio";
+
+import { validateNumeric } from "@/utils/validate-numeric";
+import { normalizeText } from "@/utils/normalize-text";
+import { compressImage } from "@/utils/compress-image";
+
+const HOURS = [
+  "01",
+  "02",
+  "03",
+  "04",
+  "05",
+  "06",
+  "07",
+  "08",
+  "09",
+  "10",
+  "11",
+  "12",
+];
+const MINUTES = [
+  "00",
+  "05",
+  "10",
+  "15",
+  "20",
+  "25",
+  "30",
+  "35",
+  "40",
+  "45",
+  "50",
+  "55",
+];
+const AM_PM = ["AM", "PM"];
 
 const schema = z.object({
-  image: z.instanceof(File, { message: "Por favor, selecciona una imagen" }),
+  image: z.union([
+    z.instanceof(File, { message: "Por favor, selecciona una imagen" }),
+    z.string().url("Debe ser una URL válida"),
+  ]),
   name: z
     .string()
     .min(3, "El nombre debe tener al menos 3 caracteres")
-    .max(100, "El nombre debe tener menos de 100 caracteres"),
+    .max(100, "El nombre debe tener menos de 100 caracteres")
+    .refine((value) => value.trim().length > 0, "El nombre es requerido"),
   slugName: z
     .string()
     .min(3, "El slug debe tener al menos 3 caracteres")
-    .max(100, "El slug debe tener menos de 100 caracteres"),
+    .max(50, "El slug debe tener menos de 50 caracteres")
+    .refine(
+      (value) => /^[a-z0-9-]+$/.test(value),
+      "El slug solo puede contener letras minúsculas, números y guiones"
+    ),
   phoneNumber: z
     .string()
-    .min(10, "El teléfono debe tener al menos 10 caracteres")
-    .max(10, "El teléfono debe tener menos de 10 caracteres"),
+    .min(10, "El teléfono debe tener exactamente 10 dígitos")
+    .max(10, "El teléfono debe tener exactamente 10 dígitos")
+    .refine(
+      (value) => /^\d{10}$/.test(value),
+      "El teléfono debe contener solo números"
+    ),
   slogan: z.string().optional(),
   address: z.string().optional(),
   workDays: z.array(z.string()).min(1, "Selecciona al menos un día de trabajo"),
@@ -52,9 +106,9 @@ const schema = z.object({
   endHour: z.string().min(1, "Selecciona una hora de fin"),
   endMinute: z.string().min(1, "Selecciona un minuto de fin"),
   endAmPm: z.string().min(1, "Selecciona AM o PM"),
-})
+});
 
-type CompanyFormValues = z.infer<typeof schema>
+type CompanyFormValues = z.infer<typeof schema>;
 
 const DAYS_OF_WEEK = [
   { id: "monday", label: "Lunes" },
@@ -64,76 +118,127 @@ const DAYS_OF_WEEK = [
   { id: "friday", label: "Viernes" },
   { id: "saturday", label: "Sábado" },
   { id: "sunday", label: "Domingo" },
-]
+];
 
-export function CompanyForm() {
-  const [previewImage, setPreviewImage] = useState<string | null>(null)
-  const fileInputRef = useRef<HTMLInputElement | null>(null)
+interface CompanyFormProps {
+  company?: Negocio | null;
+  isLoading: boolean;
+  isError: boolean;
+  errorMessage?: string;
+  onRetry?: () => void;
+}
+
+// TODO: Resolver el problema de que la hora no se pone correctamente
+
+export function CompanyForm({
+  company,
+  isLoading,
+  isError,
+  errorMessage,
+  onRetry,
+}: CompanyFormProps) {
+  const { mutateAsync: createCompany } = useCreateCompany();
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [hasImageChanged, setHasImageChanged] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const form = useForm<CompanyFormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
+      name: "",
+      slugName: "",
+      phoneNumber: "",
+      slogan: "",
+      address: "",
       workDays: [],
-      startHour: "8",
-      startMinute: "0",
+      startHour: "08",
+      startMinute: "00",
       startAmPm: "AM",
-      endHour: "5",
-      endMinute: "0",
+      endHour: "05",
+      endMinute: "00",
       endAmPm: "PM",
     },
-  })
+  });
 
-  async function compressImage(file: File, maxWidth = 1000, quality = 0.8): Promise<File> {
-    return new Promise((resolve, reject) => {
-      const img = new window.Image()
-      const reader = new FileReader()
-  
-      reader.onload = (e) => {
-        if (!e.target?.result) return reject("Error al leer la imagen")
-        img.src = e.target.result as string
-      }
-  
-      img.onload = () => {
-        const canvas = document.createElement("canvas")
-        const ctx = canvas.getContext("2d")
-        if (!ctx) return reject("No se pudo obtener el contexto del canvas")
-  
-        const scale = Math.min(maxWidth / img.width, 1) // solo reducir si es más grande
-        const width = img.width * scale
-        const height = img.height * scale
-        canvas.width = width
-        canvas.height = height
-  
-        ctx.drawImage(img, 0, 0, width, height)
-  
-        canvas.toBlob(
-          (blob) => {
-            if (!blob) return reject("Error al comprimir la imagen")
-            const compressedFile = new File([blob], file.name, { type: "image/webp" })
-            resolve(compressedFile)
-          },
-          "image/webp", // formato webp con buena compresión
-          quality
-        )
-      }
-  
-      reader.onerror = (err) => reject(err)
-      reader.readAsDataURL(file)
-    })
+  const watchName = form.watch("name");
+
+  useEffect(() => {
+    if (watchName && !company) {
+      const slug = normalizeText(watchName);
+      form.setValue("slugName", slug, { shouldValidate: true });
+    }
+  }, [watchName, form, company]);
+
+  useEffect(() => {
+    if (company) {
+      form.reset({
+        name: company.name,
+        slugName: company.slugName,
+        phoneNumber: company.phoneNumber,
+        slogan: company.slogan || "",
+        address: company.address || "",
+        workDays: company.workDays,
+        startHour: company.startHour,
+        startMinute: company.startMinute,
+        startAmPm: company.startAmPm,
+        endHour: company.endHour,
+        endMinute: company.endMinute,
+        endAmPm: company.endAmPm,
+        image: company.imageUrl,
+      });
+      setPreviewImage(company.imageUrl);
+      setHasImageChanged(false);
+    }
+  }, [company, form]);
+
+  if (isLoading && !isError) {
+    return (
+      <div className="space-y-4">
+        <Loading
+          className="py-12"
+          message="Verificando información de la empresa..."
+        />
+      </div>
+    );
   }
-  
+
+  if (isError) {
+    return (
+      <div className="space-y-4">
+        <Error
+          className="py-12"
+          message={
+            errorMessage || "No se pudieron verificar los datos de la empresa"
+          }
+          retry={onRetry}
+        />
+      </div>
+    );
+  }
+
   async function onSubmit(values: CompanyFormValues) {
     try {
-      // 1. Comprimir imagen
-      const compressedImage = await compressImage(values.image, 1000, 0.8)
-  
-      // 2. Construir objeto data
+      const startTime = `${values.startHour}:${values.startMinute} ${values.startAmPm}`;
+      const endTime = `${values.endHour}:${values.endMinute} ${values.endAmPm}`;
+
+      if (startTime === endTime) {
+        toast.error("La hora de inicio y fin no pueden ser iguales");
+        return;
+      }
+
+      let imageToSubmit = values.image;
+
+      if (values.image instanceof File) {
+        imageToSubmit = await compressImage(values.image, 1000, 0.8);
+      }
+
       const data = {
-        name: values.name,
+        name: values.name.trim(),
+        image: imageToSubmit,
         slugName: values.slugName,
         phoneNumber: values.phoneNumber,
-        slogan: values.slogan,
-        address: values.address,
+        slogan: values.slogan?.trim() || "",
+        address: values.address?.trim() || "",
         workDays: values.workDays,
         startHour: values.startHour,
         startMinute: values.startMinute,
@@ -141,423 +246,536 @@ export function CompanyForm() {
         endHour: values.endHour,
         endMinute: values.endMinute,
         endAmPm: values.endAmPm,
-      }
-  
-      // 3. Crear FormData
-      const formData = new FormData()
-      formData.append("data", JSON.stringify(data))
-      formData.append("logo", compressedImage)
-  
-      // Aquí puedes mandarlo a tu API
-      // const res = await fetch("/api/company", { method: "POST", body: formData })
-  
-      console.log("FormData listo para enviar", formData)
-      toast.success("Formulario preparado con éxito 🚀")
+        hasImageChanged,
+      };
+
+      await createCompany(data);
+      toast.success(
+        company
+          ? "Empresa actualizada exitosamente"
+          : "¡Bienvenido! Tu empresa ha sido creada exitosamente"
+      );
     } catch (error) {
-      console.error(error)
-      toast.error("Error al preparar el formulario")
+      console.error(error);
+      toast.error(
+        company ? "Error al actualizar la empresa" : "Error al crear tu empresa"
+      );
     }
   }
-  
 
   function handleImageChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0]
+    const file = event.target.files?.[0];
     if (file) {
-      if (!file.type.startsWith("image/")) {
-        toast.error("Por favor selecciona un archivo de imagen válido")
-        return
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("La imagen no puede ser mayor a 5MB");
+        return;
       }
 
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setPreviewImage(reader.result as string)
+      if (!file.type.startsWith("image/")) {
+        toast.error("Por favor selecciona un archivo de imagen válido");
+        return;
       }
-      reader.readAsDataURL(file)
-      form.setValue("image", file)
-      form.clearErrors("image")
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+      form.setValue("image", file);
+      form.clearErrors("image");
+      setHasImageChanged(true);
     }
   }
 
   function handleImageClick() {
-    fileInputRef.current?.click()
+    fileInputRef.current?.click();
   }
 
   function removeImage() {
-    setPreviewImage(null)
-    form.setValue("image", undefined as any)
+    setPreviewImage(null);
+    form.setValue("image", undefined as any);
+    form.setError("image", { message: "Por favor, selecciona una imagen" });
     if (fileInputRef.current) {
-      fileInputRef.current.value = ""
+      fileInputRef.current.value = "";
     }
+    setHasImageChanged(true);
+  }
+
+  function handlePhoneChange(
+    event: React.ChangeEvent<HTMLInputElement>,
+    onChange: (value: string) => void
+  ) {
+    const numericValue = validateNumeric(event.target.value);
+    const limitedValue = numericValue.slice(0, 10);
+    onChange(limitedValue);
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <FormField
-          control={form.control}
-          name="image"
-          render={() => (
-            <FormItem>
-              <FormLabel className="text-base font-medium">Logo de la empresa</FormLabel>
-              <FormControl>
-                <div className="space-y-4">
-                  {/* Área de vista previa 4:3 */}
-                  <div
-                    className="relative w-full aspect-[1/1] border-2 border-dashed rounded-lg overflow-hidden cursor-pointer transition-colors group"
-                    onClick={handleImageClick}
-                  >
-                    {previewImage ? (
-                      <>
-                        <Image
-                          src={previewImage || "/placeholder.svg"}
-                          alt="Vista previa del logo"
-                          fill
-                          className="object-cover"
-                        />
-                        {/* Overlay para remover imagen */}
-                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <div className="flex gap-2">
-                            <Button
-                              type="button"
-                              variant="secondary"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleImageClick()
-                              }}
-                              className="bg-white/90 hover:bg-white text-gray-900"
-                            >
-                              <IconUpload className="w-4 h-4 mr-1" />
-                              Cambiar
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="destructive"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                removeImage()
-                              }}
-                              className="bg-red-500/90 hover:bg-red-600"
-                            >
-                              <IconX className="w-4 h-4 mr-1" />
-                              Remover
-                            </Button>
-                          </div>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="flex flex-col items-center justify-center h-full text-gray-500 group-hover:text-gray-600 transition-colors">
-                        <IconCamera className="w-12 h-12 mb-3" />
-                        <p className="text-sm font-medium mb-1">Haz clic para subir una imagen</p>
-                        <p className="text-xs text-gray-400">PNG, JPG hasta 5MB • Formato 1:1</p>
-                      </div>
-                    )}
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/jpeg,image/jpg,image/png,image/webp"
-                      onChange={handleImageChange}
-                      className="hidden"
-                    />
-                  </div>
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <div className="grid grid-cols-2 gap-4">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Nombre</FormLabel>
-              <FormControl>
-                <Input placeholder="Nombre de la empresa" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="slugName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Slug</FormLabel>
-              <FormControl>
-                <Input placeholder="Slug de la empresa" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        </div>
-
-
-        <FormField
-          control={form.control}
-          name="phoneNumber"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Teléfono</FormLabel>
-              <FormControl>
-                <Input placeholder="Teléfono de la empresa" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="slogan"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Slogan</FormLabel>
-              <FormControl>
-                <Input placeholder="Slogan de la empresa" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="address"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Dirección</FormLabel>
-              <FormControl>
-                <Input placeholder="Dirección de la empresa" {...field} />
-              </FormControl>
-              <FormDescription>
-                Te recomendamos que ingreses la dirección desde un link de Google Maps <span className="ml-1">📍</span>
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="workDays"
-          render={() => (
-            <FormItem>
-              <FormLabel className="text-base font-medium">Días de trabajo</FormLabel>
-              <FormDescription>Selecciona los días en que la empresa estará operando</FormDescription>
-              <FormControl>
-                <div className="grid grid-cols-2 gap-3 mt-3">
-                  {DAYS_OF_WEEK.map((day) => (
-                    <FormField
-                      key={day.id}
-                      control={form.control}
-                      name="workDays"
-                      render={({ field }) => {
-                        return (
-                          <FormItem key={day.id} className="flex flex-row items-start space-x-3 space-y-0">
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value?.includes(day.id)}
-                                onCheckedChange={(checked) => {
-                                  return checked
-                                    ? field.onChange([...field.value, day.id])
-                                    : field.onChange(field.value?.filter((value) => value !== day.id))
+    <div className="space-y-6">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <FormField
+            control={form.control}
+            name="image"
+            render={() => (
+              <FormItem>
+                <FormLabel className="text-base font-medium">
+                  Logo de la empresa *
+                </FormLabel>
+                <FormControl>
+                  <div className="space-y-4">
+                    <div
+                      className="relative w-full aspect-square border-2 border-dashed border-gray-300 rounded-lg overflow-hidden cursor-pointer transition-colors hover:border-gray-400 group"
+                      onClick={handleImageClick}
+                    >
+                      {previewImage ? (
+                        <>
+                          <Image
+                            src={previewImage}
+                            alt="Vista previa del logo"
+                            fill
+                            className="object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <div className="flex gap-2">
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleImageClick();
                                 }}
-                              />
-                            </FormControl>
-                            <FormLabel className="text-sm font-normal">{day.label}</FormLabel>
-                          </FormItem>
-                        )
+                                className="bg-white/90 hover:bg-white text-gray-900"
+                              >
+                                <IconUpload className="w-4 h-4 mr-1" />
+                                Cambiar
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  removeImage();
+                                }}
+                                className="bg-red-500/90 hover:bg-red-600"
+                              >
+                                <IconX className="w-4 h-4 mr-1" />
+                                Remover
+                              </Button>
+                            </div>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center h-full text-gray-500 group-hover:text-gray-600 transition-colors">
+                          <IconCamera className="w-12 h-12 mb-3" />
+                          <p className="text-sm font-medium mb-1">
+                            Haz clic para subir una imagen
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            PNG, JPG hasta 5MB • Formato cuadrado recomendado
+                          </p>
+                        </div>
+                      )}
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/jpeg,image/jpg,image/png,image/webp"
+                        onChange={handleImageChange}
+                        className="hidden"
+                      />
+                    </div>
+                    {company && hasImageChanged && (
+                      <p className="text-sm text-amber-600">
+                        ⚠️ La imagen será actualizada al guardar los cambios
+                      </p>
+                    )}
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nombre de la empresa *</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Ej: Mi Empresa S.A."
+                      {...field}
+                      onChange={(e) => {
+                        field.onChange(e.target.value);
                       }}
                     />
-                  ))}
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="slugName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>URL de la empresa</FormLabel>
+                  <FormControl>
+                    <div className="flex items-center">
+                      <span className="text-sm px-3 py-2 border border-r-0 rounded-l-md">
+                        meetzeen.com/
+                      </span>
+                      <Input
+                        placeholder="mi-empresa"
+                        className="rounded-l-none"
+                        {...field}
+                        onChange={(e) => {
+                          const normalizedValue = normalizeText(e.target.value);
+                          field.onChange(normalizedValue);
+                        }}
+                        disabled={Boolean(company)} // No permitir cambiar el slug si ya existe la empresa
+                      />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <FormField
+            control={form.control}
+            name="phoneNumber"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Teléfono *</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="1234567890"
+                    {...field}
+                    onChange={(e) => handlePhoneChange(e, field.onChange)}
+                    maxLength={10}
+                  />
+                </FormControl>
+                <FormDescription>
+                  Ingresa 10 dígitos sin espacios ni guiones
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="slogan"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Slogan</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Ej: Tu mejor opción en servicios"
+                    {...field}
+                  />
+                </FormControl>
+                <FormDescription>Opcional</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="address"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Dirección</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Calle, número, colonia, ciudad"
+                    {...field}
+                  />
+                </FormControl>
+                <FormDescription>
+                  Te recomendamos que ingreses la dirección desde un link de
+                  Google Maps 📍
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="workDays"
+            render={() => (
+              <FormItem>
+                <FormLabel className="text-base font-medium">
+                  Días de trabajo *
+                </FormLabel>
+                <FormDescription>
+                  Selecciona los días en que la empresa estará operando
+                </FormDescription>
+                <FormControl>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
+                    {DAYS_OF_WEEK.map((day) => (
+                      <FormField
+                        key={day.id}
+                        control={form.control}
+                        name="workDays"
+                        render={({ field }) => {
+                          return (
+                            <FormItem
+                              key={day.id}
+                              className="flex flex-row items-start space-x-3 space-y-0"
+                            >
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value?.includes(day.id)}
+                                  onCheckedChange={(checked) => {
+                                    return checked
+                                      ? field.onChange([...field.value, day.id])
+                                      : field.onChange(
+                                          field.value?.filter(
+                                            (value) => value !== day.id
+                                          )
+                                        );
+                                  }}
+                                />
+                              </FormControl>
+                              <FormLabel className="text-sm font-normal cursor-pointer">
+                                {day.label}
+                              </FormLabel>
+                            </FormItem>
+                          );
+                        }}
+                      />
+                    ))}
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Horario de operación *</h3>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-muted-foreground">
+                  Hora de inicio
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  <FormField
+                    control={form.control}
+                    name="startHour"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="H" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {HOURS.map((hour) => (
+                                <SelectItem key={hour} value={hour}>
+                                  {hour}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="startMinute"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="M" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {MINUTES.map((minute) => (
+                                <SelectItem key={minute} value={minute}>
+                                  {minute}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="startAmPm"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="AM/PM" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {AM_PM.map((ampm) => (
+                                <SelectItem key={ampm} value={ampm}>
+                                  {ampm}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+              </div>
 
-        <div className="grid grid-cols-3 gap-4">
-        <FormField
-          control={form.control}
-          name="startHour"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Inicio</FormLabel>
-              <FormControl>
-                <Select
-                  value={field.value}
-                  onValueChange={field.onChange}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Selecciona una hora" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {HOURS.map((hour) => (
-                      <SelectItem key={hour} value={hour}>
-                        {hour}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-muted-foreground">
+                  Hora de fin
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  <FormField
+                    control={form.control}
+                    name="endHour"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="H" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {HOURS.map((hour) => (
+                                <SelectItem key={hour} value={hour}>
+                                  {hour}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-        <FormField
-          control={form.control}
-          name="startMinute"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Minuto</FormLabel>
-              <FormControl>
-                <Select
-                  value={field.value}
-                  onValueChange={field.onChange}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Selecciona un minuto" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {MINUTES.map((minute) => (
-                      <SelectItem key={minute} value={minute}>
-                        {minute}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                  <FormField
+                    control={form.control}
+                    name="endMinute"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="M" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {MINUTES.map((minute) => (
+                                <SelectItem key={minute} value={minute}>
+                                  {minute}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-        <FormField
-          control={form.control}
-          name="startAmPm"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>AM/PM</FormLabel>
-              <FormControl>
-                <Select
-                  value={field.value}
-                  onValueChange={field.onChange}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Selecciona AM/PM" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {AM_PM.map((ampm) => (
-                      <SelectItem key={ampm} value={ampm}>
-                        {ampm}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                  <FormField
+                    control={form.control}
+                    name="endAmPm"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="AM/PM" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {AM_PM.map((ampm) => (
+                                <SelectItem key={ampm} value={ampm}>
+                                  {ampm}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
 
-        <FormField
-          control={form.control}
-          name="endHour"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Final</FormLabel>
-              <FormControl>
-                <Select
-                  value={field.value}
-                  onValueChange={field.onChange}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Selecciona una hora" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {HOURS.map((hour) => (
-                      <SelectItem key={hour} value={hour}>
-                        {hour}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <div className="flex flex-col gap-4">
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={form.formState.isSubmitting}
+            >
+              {form.formState.isSubmitting ? (
+                <Loading
+                  message={
+                    company ? "Actualizando..." : "Creando tu empresa..."
+                  }
+                />
+              ) : company ? (
+                "Actualizar empresa"
+              ) : (
+                "Crear empresa"
+              )}
+            </Button>
 
-        <FormField
-          control={form.control}
-          name="endMinute"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Minuto</FormLabel>
-              <FormControl>
-                <Select
-                  value={field.value}
-                  onValueChange={field.onChange}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Selecciona un minuto" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {MINUTES.map((minute) => (
-                      <SelectItem key={minute} value={minute}>
-                        {minute}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="endAmPm"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>AM/PM</FormLabel>
-              <FormControl>
-                <Select
-                  value={field.value}
-                  onValueChange={field.onChange}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Selecciona AM/PM" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {AM_PM.map((ampm) => (
-                      <SelectItem key={ampm} value={ampm}>
-                        {ampm}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        </div>
-
-        <Button type="submit" className="w-full">
-          Guardar
-        </Button>
-      </form>
-    </Form>
-  )
+            {company && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => form.reset()}
+                disabled={form.formState.isSubmitting}
+              >
+                Restablecer
+              </Button>
+            )}
+          </div>
+        </form>
+      </Form>
+    </div>
+  );
 }

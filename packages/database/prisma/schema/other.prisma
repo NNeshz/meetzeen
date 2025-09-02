@@ -1,8 +1,8 @@
 model Company {
-  id          String  @id @default(uuid())
+  id          String    @id @default(uuid())
   imageUrl    String
   name        String
-  slugName    String
+  slugName    String    @unique
   phoneNumber String
   slogan      String?
   address     String?
@@ -14,13 +14,112 @@ model Company {
   endMinute   String
   endAmPm     String
 
-  userId      String  @unique
-  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Redes sociales
+  facebook    String?
+  instagram   String?
+  tiktok      String?
+  twitterX    String?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  // Relaciones
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  categories  Category[]
+  employees   Employee[]
+  services    Service[] // opcional: si quieres asociar servicios directo a la compañía
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@index([name])
   @@index([phoneNumber])
   @@index([userId])
+}
+
+model Category {
+  id          String     @id @default(uuid())
+  name        String
+
+  // Relaciones
+  companyId   String
+  company     Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  employees   Employee[] @relation("EmployeeCategories")
+  services    Service[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([name])
+}
+
+model Employee {
+  id          String   @id @default(uuid())
+  imageUrl    String
+  name        String
+  slugName    String    @unique
+  phoneNumber String
+  email       String
+  password    String
+  role        String
+
+  // Relaciones
+  companyId   String
+  company     Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  schedules   EmployeeSchedule[]
+  exceptions  EmployeeException[]
+  categories  Category[] @relation("EmployeeCategories")
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([name])
+}
+
+model EmployeeSchedule {
+  id         String   @id @default(uuid())
+  employeeId String
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  dayOfWeek  Int      // 0 = domingo, 1 = lunes ... 6 = sábado
+  startTime  String   // Ej: "08:00"
+  endTime    String   // Ej: "12:00"
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model EmployeeException {
+  id         String   @id @default(uuid())
+  employeeId String
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  date       DateTime // Fecha exacta, ej: 2025-09-05 (UTC)
+  startTime  String?  // Ej: "09:00" (opcional)
+  endTime    String?  // Ej: "12:00" (opcional)
+  isAvailable Boolean // false = no trabaja ese día, true = horario extra
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+
+model Service {
+  id          String   @id @default(uuid())
+  name        String
+  duration    String
+  price       Float
+
+  // Relaciones
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([name])
 }
