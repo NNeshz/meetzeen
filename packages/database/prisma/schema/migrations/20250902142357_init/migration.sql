@@ -14,11 +14,84 @@ CREATE TABLE "public"."Company" (
     "endHour" TEXT NOT NULL,
     "endMinute" TEXT NOT NULL,
     "endAmPm" TEXT NOT NULL,
+    "facebook" TEXT,
+    "instagram" TEXT,
+    "tiktok" TEXT,
+    "twitterX" TEXT,
     "userId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Company_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."Category" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "companyId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Category_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."Employee" (
+    "id" TEXT NOT NULL,
+    "imageUrl" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "slugName" TEXT NOT NULL,
+    "phoneNumber" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "password" TEXT NOT NULL,
+    "role" TEXT NOT NULL,
+    "companyId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Employee_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."EmployeeSchedule" (
+    "id" TEXT NOT NULL,
+    "employeeId" TEXT NOT NULL,
+    "dayOfWeek" INTEGER NOT NULL,
+    "startTime" TEXT NOT NULL,
+    "endTime" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "EmployeeSchedule_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."EmployeeException" (
+    "id" TEXT NOT NULL,
+    "employeeId" TEXT NOT NULL,
+    "date" TIMESTAMP(3) NOT NULL,
+    "startTime" TEXT,
+    "endTime" TEXT,
+    "isAvailable" BOOLEAN NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "EmployeeException_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."Service" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "duration" TEXT NOT NULL,
+    "price" DOUBLE PRECISION NOT NULL,
+    "companyId" TEXT NOT NULL,
+    "categoryId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Service_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -123,6 +196,17 @@ CREATE TABLE "public"."Invitation" (
     CONSTRAINT "Invitation_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "public"."_EmployeeCategories" (
+    "A" TEXT NOT NULL,
+    "B" TEXT NOT NULL,
+
+    CONSTRAINT "_EmployeeCategories_AB_pkey" PRIMARY KEY ("A","B")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Company_slugName_key" ON "public"."Company"("slugName");
+
 -- CreateIndex
 CREATE UNIQUE INDEX "Company_userId_key" ON "public"."Company"("userId");
 
@@ -136,6 +220,18 @@ CREATE INDEX "Company_phoneNumber_idx" ON "public"."Company"("phoneNumber");
 CREATE INDEX "Company_userId_idx" ON "public"."Company"("userId");
 
 -- CreateIndex
+CREATE INDEX "Category_name_idx" ON "public"."Category"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Employee_slugName_key" ON "public"."Employee"("slugName");
+
+-- CreateIndex
+CREATE INDEX "Employee_name_idx" ON "public"."Employee"("name");
+
+-- CreateIndex
+CREATE INDEX "Service_name_idx" ON "public"."Service"("name");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "User_phoneNumber_key" ON "public"."User"("phoneNumber");
 
 -- CreateIndex
@@ -147,8 +243,29 @@ CREATE UNIQUE INDEX "Session_token_key" ON "public"."Session"("token");
 -- CreateIndex
 CREATE UNIQUE INDEX "Organization_slug_key" ON "public"."Organization"("slug");
 
+-- CreateIndex
+CREATE INDEX "_EmployeeCategories_B_index" ON "public"."_EmployeeCategories"("B");
+
 -- AddForeignKey
 ALTER TABLE "public"."Company" ADD CONSTRAINT "Company_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."Category" ADD CONSTRAINT "Category_companyId_fkey" FOREIGN KEY ("companyId") REFERENCES "public"."Company"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."Employee" ADD CONSTRAINT "Employee_companyId_fkey" FOREIGN KEY ("companyId") REFERENCES "public"."Company"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."EmployeeSchedule" ADD CONSTRAINT "EmployeeSchedule_employeeId_fkey" FOREIGN KEY ("employeeId") REFERENCES "public"."Employee"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."EmployeeException" ADD CONSTRAINT "EmployeeException_employeeId_fkey" FOREIGN KEY ("employeeId") REFERENCES "public"."Employee"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."Service" ADD CONSTRAINT "Service_companyId_fkey" FOREIGN KEY ("companyId") REFERENCES "public"."Company"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."Service" ADD CONSTRAINT "Service_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "public"."Category"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."Session" ADD CONSTRAINT "Session_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -167,3 +284,9 @@ ALTER TABLE "public"."Invitation" ADD CONSTRAINT "Invitation_inviterId_fkey" FOR
 
 -- AddForeignKey
 ALTER TABLE "public"."Invitation" ADD CONSTRAINT "Invitation_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "public"."Organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."_EmployeeCategories" ADD CONSTRAINT "_EmployeeCategories_A_fkey" FOREIGN KEY ("A") REFERENCES "public"."Category"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."_EmployeeCategories" ADD CONSTRAINT "_EmployeeCategories_B_fkey" FOREIGN KEY ("B") REFERENCES "public"."Employee"("id") ON DELETE CASCADE ON UPDATE CASCADE;

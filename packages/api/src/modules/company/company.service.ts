@@ -1,8 +1,6 @@
 import { prismaClient } from "@meetzeen/api/src/modules/prisma";
 import { ImageService } from "@meetzeen/api/src/modules/images";
 import {
-  CreateCompanySchema,
-  CreateCompanyDTO,
   UpdateCompanySchema,
   UpdateCompanyDTO,
   CompanyResponseDTO,
@@ -15,52 +13,89 @@ export class CompanyService {
     this.imageService = new ImageService();
   }
 
-  async createCompany(form: FormData, userId: string) {
+  async createOrUpdateCompany(
+    body: {
+      name: string;
+      image?: File | string | null;
+      slugName: string;
+      phoneNumber: string;
+      slogan?: string;
+      address?: string;
+      workDays: string[];
+      startHour: string;
+      startMinute: string;
+      startAmPm: string;
+      endHour: string;
+      endMinute: string;
+      endAmPm: string;
+      hasImageChanged?: boolean;
+    },
+    userId: string
+  ) {
+    // Verificar si ya existe una empresa para este usuario
     const existingCompany = await prismaClient.company.findUnique({
       where: { userId },
     });
 
     if (existingCompany) {
-      throw new Error("El usuario ya tiene una empresa asociada");
+      // Actualizar empresa existente
+      return this.updateExistingCompany(body, userId, existingCompany);
+    } else {
+      // Crear nueva empresa
+      return this.createNewCompany(body, userId);
+    }
+  }
+
+  private async createNewCompany(
+    body: {
+      name: string;
+      image?: File | string | null;
+      slugName: string;
+      phoneNumber: string;
+      slogan?: string;
+      address?: string;
+      workDays: string[];
+      startHour: string;
+      startMinute: string;
+      startAmPm: string;
+      endHour: string;
+      endMinute: string;
+      endAmPm: string;
+    },
+    userId: string
+  ) {
+    // Verificar que el slugName no exista
+    const existingSlug = await prismaClient.company.findUnique({
+      where: { slugName: body.slugName },
+    });
+
+    if (existingSlug) {
+      throw new Error("Este nombre de empresa ya está en uso. Por favor, elige otro.");
     }
 
-    const rawData = form.get("data") as string;
-    if (!rawData) throw new Error("Falta el campo 'data'");
-
-    let data: unknown;
-    try {
-      data = JSON.parse(rawData);
-    } catch (e) {
-      throw new Error("El campo 'data' no es un JSON válido");
+    let imageUrl: string = "";
+    
+    // Solo procesar imagen si es un archivo
+    if (body.image && typeof body.image !== "string") {
+      imageUrl = await this.imageService.createImage(body.image, "logos");
     }
 
-    const parsed = CreateCompanySchema.safeParse(data);
-    if (!parsed.success) {
-      throw new Error("Validación fallida: " + parsed.error.message);
-    }
-    const validData: CreateCompanyDTO = parsed.data;
-
-    const logo = form.get("logo") as File;
-    if (!logo) throw new Error("Falta el archivo 'logo'");
-
-    const imageUrl = await this.imageService.createImage(logo, "logos");
-
-    const company: CompanyResponseDTO = await prismaClient.company.create({
+    const company = await prismaClient.company.create({
       data: {
-        name: validData.name,
-        slugName: validData.slugName,
-        phoneNumber: validData.phoneNumber,
-        slogan: validData.slogan,
-        imageUrl: imageUrl,
         userId: userId,
-        address: validData.address,
-        workDays: validData.workDays,
-        startHour: validData.startHour,
-        startMinute: validData.startMinute,
-        startAmPm: validData.startAmPm,
-        endHour: validData.endHour,
-        endMinute: validData.endMinute,
-        endAmPm: validData.endAmPm,
+        name: body.name,
+        imageUrl: imageUrl,
+        slugName: body.slugName,
+        phoneNumber: body.phoneNumber,
+        slogan: body.slogan ?? null,
+        address: body.address ?? null,
+        workDays: body.workDays,
+        startHour: body.startHour,
+        startMinute: body.startMinute,
+        startAmPm: body.startAmPm,
+        endHour: body.endHour,
+        endMinute: body.endMinute,
+        endAmPm: body.endAmPm,
       },
       include: {
         user: {
@@ -75,14 +110,60 @@ export class CompanyService {
 
     return {
       status: 201,
-      message: "Empresa creada con éxito",
+      message: "¡Bienvenido! Tu empresa ha sido creada con éxito",
       data: company,
     };
   }
 
-  async getCompanyByUserId(userId: string) {
-    const company = await prismaClient.company.findUnique({
+  private async updateExistingCompany(
+    body: {
+      name: string;
+      image?: File | string | null;
+      slugName: string;
+      phoneNumber: string;
+      slogan?: string;
+      address?: string;
+      workDays: string[];
+      startHour: string;
+      startMinute: string;
+      startAmPm: string;
+      endHour: string;
+      endMinute: string;
+      endAmPm: string;
+      hasImageChanged?: boolean;
+    },
+    userId: string,
+    existingCompany: any
+  ) {
+    let imageUrl = existingCompany.imageUrl;
+
+    if (body.hasImageChanged && body.image && typeof body.image !== "string") {
+      if (existingCompany.imageUrl) {
+        try {
+          await this.imageService.deleteImage(existingCompany.imageUrl);
+        } catch (error) {
+          console.warn("Error al eliminar imagen anterior:", error);
+        }
+      }      
+      imageUrl = await this.imageService.createImage(body.image, "logos");
+    }
+
+    const company = await prismaClient.company.update({
       where: { userId },
+      data: {
+        name: body.name,
+        phoneNumber: body.phoneNumber,
+        slogan: body.slogan ?? null,
+        address: body.address ?? null,
+        workDays: body.workDays,
+        startHour: body.startHour,
+        startMinute: body.startMinute,
+        startAmPm: body.startAmPm,
+        endHour: body.endHour,
+        endMinute: body.endMinute,
+        endAmPm: body.endAmPm,
+        ...(body.hasImageChanged && { imageUrl }),
+      },
       include: {
         user: {
           select: {
@@ -94,15 +175,118 @@ export class CompanyService {
       },
     });
 
+    return {
+      status: 200,
+      message: "Empresa actualizada con éxito",
+      data: company,
+    };
+  }
+
+  async updateSocials(body: {
+    facebook?: string;
+    instagram?: string;
+    twitterX?: string;
+    tiktok?: string;
+  }, userId: string) {
+    const company = await prismaClient.company.update({
+      where: { userId },
+      data: {
+        facebook: body.facebook ?? null,
+        instagram: body.instagram ?? null,
+        twitterX: body.twitterX ?? null,
+        tiktok: body.tiktok ?? null,
+      },
+    });
+
+    return {
+      status: 200,
+      message: "Redes sociales actualizadas con éxito",
+      data: company,
+    };
+  }
+
+  async getCompanyByUserId(userId: string) {
+    const company = await prismaClient.company.findUnique({
+      where: { userId },
+      select: {
+        name: true,
+        imageUrl: true,
+        slugName: true,
+        phoneNumber: true,
+        slogan: true,
+        address: true,
+        workDays: true,
+        startHour: true,
+        startMinute: true,
+        startAmPm: true,
+        endHour: true,
+        endMinute: true,
+        endAmPm: true,
+        facebook: true,
+        instagram: true,
+        twitterX: true,
+        tiktok: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    
     if (!company) {
-      throw new Error("No se encontró una empresa para este usuario");
+      return {
+        status: 404,
+        message: "Empresa no encontrada",
+        data: null,
+      };
     }
+    
+    const formattedResponse = this.formatCompanyResponse(company);
 
     return {
       status: 200,
       message: "Empresa encontrada",
-      data: company,
+      data: formattedResponse,
     };
+  }
+
+  private formatCompanyResponse(company: {
+    name: string;
+    imageUrl: string;
+    slugName: string;
+    phoneNumber: string;
+    slogan: string | null;
+    address: string | null;
+    workDays: string[];
+    startHour: string;
+    startMinute: string;
+    startAmPm: string;
+    endHour: string;
+    endMinute: string;
+    endAmPm: string;
+    facebook: string | null;
+    instagram: string | null;
+    twitterX: string | null;
+    tiktok: string | null;
+    user: {
+      id: string;
+      name: string;
+      email: string;
+    };
+  }) {
+    return {
+      ...company,
+      socials: {
+        facebook: company.facebook ?? null,
+        instagram: company.instagram ?? null,
+        twitterX: company.twitterX ?? null,
+        tiktok: company.tiktok ?? null,
+      }
+    }
   }
 
   async getCompanyById(companyId: string) {
@@ -120,7 +304,11 @@ export class CompanyService {
     });
 
     if (!company) {
-      throw new Error("Empresa no encontrada");
+      return {
+        status: 404,
+        message: "Empresa no encontrada",
+        data: null,
+      };
     }
 
     return {
@@ -130,7 +318,58 @@ export class CompanyService {
     };
   }
 
-  async updateCompany(form: FormData, userId: string) {
+  async getCompanyBySlugName(slugName: string) {
+    const company = await prismaClient.company.findUnique({
+      where: { slugName },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        categories: {
+          include: {
+            services: true,
+            employees: true,
+          },
+        },
+      },
+    });
+
+    if (!company) {
+      return {
+        status: 404,
+        message: "Empresa no encontrada",
+        data: null,
+      };
+    }
+
+    return {
+      status: 200,
+      message: "Empresa encontrada",
+      data: company,
+    };
+  }
+
+  // Mantener método updateCompany por compatibilidad (deprecated)
+  async updateCompany(body: {
+    name: string;
+    image: File | string;
+    slugName: string;
+    phoneNumber: string;
+    slogan?: string;
+    address?: string;
+    workDays: string[];
+    startHour: string;
+    startMinute: string;
+    startAmPm: string;
+    endHour: string;
+    endMinute: string;
+    endAmPm: string;
+  }, userId: string) {
+    console.warn("updateCompany method is deprecated. Use createOrUpdateCompany instead.");
+    
     // Verificar que la empresa pertenece al usuario
     const existingCompany = await prismaClient.company.findUnique({
       where: { userId },
@@ -140,17 +379,7 @@ export class CompanyService {
       throw new Error("No se encontró una empresa para este usuario");
     }
 
-    const rawData = form.get("data") as string;
-    if (!rawData) throw new Error("Falta el campo 'data'");
-
-    let data: unknown;
-    try {
-      data = JSON.parse(rawData);
-    } catch (e) {
-      throw new Error("El campo 'data' no es un JSON válido");
-    }
-
-    const parsed = UpdateCompanySchema.safeParse(data);
+    const parsed = UpdateCompanySchema.safeParse(body);
     if (!parsed.success) {
       throw new Error("Validación fallida: " + parsed.error.message);
     }
@@ -159,13 +388,16 @@ export class CompanyService {
     let imageUrl = existingCompany.imageUrl;
 
     // Si se proporciona un nuevo logo
-    const logo = form.get("logo") as File;
-    if (logo) {
+    if (body.image && typeof body.image !== "string") {
       // Eliminar la imagen anterior si existe
       if (existingCompany.imageUrl) {
-        await this.imageService.deleteImage(existingCompany.imageUrl);
+        try {
+          await this.imageService.deleteImage(existingCompany.imageUrl);
+        } catch (error) {
+          console.warn("Error al eliminar imagen anterior:", error);
+        }
       }
-      imageUrl = await this.imageService.createImage(logo, "logos");
+      imageUrl = await this.imageService.createImage(body.image, "logos");
     }
 
     const company = await prismaClient.company.update({
@@ -174,7 +406,7 @@ export class CompanyService {
         ...(validData.name && { name: validData.name }),
         ...(validData.phoneNumber && { phoneNumber: validData.phoneNumber }),
         ...(validData.slogan !== undefined && { slogan: validData.slogan }),
-        ...(logo && { imageUrl }),
+        ...(body.image && typeof body.image !== "string" && { imageUrl }),
       },
       include: {
         user: {
@@ -200,12 +432,21 @@ export class CompanyService {
     });
 
     if (!existingCompany) {
-      throw new Error("No se encontró una empresa para este usuario");
+      return {
+        status: 404,
+        message: "No se encontró una empresa para este usuario",
+        data: null,
+      };
     }
 
     // Eliminar la imagen del logo
     if (existingCompany.imageUrl) {
-      await this.imageService.deleteImage(existingCompany.imageUrl);
+      try {
+        await this.imageService.deleteImage(existingCompany.imageUrl);
+      } catch (error) {
+        console.warn("Error al eliminar imagen:", error);
+        // No fallar la eliminación si no se puede eliminar la imagen
+      }
     }
 
     await prismaClient.company.delete({
@@ -215,6 +456,7 @@ export class CompanyService {
     return {
       status: 200,
       message: "Empresa eliminada con éxito",
+      data: null,
     };
   }
 }

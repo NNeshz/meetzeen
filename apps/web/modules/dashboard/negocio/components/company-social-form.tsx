@@ -1,6 +1,11 @@
 "use client";
 
-import { IconBrandFacebookFilled, IconBrandInstagramFilled, IconBrandTiktokFilled, IconBrandXFilled } from "@tabler/icons-react";
+import {
+  IconBrandFacebookFilled,
+  IconBrandInstagramFilled,
+  IconBrandTiktokFilled,
+  IconBrandXFilled,
+} from "@tabler/icons-react";
 
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -16,41 +21,115 @@ import {
   FormMessage,
 } from "@meetzeen/ui/components/form";
 import { Input } from "@meetzeen/ui/components/input";
+import { toast } from "sonner";
+
+import { Loading } from "@/modules/dashboard/components/loading";
+import { Error } from "@/modules/dashboard/components/error";
+
+import { Socials } from "@/modules/dashboard/negocio/types/read-socials";
+
+import { useUpdateSocials } from "@/modules/dashboard/negocio/hooks/useNegocio";
+import { useEffect } from "react";
 
 const schema = z.object({
   facebook: z.string().optional(),
   instagram: z.string().optional(),
   tiktok: z.string().optional(),
-  x: z.string().optional(),
+  twitterX: z.string().optional(),
 });
 
 type CompanyFormValues = z.infer<typeof schema>;
 
-// TODO: Agregar los iconos de redes sociales correctos
+interface CompanySocialFormProps {
+  socials?: Socials;
+  isLoading: boolean;
+  isError: boolean;
+  errorMessage?: string;
+  onRetry?: () => void;
+}
 
-export function CompanySocialForm() {
+export function CompanySocialForm({
+  socials,
+  isLoading,
+  isError,
+  errorMessage,
+  onRetry,
+}: CompanySocialFormProps) {
+  const { mutateAsync: updateSocials } = useUpdateSocials();
+
   const form = useForm<CompanyFormValues>({
     resolver: zodResolver(schema),
+    defaultValues: {
+      facebook: "",
+      instagram: "",
+      tiktok: "",
+      twitterX: "",
+    },
   });
 
-  function onSubmit(values: CompanyFormValues) {
-    console.log(values);
+  useEffect(() => {
+    if (socials) {
+      form.reset({
+        facebook: socials?.facebook ?? "",
+        instagram: socials?.instagram ?? "",
+        tiktok: socials?.tiktok ?? "",
+        twitterX: socials?.twitterX ?? "",
+      });
+    }
+  }, [socials, form]);
+
+  async function onSubmit(values: CompanyFormValues) {
+    try {
+      await updateSocials(values);
+      toast.success("Redes sociales actualizadas correctamente");
+    } catch (error) {
+      console.error("Error al actualizar las redes sociales:", error);
+      toast.error("Error al actualizar las redes sociales");
+    }
+  }
+
+  if (isLoading && !isError) {
+    return (
+      <div className="space-y-4">
+        <Loading
+          className="py-12"
+          message="Verificando información de la empresa..."
+        />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="space-y-4">
+        <Error
+          className="py-12"
+          message={
+            errorMessage || "No se pudieron verificar los datos de la empresa"
+          }
+          retry={onRetry}
+        />
+      </div>
+    );
   }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-
         <FormField
           control={form.control}
           name="facebook"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>
-                <IconBrandFacebookFilled className="size-4" />Facebook
+              <FormLabel className="flex items-center gap-2">
+                <IconBrandFacebookFilled className="size-4" />
+                Facebook
               </FormLabel>
               <FormControl>
-                <Input placeholder="Facebook de la empresa" {...field} />
+                <Input
+                  placeholder="Facebook de la empresa"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -62,11 +141,15 @@ export function CompanySocialForm() {
           name="instagram"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>
-                <IconBrandInstagramFilled className="size-4" />Instagram
+              <FormLabel className="flex items-center gap-2">
+                <IconBrandInstagramFilled className="size-4" />
+                Instagram
               </FormLabel>
               <FormControl>
-                <Input placeholder="Instagram de la empresa" {...field} />
+                <Input
+                  placeholder="Instagram de la empresa"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -78,11 +161,15 @@ export function CompanySocialForm() {
           name="tiktok"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>
-                <IconBrandTiktokFilled className="size-4" />Tiktok
+              <FormLabel className="flex items-center gap-2">
+                <IconBrandTiktokFilled className="size-4" />
+                TikTok
               </FormLabel>
               <FormControl>
-                <Input placeholder="Tiktok de la empresa" {...field} />
+                <Input
+                  placeholder="TikTok de la empresa"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -91,20 +178,35 @@ export function CompanySocialForm() {
 
         <FormField
           control={form.control}
-          name="x"
+          name="twitterX"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>
-                <IconBrandXFilled className="size-4" />X
+              <FormLabel className="flex items-center gap-2">
+                <IconBrandXFilled className="size-4" />
+                X (Twitter)
               </FormLabel>
               <FormControl>
-                <Input placeholder="X de la empresa" {...field} />
+                <Input
+                  placeholder="X de la empresa"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full">Guardar</Button>
+        
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={form.formState.isSubmitting}
+        >
+          {form.formState.isSubmitting ? (
+            <Loading message="Actualizando..." />
+          ) : (
+            "Guardar"
+          )}
+        </Button>
       </form>
     </Form>
   );

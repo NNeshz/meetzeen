@@ -1,9 +1,10 @@
 import { apiClient } from "@/utils/api-connection";
+import { CreateNegocioDTO } from "@/modules/dashboard/negocio/types/create-negocio";
 
 export class NegocioService {
-  async createCompany(formData: FormData) {
+  async createCompany(body: CreateNegocioDTO) {
     try {
-      const response = await apiClient.company.create.post(formData, {
+      const response = await apiClient.company.createOrUpdate.post(body, {
         fetch: { credentials: "include" },
       });
 
@@ -31,6 +32,28 @@ export class NegocioService {
       return response.data;
     } catch (error) {
       console.error("NegocioService.getMyCompany error:", error);
+      throw error;
+    }
+  }
+
+  async updateSocials(body: {
+    facebook?: string;
+    instagram?: string;
+    twitterX?: string;
+    tiktok?: string;
+  }) {
+    try {
+      const response = await apiClient.company.socials.post(body, {
+        fetch: { credentials: "include" },
+      });
+
+      if (response.error) {
+        throw new Error("Error al actualizar las redes sociales");
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error("NegocioService.updateSocials error:", error);
       throw error;
     }
   }
