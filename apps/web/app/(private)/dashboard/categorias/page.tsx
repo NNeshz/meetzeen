@@ -2,6 +2,11 @@ import { CategoriasHeader } from "@/modules/dashboard/categorias/categorias-head
 import { CategoriasFilter } from "@/modules/dashboard/categorias/categorias-filter";
 import { CategoriasCards } from "@/modules/dashboard/categorias/categorias-cards";
 import { CategoriasPagination } from "@/modules/dashboard/categorias/categorias-pagination";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Meetzeen - Categorías",
+};
 
 export default function CategoriasPage() {
   return (
