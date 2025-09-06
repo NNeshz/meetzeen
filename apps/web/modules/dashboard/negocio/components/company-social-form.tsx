@@ -93,7 +93,7 @@ export function CompanySocialForm({
       <div className="space-y-4">
         <Loading
           className="py-12"
-          message="Verificando información de la empresa..."
+          message={["Verificando información de la empresa...", "Actualizando información de la empresa..."]}
         />
       </div>
     );
