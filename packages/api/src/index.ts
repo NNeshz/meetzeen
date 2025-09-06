@@ -4,6 +4,7 @@ import "./utils/envs";
 import { betterAuthPlugin } from "@meetzeen/api/src/utils/better-auth-plugin";
 
 import { companyRoute } from "@meetzeen/api/src/modules/company/company.route";
+import { categoriesRoute } from "@meetzeen/api/src/modules/categories/categories.route";
 
 export const api = new Elysia({
   prefix: "/api",
@@ -16,5 +17,6 @@ export const api = new Elysia({
   allowedHeaders: ["Authorization", "Content-Type"],
 }))
 .use(companyRoute)
+.use(categoriesRoute)
   
 export type Api = typeof api;

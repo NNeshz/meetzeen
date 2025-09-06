@@ -1,28 +1,28 @@
-import { Button } from "@meetzeen/ui/src/components/button";
-import { IconRefresh, IconAlertCircle } from "@tabler/icons-react";
+import { IconInbox } from "@tabler/icons-react";
 import { useState, useEffect } from "react";
 
-interface ErrorProps {
+interface EmptyProps {
   className?: string;
   icon?: React.ReactNode;
-  retry?: () => void;
   message?: string | string[];
+  action?: React.ReactNode;
 }
 
-export function Error({
+export function Empty({
   className,
   icon,
-  retry,
   message,
-}: ErrorProps) {
+  action,
+}: EmptyProps) {
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
 
+  // Determinar si tenemos un array de mensajes
   const messages = Array.isArray(message) 
     ? message 
     : message 
     ? [message] 
-    : ["Algo salió mal"];
+    : ["No hay elementos para mostrar"];
   
   const hasMultipleMessages = Array.isArray(message) && message.length > 1;
 
@@ -30,8 +30,10 @@ export function Error({
     if (!hasMultipleMessages) return;
 
     const interval = setInterval(() => {
+      // Iniciar el fade out
       setIsVisible(false);
       
+      // Después de 300ms (tiempo del fade out), cambiar el mensaje
       setTimeout(() => {
         setCurrentMessageIndex((prev) => (prev + 1) % messages.length);
         setIsVisible(true);
@@ -42,7 +44,7 @@ export function Error({
   }, [hasMultipleMessages, messages.length]);
 
   const currentMessage = messages[currentMessageIndex];
-  const defaultIcon = <IconAlertCircle className="w-8 h-8 text-red-500" />;
+  const defaultIcon = <IconInbox className="w-16 h-16 text-gray-400" />;
 
   return (
     <div className={`flex flex-col items-center justify-center h-[70vh] space-y-4 ${className}`}>
@@ -51,27 +53,22 @@ export function Error({
         {icon || defaultIcon}
       </div>
       
-      {/* Mensaje de error */}
-      <div className="text-center">
+      {/* Mensaje de estado vacío */}
+      <div className="text-center max-w-md">
         <p 
-          className={`text-red-500 text-lg font-medium transition-opacity duration-300 ${
+          className={`text-gray-500 text-lg font-medium transition-opacity duration-300 ${
             isVisible ? 'opacity-100' : 'opacity-0'
           }`}
         >
-          Error: {currentMessage}
+          {currentMessage}
         </p>
       </div>
 
-      {/* Botón de reintentar */}
-      {retry && (
-        <Button 
-          onClick={retry} 
-          variant="outline"
-          className="mt-4 flex items-center space-x-2"
-        >
-          <IconRefresh className="w-4 h-4" />
-          <span>Reintentar</span>
-        </Button>
+      {/* Acción opcional (botón, enlace, etc.) */}
+      {action && (
+        <div className="mt-4">
+          {action}
+        </div>
       )}
     </div>
   );
