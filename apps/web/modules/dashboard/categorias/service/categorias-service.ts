@@ -64,7 +64,7 @@ export class CategoriasService {
   }
 
   async deleteCategoria(id: string) {
-    const response = await apiClient.categories({ id }).delete({
+    const response = await apiClient.categories({ id }).delete(null, {
       fetch: {
         credentials: "include",
       },
