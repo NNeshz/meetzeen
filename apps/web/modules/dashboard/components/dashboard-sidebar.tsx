@@ -81,7 +81,7 @@ const data = {
 
 export function DashboardSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
-    <Sidebar collapsible="icon" {...props}>
+    <Sidebar collapsible="icon" variant="inset" {...props}>
       <SidebarHeader>
         <TeamSwitcher icon={IconBrandAppgallery} title="Meetzeen" />
       </SidebarHeader>
@@ -91,7 +91,6 @@ export function DashboardSidebar({ ...props }: React.ComponentProps<typeof Sideb
       <SidebarFooter>
         <NavUser />
       </SidebarFooter>
-      <SidebarRail />
     </Sidebar>
   )
 }

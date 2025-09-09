@@ -21,10 +21,8 @@ export const AppProviders = ({ children }: { children?: ReactNode }) => {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark"
-          themes={["light", "dark"]}
-          enableSystem={false}
-          forcedTheme="dark"
+          defaultTheme="system"
+          enableSystem
           disableTransitionOnChange
         >
           {children}

@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button, buttonVariants } from "@meetzeen/ui/src/components/button";
 import { cn } from "@meetzeen/ui/src/lib/utils";
 import { authClient } from "@meetzeen/auth/client";
+import { ModeToggle } from "@/modules/landing/components/mode-toggle";
 
 const links = [
   {
@@ -30,14 +31,17 @@ export function Navbar() {
   return (
     <>
       <header className="fixed top-4 z-50 w-full flex justify-center px-4">
-        <nav className="w-full max-w-7xl px-2 py-2 flex items-center justify-between bg-background backdrop-blur-md rounded-lg">
+        <nav className="w-full max-w-7xl px-2 py-2 flex items-center justify-between backdrop-blur-xl rounded-xl overflow-hidden">
           {/* Logo */}
-          <Link
+          <div className="flex items-center gap-2">
+            <ModeToggle />
+            <Link
             href="/"
             className="text-xl font-medium tracking-tighter flex items-center gap-2 px-2"
           >
             Meetzeen
           </Link>
+          </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-4">
@@ -53,6 +57,7 @@ export function Navbar() {
                 </li>
               ))}
             </ul>
+          </div>
             {
               session?.data?.user ? (
                 <Link
@@ -60,7 +65,8 @@ export function Navbar() {
                   className={cn(
                     buttonVariants({
                       variant: "default",
-                      className: "flex items-center gap-2",
+                      size: "sm",
+                      className: "flex items-center",
                     })
                   )}
                 >
@@ -72,6 +78,7 @@ export function Navbar() {
                   className={cn(
                     buttonVariants({
                       variant: "default",
+                      size: "sm",
                       className: "flex items-center gap-2",
                     })
                   )}
@@ -79,9 +86,7 @@ export function Navbar() {
                   Iniciar sesión
                 </Link>
               )
-
             }
-          </div>
 
           {/* Mobile Menu Button */}
           <div className="md:hidden">
