@@ -13,8 +13,8 @@ export function CategoriaSheetCreate() {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="outline" size="icon">
-          <IconPlus className="h-5 w-5" />
+        <Button variant="brand" size={"sm"}>
+          <IconPlus className="h-5 w-5" /> Agregar categoría
         </Button>
       </SheetTrigger>
       <SheetContent className="w-full sm:max-w-xl">

@@ -33,8 +33,9 @@ export function EquipoFilter() {
         </Sheet>
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="outline" size="icon">
+            <Button variant="brand" size={"sm"} >
               <IconPlus className="h-5 w-5" />
+              Agregar empleado
             </Button>
           </SheetTrigger>
           <SheetContent className="w-full sm:max-w-xl">

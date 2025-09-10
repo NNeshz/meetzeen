@@ -311,135 +311,92 @@ export function CompanyForm({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-3xl mx-auto">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <FormField
-            control={form.control}
-            name="image"
-            render={() => (
-              <FormItem>
-                <FormLabel className="text-base font-medium">
-                  Logo de la empresa *
-                </FormLabel>
-                <FormControl>
-                  <div className="space-y-4">
-                    <div
-                      className="relative w-full aspect-square border-2 border-dashed border-gray-300 rounded-lg overflow-hidden cursor-pointer transition-colors hover:border-gray-400 group"
-                      onClick={handleImageClick}
-                    >
-                      {previewImage ? (
-                        <>
-                          <Image
-                            src={previewImage}
-                            alt="Vista previa del logo"
-                            fill
-                            className="object-cover"
-                          />
-                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <div className="flex gap-2">
-                              <Button
-                                type="button"
-                                variant="secondary"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleImageClick();
-                                }}
-                                className="bg-white/90 hover:bg-white text-gray-900"
-                              >
-                                <IconUpload className="w-4 h-4 mr-1" />
-                                Cambiar
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="destructive"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  removeImage();
-                                }}
-                                className="bg-red-500/90 hover:bg-red-600"
-                              >
-                                <IconX className="w-4 h-4 mr-1" />
-                                Remover
-                              </Button>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-12">
+          {/* Sección: Logo de la empresa */}
+          <div className="space-y-6">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold text-foreground">Logo de la empresa</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Sube el logo que representará tu empresa
+              </p>
+            </div>
+            
+            <FormField
+              control={form.control}
+              name="image"
+              render={() => (
+                <FormItem>
+                  <FormControl>
+                    <div className="space-y-4">
+                      <div
+                        className="relative w-full max-w-sm mx-auto aspect-square border-2 border-dashed border-gray-300 rounded-lg overflow-hidden cursor-pointer transition-colors hover:border-gray-400 group"
+                        onClick={handleImageClick}
+                      >
+                        {previewImage ? (
+                          <>
+                            <Image
+                              src={previewImage}
+                              alt="Vista previa del logo"
+                              fill
+                              className="object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <div className="flex gap-2">
+                                <Button
+                                  type="button"
+                                  variant="secondary"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleImageClick();
+                                  }}
+                                  className="bg-white/90 hover:bg-white text-foreground"
+                                >
+                                  <IconUpload className="w-4 h-4 mr-1" />
+                                  Cambiar
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    removeImage();
+                                  }}
+                                  className="bg-red-500/90 hover:bg-red-600"
+                                >
+                                  <IconX className="w-4 h-4 mr-1" />
+                                  Remover
+                                </Button>
+                              </div>
                             </div>
+                          </>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center h-full text-gray-500 group-hover:text-gray-600 transition-colors">
+                            <IconCamera className="w-12 h-12 mb-3" />
+                            <p className="text-sm font-medium mb-1">
+                              Haz clic para subir una imagen
+                            </p>
+                            <p className="text-xs text-gray-400">
+                              PNG, JPG hasta 5MB • Formato cuadrado recomendado
+                            </p>
                           </div>
-                        </>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center h-full text-gray-500 group-hover:text-gray-600 transition-colors">
-                          <IconCamera className="w-12 h-12 mb-3" />
-                          <p className="text-sm font-medium mb-1">
-                            Haz clic para subir una imagen
-                          </p>
-                          <p className="text-xs text-gray-400">
-                            PNG, JPG hasta 5MB • Formato cuadrado recomendado
-                          </p>
-                        </div>
+                        )}
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/jpeg,image/jpg,image/png,image/webp"
+                          onChange={handleImageChange}
+                          className="hidden"
+                        />
+                      </div>
+                      {company && hasImageChanged && (
+                        <p className="text-sm text-amber-600 text-center">
+                          ⚠️ La imagen será actualizada al guardar los cambios
+                        </p>
                       )}
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/jpeg,image/jpg,image/png,image/webp"
-                        onChange={handleImageChange}
-                        className="hidden"
-                      />
-                    </div>
-                    {company && hasImageChanged && (
-                      <p className="text-sm text-amber-600">
-                        ⚠️ La imagen será actualizada al guardar los cambios
-                      </p>
-                    )}
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nombre de la empresa *</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Ej: Mi Empresa S.A."
-                      {...field}
-                      onChange={(e) => {
-                        field.onChange(e.target.value);
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="slugName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>URL de la empresa</FormLabel>
-                  <FormControl>
-                    <div className="flex items-center">
-                      <span className="text-sm px-3 py-2 border border-r-0 rounded-l-md">
-                        meetzeen.com/
-                      </span>
-                      <Input
-                        placeholder="mi-empresa"
-                        className="rounded-l-none"
-                        {...field}
-                        onChange={(e) => {
-                          const normalizedValue = normalizeText(e.target.value);
-                          field.onChange(normalizedValue);
-                        }}
-                        disabled={Boolean(company)} // No permitir cambiar el slug si ya existe la empresa
-                      />
                     </div>
                   </FormControl>
                   <FormMessage />
@@ -448,128 +405,198 @@ export function CompanyForm({
             />
           </div>
 
-          <FormField
-            control={form.control}
-            name="phoneNumber"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Teléfono *</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="1234567890"
-                    {...field}
-                    onChange={(e) => handlePhoneChange(e, field.onChange)}
-                    maxLength={10}
-                  />
-                </FormControl>
-                <FormDescription>
-                  Ingresa 10 dígitos sin espacios ni guiones
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="slogan"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Slogan</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Ej: Tu mejor opción en servicios"
-                    {...field}
-                  />
-                </FormControl>
-                <FormDescription>Opcional</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="address"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Dirección</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Calle, número, colonia, ciudad"
-                    {...field}
-                  />
-                </FormControl>
-                <FormDescription>
-                  Te recomendamos que ingreses la dirección desde un link de
-                  Google Maps 📍
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="workDays"
-            render={() => (
-              <FormItem>
-                <FormLabel className="text-base font-medium">
-                  Días de trabajo *
-                </FormLabel>
-                <FormDescription>
-                  Selecciona los días en que la empresa estará operando
-                </FormDescription>
-                <FormControl>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
-                    {DAYS_OF_WEEK.map((day) => (
-                      <FormField
-                        key={day.id}
-                        control={form.control}
-                        name="workDays"
-                        render={({ field }) => {
-                          return (
-                            <FormItem
-                              key={day.id}
-                              className="flex flex-row items-start space-x-3 space-y-0"
-                            >
-                              <FormControl>
-                                <Checkbox
-                                  checked={field.value?.includes(day.id)}
-                                  onCheckedChange={(checked) => {
-                                    return checked
-                                      ? field.onChange([...field.value, day.id])
-                                      : field.onChange(
-                                          field.value?.filter(
-                                            (value) => value !== day.id
-                                          )
-                                        );
-                                  }}
-                                />
-                              </FormControl>
-                              <FormLabel className="text-sm font-normal cursor-pointer">
-                                {day.label}
-                              </FormLabel>
-                            </FormItem>
-                          );
+          {/* Sección: Información básica */}
+          <div className="space-y-6">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold text-foreground">Información básica</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Datos principales de tu empresa
+              </p>
+            </div>
+            
+            <div className="space-y-6">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nombre de la empresa *</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Ej: Mi Empresa S.A."
+                        {...field}
+                        onChange={(e) => {
+                          field.onChange(e.target.value);
                         }}
                       />
-                    ))}
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Horario de operación *</h3>
+              <FormField
+                control={form.control}
+                name="slugName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>URL de la empresa</FormLabel>
+                    <FormControl>
+                      <div className="flex items-center">
+                        <span className="text-sm px-3 py-1 border border-r-0 rounded-l-md bg-brand text-black">
+                          meetzeen.com/
+                        </span>
+                        <Input
+                          placeholder="mi-empresa"
+                          className="rounded-l-none"
+                          {...field}
+                          onChange={(e) => {
+                            const normalizedValue = normalizeText(e.target.value);
+                            field.onChange(normalizedValue);
+                          }}
+                          disabled={Boolean(company)}
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-muted-foreground">
+              <FormField
+                control={form.control}
+                name="phoneNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Teléfono *</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="1234567890"
+                        {...field}
+                        onChange={(e) => handlePhoneChange(e, field.onChange)}
+                        maxLength={10}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Ingresa 10 dígitos sin espacios ni guiones
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="slogan"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Slogan</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Ej: Tu mejor opción en servicios"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>Opcional</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="address"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Dirección</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Calle, número, colonia, ciudad"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Te recomendamos que ingreses la dirección desde un link de
+                      Google Maps 📍
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+
+          {/* Sección: Días de trabajo */}
+          <div className="space-y-6">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold text-foreground">Días de trabajo</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Selecciona los días en que la empresa estará operando
+              </p>
+            </div>
+            
+            <FormField
+              control={form.control}
+              name="workDays"
+              render={() => (
+                <FormItem>
+                  <FormControl>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {DAYS_OF_WEEK.map((day) => (
+                        <FormField
+                          key={day.id}
+                          control={form.control}
+                          name="workDays"
+                          render={({ field }) => {
+                            return (
+                              <FormItem
+                                key={day.id}
+                                className="flex flex-row items-start space-x-3 space-y-0"
+                              >
+                                <FormControl>
+                                  <Checkbox
+                                    checked={field.value?.includes(day.id)}
+                                    onCheckedChange={(checked) => {
+                                      return checked
+                                        ? field.onChange([...field.value, day.id])
+                                        : field.onChange(
+                                            field.value?.filter(
+                                              (value) => value !== day.id
+                                            )
+                                          );
+                                    }}
+                                  />
+                                </FormControl>
+                                <FormLabel className="text-sm font-normal cursor-pointer">
+                                  {day.label}
+                                </FormLabel>
+                              </FormItem>
+                            );
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {/* Sección: Horario de operación */}
+          <div className="space-y-6">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold text-foreground">Horario de operación</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Define el horario en que tu empresa atiende
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-4">
+                <h4 className="text-sm font-medium text-muted-foreground text-center">
                   Hora de inicio
-                </label>
+                </h4>
                 <div className="grid grid-cols-3 gap-2">
                   <FormField
                     control={form.control}
@@ -639,9 +666,9 @@ export function CompanyForm({
                               <SelectValue placeholder="AM/PM" />
                             </SelectTrigger>
                             <SelectContent>
-                              {AM_PM.map((ampm) => (
-                                <SelectItem key={ampm} value={ampm}>
-                                  {ampm}
+                              {AM_PM.map((period) => (
+                                <SelectItem key={period} value={period}>
+                                  {period}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -654,10 +681,10 @@ export function CompanyForm({
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-muted-foreground">
+              <div className="space-y-4">
+                <h4 className="text-sm font-medium text-muted-foreground text-center">
                   Hora de fin
-                </label>
+                </h4>
                 <div className="grid grid-cols-3 gap-2">
                   <FormField
                     control={form.control}
@@ -727,9 +754,9 @@ export function CompanyForm({
                               <SelectValue placeholder="AM/PM" />
                             </SelectTrigger>
                             <SelectContent>
-                              {AM_PM.map((ampm) => (
-                                <SelectItem key={ampm} value={ampm}>
-                                  {ampm}
+                              {AM_PM.map((period) => (
+                                <SelectItem key={period} value={period}>
+                                  {period}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -744,35 +771,48 @@ export function CompanyForm({
             </div>
           </div>
 
-          <div className="flex flex-col gap-4">
+          {/* Botones de acción */}
+          <div className="pt-6 space-y-3">
+            {company && (
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  form.reset({
+                    name: company.name,
+                    slugName: company.slugName,
+                    phoneNumber: company.phoneNumber,
+                    slogan: company.slogan || "",
+                    address: company.address || "",
+                    workDays: company.workDays,
+                    startHour: company.startHour,
+                    startMinute: company.startMinute,
+                    startAmPm: company.startAmPm,
+                    endHour: company.endHour,
+                    endMinute: company.endMinute,
+                    endAmPm: company.endAmPm,
+                    image: company.imageUrl,
+                  });
+                  setPreviewImage(company.imageUrl);
+                  setHasImageChanged(false);
+                }}
+                disabled={form.formState.isSubmitting}
+              >
+                Restaurar cambios
+              </Button>
+            )}
             <Button
               type="submit"
               className="w-full"
               disabled={form.formState.isSubmitting}
             >
               {form.formState.isSubmitting ? (
-                <Loading
-                  message={
-                    company ? "Actualizando..." : "Creando tu empresa..."
-                  }
-                />
-              ) : company ? (
-                "Actualizar empresa"
+                <Loading message="Guardando..." />
               ) : (
-                "Crear empresa"
+                company ? "Actualizar empresa" : "Crear empresa"
               )}
             </Button>
-
-            {company && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => form.reset()}
-                disabled={form.formState.isSubmitting}
-              >
-                Restablecer
-              </Button>
-            )}
           </div>
         </form>
       </Form>

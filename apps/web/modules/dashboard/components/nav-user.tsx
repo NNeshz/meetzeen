@@ -32,6 +32,7 @@ import {
 } from "@meetzeen/ui/components/sidebar"
 import { authClient } from "@meetzeen/auth/client"
 import { Skeleton } from "@meetzeen/ui/components/skeleton"
+import { ModeToggle } from "@/modules/dashboard/components/mode-toggle-sidebar"
 
 type SessionData = {
   user: {
@@ -196,6 +197,8 @@ export function NavUser() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
+              <ModeToggle />
+              <DropdownMenuSeparator />
               <DropdownMenuItem className="cursor-pointer">
                 <Sparkles className="mr-2 h-4 w-4" />
                 Upgrade to Pro

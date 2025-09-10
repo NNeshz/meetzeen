@@ -13,6 +13,10 @@ import { useCategoriesFilters } from "@/modules/dashboard/categorias/store/useCa
 export function CategoriasPagination() {
   const { currentPage, totalPages, setFilter } = useCategoriesFilters();
 
+  if(totalPages <= 1) {
+    return null;
+  }
+
   const goToFirstPage = () => {
     if (currentPage > 1) {
       setFilter('currentPage', 1);
