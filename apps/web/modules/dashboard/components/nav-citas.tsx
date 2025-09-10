@@ -21,7 +21,7 @@ import {
 import Link from "next/link"
 import { cn } from "@meetzeen/ui/src/lib/utils"
 
-export function NavMain({
+export function NavCitas({
   items,
 }: {
   items: {
@@ -38,7 +38,7 @@ export function NavMain({
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>PLATAFORMA</SidebarGroupLabel>
+      <SidebarGroupLabel>CITAS</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => {
           if (!item.items || item.items.length === 0) {

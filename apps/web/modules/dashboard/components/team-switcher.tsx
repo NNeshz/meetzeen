@@ -24,7 +24,7 @@ export function TeamSwitcher({
           size="lg"
           className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
         >
-          <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-md">
+          <div className="bg-brand text-black flex aspect-square size-8 items-center justify-center rounded-md">
             <IconComponent className="size-4" />
           </div>
           <div className="grid flex-1 text-left text-sm leading-tight">

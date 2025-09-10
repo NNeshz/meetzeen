@@ -1,18 +1,29 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { IconCalendar, IconSettings, IconCalendarCog, IconHome, IconBrandAppgallery } from "@tabler/icons-react"
+import * as React from "react";
+import {
+  IconCalendar,
+  IconHome,
+  IconBrandAppgallery,
+  IconHistory,
+  IconBuilding,
+  IconCategory,
+  IconUserCog,
+  IconHeartHandshake,
+  IconUserBolt,
+} from "@tabler/icons-react";
 
-import { NavMain } from "@/modules/dashboard/components/nav-main"
-import { NavUser } from "@/modules/dashboard/components/nav-user"
-import { TeamSwitcher } from "@/modules/dashboard/components/team-switcher"
+import { NavMain } from "@/modules/dashboard/components/nav-main";
+import { NavUser } from "@/modules/dashboard/components/nav-user";
+import { TeamSwitcher } from "@/modules/dashboard/components/team-switcher";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarRail,
-} from "@meetzeen/ui/components/sidebar"
+} from "@meetzeen/ui/components/sidebar";
+import { NavCitas } from "@/modules/dashboard/components/nav-citas";
+import { NavConfig } from "@/modules/dashboard/components/nav-config";
 
 // This is sample data.
 const data = {
@@ -21,65 +32,52 @@ const data = {
       title: "Inicio",
       url: "/dashboard",
       icon: IconHome,
-      isActive: true,
     },
+    {
+      title: "Clientes",
+      url: "/dashboard/clientes",
+      icon: IconUserBolt,
+    }
+  ],
+  navCitas: [
     {
       title: "Citas",
-      url: "#",
+      url: "/dashboard/calendario",
       icon: IconCalendar,
-      items: [
-        {
-          title: "Proximas",
-          url: "#",
-        },
-        {
-          title: "Historial",
-          url: "#",
-        },
-      ],
     },
     {
-      title: "Horarios",
-      url: "#",
-      icon: IconCalendarCog,
-      items: [
-        {
-          title: "Dias",
-          url: "#",
-        },
-        {
-          title: "Horarios",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Configuración",
-      url: "#",
-      icon: IconSettings,
-      items: [
-        {
-          title: "Negocio",
-          url: "/dashboard/negocio",
-        },
-        {
-          title: "Categorias",
-          url: "/dashboard/categorias",
-        },
-        {
-          title: "Equipo",
-          url: "/dashboard/equipo",
-        },
-        {
-          title: "Servicios",
-          url: "/dashboard/servicios",
-        }
-      ],
+      title: "Historial",
+      url: "/dashboard/historial",
+      icon: IconHistory,
     },
   ],
-}
+  navConfig: [
+    {
+      title: "Negocio",
+      url: "/dashboard/negocio",
+      icon: IconBuilding,
+    },
+    {
+      title: "Categorias",
+      url: "/dashboard/categorias",
+      icon: IconCategory,
+    },
+    {
+      title: "Equipo",
+      url: "/dashboard/equipo",
+      icon: IconUserCog,
+    },
+    {
+      title: "Servicios",
+      url: "/dashboard/servicios",
+      icon: IconHeartHandshake,
+    },
+  ],
+};
 
-export function DashboardSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function DashboardSidebar({
+  ...props
+}: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" variant="inset" {...props}>
       <SidebarHeader>
@@ -87,10 +85,12 @@ export function DashboardSidebar({ ...props }: React.ComponentProps<typeof Sideb
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
+        <NavCitas items={data.navCitas} />
+        <NavConfig items={data.navConfig} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser />
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }
