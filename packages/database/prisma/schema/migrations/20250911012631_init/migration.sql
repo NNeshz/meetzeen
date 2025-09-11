@@ -1,35 +1,8 @@
 -- CreateTable
-CREATE TABLE "public"."Company" (
-    "id" TEXT NOT NULL,
-    "imageUrl" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "slugName" TEXT NOT NULL,
-    "phoneNumber" TEXT NOT NULL,
-    "slogan" TEXT,
-    "address" TEXT,
-    "workDays" TEXT[],
-    "startHour" TEXT NOT NULL,
-    "startMinute" TEXT NOT NULL,
-    "startAmPm" TEXT NOT NULL,
-    "endHour" TEXT NOT NULL,
-    "endMinute" TEXT NOT NULL,
-    "endAmPm" TEXT NOT NULL,
-    "facebook" TEXT,
-    "instagram" TEXT,
-    "tiktok" TEXT,
-    "twitterX" TEXT,
-    "userId" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "Company_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "public"."Category" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
-    "companyId" TEXT NOT NULL,
+    "organizationId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -39,14 +12,11 @@ CREATE TABLE "public"."Category" (
 -- CreateTable
 CREATE TABLE "public"."Employee" (
     "id" TEXT NOT NULL,
-    "imageUrl" TEXT NOT NULL,
+    "imageUrl" TEXT,
     "name" TEXT NOT NULL,
-    "slugName" TEXT NOT NULL,
     "phoneNumber" TEXT NOT NULL,
     "email" TEXT NOT NULL,
-    "password" TEXT NOT NULL,
-    "role" TEXT NOT NULL,
-    "companyId" TEXT NOT NULL,
+    "organizationId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -86,7 +56,7 @@ CREATE TABLE "public"."Service" (
     "name" TEXT NOT NULL,
     "duration" TEXT NOT NULL,
     "price" DOUBLE PRECISION NOT NULL,
-    "companyId" TEXT NOT NULL,
+    "organizationId" TEXT NOT NULL,
     "categoryId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -103,7 +73,6 @@ CREATE TABLE "public"."User" (
     "email" TEXT NOT NULL,
     "emailVerified" BOOLEAN NOT NULL,
     "isAnonymous" BOOLEAN,
-    "role" TEXT,
     "banned" BOOLEAN,
     "banReason" TEXT,
     "banExpires" TIMESTAMP(3),
@@ -166,8 +135,23 @@ CREATE TABLE "public"."Organization" (
     "name" TEXT NOT NULL,
     "slug" TEXT,
     "logo" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL,
-    "metadata" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "imageUrl" TEXT,
+    "phoneNumber" TEXT,
+    "slogan" TEXT,
+    "address" TEXT,
+    "workDays" TEXT[],
+    "startHour" TEXT,
+    "startMinute" TEXT,
+    "startAmPm" TEXT,
+    "endHour" TEXT,
+    "endMinute" TEXT,
+    "endAmPm" TEXT,
+    "facebook" TEXT,
+    "instagram" TEXT,
+    "tiktok" TEXT,
+    "twitterX" TEXT,
 
     CONSTRAINT "Organization_pkey" PRIMARY KEY ("id")
 );
@@ -178,7 +162,7 @@ CREATE TABLE "public"."Member" (
     "organizationId" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "role" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Member_pkey" PRIMARY KEY ("id")
 );
@@ -205,25 +189,7 @@ CREATE TABLE "public"."_EmployeeCategories" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Company_slugName_key" ON "public"."Company"("slugName");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Company_userId_key" ON "public"."Company"("userId");
-
--- CreateIndex
-CREATE INDEX "Company_name_idx" ON "public"."Company"("name");
-
--- CreateIndex
-CREATE INDEX "Company_phoneNumber_idx" ON "public"."Company"("phoneNumber");
-
--- CreateIndex
-CREATE INDEX "Company_userId_idx" ON "public"."Company"("userId");
-
--- CreateIndex
 CREATE INDEX "Category_name_idx" ON "public"."Category"("name");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Employee_slugName_key" ON "public"."Employee"("slugName");
 
 -- CreateIndex
 CREATE INDEX "Employee_name_idx" ON "public"."Employee"("name");
@@ -244,16 +210,22 @@ CREATE UNIQUE INDEX "Session_token_key" ON "public"."Session"("token");
 CREATE UNIQUE INDEX "Organization_slug_key" ON "public"."Organization"("slug");
 
 -- CreateIndex
+CREATE INDEX "Organization_name_idx" ON "public"."Organization"("name");
+
+-- CreateIndex
+CREATE INDEX "Organization_phoneNumber_idx" ON "public"."Organization"("phoneNumber");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Member_organizationId_userId_key" ON "public"."Member"("organizationId", "userId");
+
+-- CreateIndex
 CREATE INDEX "_EmployeeCategories_B_index" ON "public"."_EmployeeCategories"("B");
 
 -- AddForeignKey
-ALTER TABLE "public"."Company" ADD CONSTRAINT "Company_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "public"."Category" ADD CONSTRAINT "Category_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "public"."Organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."Category" ADD CONSTRAINT "Category_companyId_fkey" FOREIGN KEY ("companyId") REFERENCES "public"."Company"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "public"."Employee" ADD CONSTRAINT "Employee_companyId_fkey" FOREIGN KEY ("companyId") REFERENCES "public"."Company"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "public"."Employee" ADD CONSTRAINT "Employee_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "public"."Organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."EmployeeSchedule" ADD CONSTRAINT "EmployeeSchedule_employeeId_fkey" FOREIGN KEY ("employeeId") REFERENCES "public"."Employee"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -262,7 +234,7 @@ ALTER TABLE "public"."EmployeeSchedule" ADD CONSTRAINT "EmployeeSchedule_employe
 ALTER TABLE "public"."EmployeeException" ADD CONSTRAINT "EmployeeException_employeeId_fkey" FOREIGN KEY ("employeeId") REFERENCES "public"."Employee"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."Service" ADD CONSTRAINT "Service_companyId_fkey" FOREIGN KEY ("companyId") REFERENCES "public"."Company"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "public"."Service" ADD CONSTRAINT "Service_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "public"."Organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."Service" ADD CONSTRAINT "Service_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "public"."Category"("id") ON DELETE CASCADE ON UPDATE CASCADE;

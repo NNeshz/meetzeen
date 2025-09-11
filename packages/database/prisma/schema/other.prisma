@@ -1,48 +1,10 @@
-model Company {
-  id          String    @id @default(uuid())
-  imageUrl    String
-  name        String
-  slugName    String    @unique
-  phoneNumber String
-  slogan      String?
-  address     String?
-  workDays    String[]
-  startHour   String
-  startMinute String
-  startAmPm   String
-  endHour     String
-  endMinute   String
-  endAmPm     String
-
-  // Redes sociales
-  facebook    String?
-  instagram   String?
-  tiktok      String?
-  twitterX    String?
-
-  // Relaciones
-  userId      String   @unique
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  categories  Category[]
-  employees   Employee[]
-  services    Service[] // opcional: si quieres asociar servicios directo a la compañía
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index([name])
-  @@index([phoneNumber])
-  @@index([userId])
-}
-
 model Category {
   id          String     @id @default(uuid())
   name        String
 
-  // Relaciones
-  companyId   String
-  company     Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  // Relaciones actualizadas
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   employees   Employee[] @relation("EmployeeCategories")
   services    Service[]
@@ -55,17 +17,14 @@ model Category {
 
 model Employee {
   id          String   @id @default(uuid())
-  imageUrl    String
+  imageUrl    String?
   name        String
-  slugName    String    @unique
   phoneNumber String
   email       String
-  password    String
-  role        String
 
-  // Relaciones
-  companyId   String
-  company     Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  // Relaciones actualizadas
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   schedules   EmployeeSchedule[]
   exceptions  EmployeeException[]
@@ -111,9 +70,9 @@ model Service {
   duration    String
   price       Float
 
-  // Relaciones
-  companyId   String
-  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  // Relaciones actualizadas
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   categoryId  String
   category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)

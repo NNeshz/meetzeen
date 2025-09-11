@@ -1,14 +1,14 @@
 import { z } from "zod";
 
-export const UpdateCompanySchema = z.object({
+export const UpdateOrganizationSchema = z.object({
   name: z.string().min(1, "El nombre es obligatorio").optional(),
   phoneNumber: z.string().min(5, "El teléfono es obligatorio").optional(),
   slogan: z.string().optional(),
 });
 
-export type UpdateCompanyDTO = z.infer<typeof UpdateCompanySchema>;
+export type UpdateOrganizationDTO = z.infer<typeof UpdateOrganizationSchema>;
 
-export const CompanyResponseSchema = z.object({
+export const OrganizationResponseSchema = z.object({
   id: z.string(),
   name: z.string(),
   phoneNumber: z.string(),
@@ -31,4 +31,4 @@ export const CompanyResponseSchema = z.object({
   updatedAt: z.date(),
 });
 
-export type CompanyResponseDTO = z.infer<typeof CompanyResponseSchema>;
+export type OrganizationResponseDTO = z.infer<typeof OrganizationResponseSchema>;

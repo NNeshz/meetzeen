@@ -250,16 +250,8 @@ export function CompanyForm({
       };
 
       await createCompany(data);
-      toast.success(
-        company
-          ? "Empresa actualizada exitosamente"
-          : "¡Bienvenido! Tu empresa ha sido creada exitosamente"
-      );
     } catch (error) {
       console.error(error);
-      toast.error(
-        company ? "Error al actualizar la empresa" : "Error al crear tu empresa"
-      );
     }
   }
 
@@ -316,7 +308,7 @@ export function CompanyForm({
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-12">
           {/* Sección: Logo de la empresa */}
           <div className="space-y-6">
-            <div className="text-center">
+            <div>
               <h3 className="text-lg font-semibold text-foreground">Logo de la empresa</h3>
               <p className="text-sm text-muted-foreground mt-1">
                 Sube el logo que representará tu empresa
@@ -331,7 +323,7 @@ export function CompanyForm({
                   <FormControl>
                     <div className="space-y-4">
                       <div
-                        className="relative w-full max-w-sm mx-auto aspect-square border-2 border-dashed border-gray-300 rounded-lg overflow-hidden cursor-pointer transition-colors hover:border-gray-400 group"
+                        className="relative w-full max-w-sm aspect-square border-1 border-muted rounded-lg overflow-hidden cursor-pointer transition-colors hover:border-gray-400 group"
                         onClick={handleImageClick}
                       >
                         {previewImage ? (
@@ -407,7 +399,7 @@ export function CompanyForm({
 
           {/* Sección: Información básica */}
           <div className="space-y-6">
-            <div className="text-center">
+            <div>
               <h3 className="text-lg font-semibold text-foreground">Información básica</h3>
               <p className="text-sm text-muted-foreground mt-1">
                 Datos principales de tu empresa
@@ -528,7 +520,7 @@ export function CompanyForm({
 
           {/* Sección: Días de trabajo */}
           <div className="space-y-6">
-            <div className="text-center">
+            <div>
               <h3 className="text-lg font-semibold text-foreground">Días de trabajo</h3>
               <p className="text-sm text-muted-foreground mt-1">
                 Selecciona los días en que la empresa estará operando
@@ -585,7 +577,7 @@ export function CompanyForm({
 
           {/* Sección: Horario de operación */}
           <div className="space-y-6">
-            <div className="text-center">
+            <div>
               <h3 className="text-lg font-semibold text-foreground">Horario de operación</h3>
               <p className="text-sm text-muted-foreground mt-1">
                 Define el horario en que tu empresa atiende
@@ -808,7 +800,7 @@ export function CompanyForm({
               disabled={form.formState.isSubmitting}
             >
               {form.formState.isSubmitting ? (
-                <Loading message="Guardando..." />
+                "Guardando..."
               ) : (
                 company ? "Actualizar empresa" : "Crear empresa"
               )}

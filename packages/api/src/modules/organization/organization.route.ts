@@ -1,20 +1,20 @@
 import Elysia, { t } from "elysia";
-import { companyModule } from "@meetzeen/api/src/modules/company/company.module";
+import { organizationModule } from "@meetzeen/api/src/modules/organization/organization.module";
 import { betterAuthPlugin } from "@meetzeen/api/src/utils/better-auth-plugin";
 
-export const companyRoute = new Elysia({
-  name: "companyRoute",
-  prefix: "/company",
+export const organizationRoute = new Elysia({
+  name: "organizationRoute",
+  prefix: "/organization",
 })
   .use(betterAuthPlugin)
-  .use(companyModule)
+  .use(organizationModule)
   .post(
     "/createOrUpdate",
-    async ({ companyService, user, body }) => {
+    async ({ organizationService, user, body }) => {
       const hasImageChanged =
         body.hasImageChanged === "true" || body.hasImageChanged === true;
 
-      const companyData = {
+      const organizationData = {
         name: body.name,
         slugName: body.slugName,
         phoneNumber: body.phoneNumber,
@@ -29,8 +29,6 @@ export const companyRoute = new Elysia({
         endAmPm: body.endAmPm,
         hasImageChanged,
       };
-
-      console.log({ companyData });
 
       let imageToProcess: File | string | null = null;
 
@@ -50,9 +48,9 @@ export const companyRoute = new Elysia({
         }
       }
 
-      return companyService.createOrUpdateCompany(
+      return organizationService.createOrUpdateOrganization(
         {
-          ...companyData,
+          ...organizationData,
           image: imageToProcess,
         },
         user.id
@@ -80,8 +78,8 @@ export const companyRoute = new Elysia({
   )
   .post(
     "/socials", 
-    async ({ companyService, user, body }) => {
-      return companyService.updateSocials(body, user.id);
+    async ({ organizationService, user, body }) => {
+      return organizationService.updateSocials(body, user.id);
     },
     {
       body: t.Object({
@@ -94,9 +92,9 @@ export const companyRoute = new Elysia({
     }
   )
   .get(
-    "/myCompany",
-    async ({ companyService, user }) => {
-      return companyService.getCompanyByUserId(user.id);
+    "/myOrganization",
+    async ({ organizationService, user }) => {
+      return organizationService.getOrganizationByUserId(user.id);
     },
     {
       authenticated: true,
@@ -104,8 +102,8 @@ export const companyRoute = new Elysia({
   )
   .get(
     "/:slugName",
-    async ({ params, companyService }) => {
-      return companyService.getCompanyBySlugName(params.slugName);
+    async ({ params, organizationService }) => {
+      return organizationService.getOrganizationBySlugName(params.slugName);
     },
     {
       params: t.Object({
@@ -113,11 +111,10 @@ export const companyRoute = new Elysia({
       }),
     }
   )
-  // Mantener este endpoint por compatibilidad, pero marcar como deprecated
   .get(
     "/id/:id",
-    async ({ params, companyService }) => {
-      return companyService.getCompanyById(params.id);
+    async ({ params, organizationService }) => {
+      return organizationService.getOrganizationById(params.id);
     },
     {
       params: t.Object({
@@ -127,8 +124,8 @@ export const companyRoute = new Elysia({
   )
   .delete(
     "/delete",
-    async ({ companyService, user }) => {
-      return companyService.deleteCompany(user.id);
+    async ({ organizationService, user }) => {
+      return organizationService.deleteOrganization(user.id);
     },
     {
       authenticated: true,

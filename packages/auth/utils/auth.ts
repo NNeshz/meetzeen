@@ -1,12 +1,12 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { openAPI } from "better-auth/plugins";
+import { openAPI, organization } from "better-auth/plugins";
 
 import { PrismaClient } from "@meetzeen/database";
 
 const prisma = new PrismaClient();
 
-export const auth = betterAuth({
+export const auth: ReturnType<typeof betterAuth> = betterAuth({
   appName: "meetzeen",
   database: prismaAdapter(prisma, {
     provider: "postgresql"
@@ -33,6 +33,10 @@ export const auth = betterAuth({
     },
   },
   plugins: [
-    openAPI()
+    openAPI(),
+    organization({
+      allowUserToCreateOrganization: true,
+      organizationLimit: 1
+    }),
   ]
 })

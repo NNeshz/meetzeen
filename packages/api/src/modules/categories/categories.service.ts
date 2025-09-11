@@ -6,23 +6,28 @@ export class CategoriesService {
 
   async createCategory(name: string, userId: string) {
     try {
-      const company = await prismaClient.company.findFirst({
+      const membership = await prismaClient.member.findFirst({
         where: {
           userId,
+          role: { in: ["owner", "member"] }
         },
-        select: {
-          id: true,
+        include: {
+          organization: {
+            select: {
+              id: true,
+            },
+          },
         },
       });
 
-      if (!company) {
-        throw new Error("El usuario no tiene una empresa");
+      if (!membership) {
+        throw new Error("El usuario no pertenece a ninguna organización");
       }
 
       await prismaClient.category.create({
         data: {
           name,
-          companyId: company.id,
+          organizationId: membership.organization.id,
         },
       });
 
@@ -45,40 +50,43 @@ export class CategoriesService {
 
   async listCategories(filters: CategoriesFilters, userId: string) {
     try {
-
       const page = filters.page ?? 1;
-      const limit = 12
+      const limit = 12;
       const offset = (page - 1) * limit;
 
-      const company = await prismaClient.company.findFirst({
+      // Buscar la organización donde el usuario es member
+      const membership = await prismaClient.member.findFirst({
         where: {
           userId,
+          role: { in: ["owner", "member"] }
         },
-        select: {
-          id: true,
+        include: {
+          organization: {
+            select: {
+              id: true,
+            },
+          },
         },
       });
 
-      if (!company) {
-        throw new Error("El usuario no tiene una empresa");
+      if (!membership) {
+        throw new Error("El usuario no pertenece a ninguna organización");
       }
 
       const where: any = {
+        organizationId: membership.organization.id,
         ...(filters.search && {
           name: {
             contains: filters.search,
             mode: "insensitive",
           },
         }),
-      }
+      };
 
       const [totalCategories, categories] = await Promise.all([
         prismaClient.category.count({ where }),
         prismaClient.category.findMany({
-          where: {
-            companyId: company.id,
-            ...where,
-          },
+          where,
           orderBy: {
             createdAt: "desc",
           },
@@ -89,9 +97,9 @@ export class CategoriesService {
             name: true,
             createdAt: true,
             updatedAt: true,
-          }
+          },
         }),
-      ])
+      ]);
 
       const totalPages = Math.ceil(totalCategories / limit);
 
@@ -126,17 +134,35 @@ export class CategoriesService {
 
   async updateCategory(id: string, name: string, userId: string) {
     try {
-      const company = await prismaClient.company.findFirst({
+      // Buscar la organización donde el usuario es member
+      const membership = await prismaClient.member.findFirst({
         where: {
           userId,
+          role: { in: ["owner", "member"] }
         },
-        select: {
-          id: true,
+        include: {
+          organization: {
+            select: {
+              id: true,
+            },
+          },
         },
       });
 
-      if (!company) {
-        throw new Error("El usuario no tiene una empresa");
+      if (!membership) {
+        throw new Error("El usuario no pertenece a ninguna organización");
+      }
+
+      // Verificar que la categoría pertenece a la organización del usuario
+      const category = await prismaClient.category.findFirst({
+        where: {
+          id,
+          organizationId: membership.organization.id,
+        },
+      });
+
+      if (!category) {
+        throw new Error("Categoría no encontrada o no tienes permisos para editarla");
       }
 
       await prismaClient.category.update({
@@ -167,17 +193,35 @@ export class CategoriesService {
 
   async deleteCategory(id: string, userId: string) {
     try {
-      const company = await prismaClient.company.findFirst({
+      // Buscar la organización donde el usuario es member
+      const membership = await prismaClient.member.findFirst({
         where: {
           userId,
+          role: { in: ["owner", "member"] }
         },
-        select: {
-          id: true,
+        include: {
+          organization: {
+            select: {
+              id: true,
+            },
+          },
         },
       });
 
-      if (!company) {
-        throw new Error("El usuario no tiene una empresa");
+      if (!membership) {
+        throw new Error("El usuario no pertenece a ninguna organización");
+      }
+
+      // Verificar que la categoría pertenece a la organización del usuario
+      const category = await prismaClient.category.findFirst({
+        where: {
+          id,
+          organizationId: membership.organization.id,
+        },
+      });
+
+      if (!category) {
+        throw new Error("Categoría no encontrada o no tienes permisos para eliminarla");
       }
 
       await prismaClient.category.delete({
