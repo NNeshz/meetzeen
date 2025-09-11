@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {
   Table,
@@ -17,7 +17,12 @@ import { Loading } from "@/modules/dashboard/components/loading";
 import { Error } from "@/modules/dashboard/components/error";
 import { Empty } from "@/modules/dashboard/components/empty";
 import { useEffect } from "react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@meetzeen/ui/src/components/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@meetzeen/ui/src/components/dropdown-menu";
 import { ServicioSheetUpdate } from "@/modules/dashboard/servicios/components/servicios-sheet-update";
 import { ServicioDelete } from "./components/servicios-delete";
 
@@ -83,53 +88,70 @@ export function ServiciosTable() {
   const servicios = serviciosData.data;
 
   return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Nombre</TableHead>
-            <TableHead>Categoría</TableHead>
-            <TableHead>Duración</TableHead>
-            <TableHead>Precio</TableHead>
-            <TableHead className="text-right">Acciones</TableHead>
+    <div className="rounded-xl border border-border bg-card overflow-hidden">
+      <Table className="w-full">
+        <TableHeader className="bg-muted/30 border-b border-border/50">
+          <TableRow className="hover:bg-transparent border-none">
+            <TableHead className="text-muted-foreground font-medium py-4 px-6">
+              Nombre
+            </TableHead>
+            <TableHead className="text-muted-foreground font-medium py-4 px-6">
+              Categoría
+            </TableHead>
+            <TableHead className="text-muted-foreground font-medium py-4 px-6">
+              Duración
+            </TableHead>
+            <TableHead className="text-muted-foreground font-medium py-4 px-6">
+              Precio
+            </TableHead>
+            <TableHead className="text-muted-foreground font-medium py-4 px-6 text-end">
+              Acciones
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {servicios.map((servicio) => (
-            <TableRow key={servicio.id}>
-              <TableCell className="font-medium">{servicio.name}</TableCell>
-              <TableCell>
+            <TableRow
+              key={servicio.id}
+              className="border-b border-border/30 hover:bg-muted/20 transition-colors"
+            >
+              <TableCell className="py-4 px-6 font-medium">
+                {servicio.name}
+              </TableCell>
+              <TableCell className="py-4 px-6">
                 <Badge variant={"outline"}>
                   {servicio.category?.name || "Sin categoría"}
                 </Badge>
               </TableCell>
-              <TableCell>{servicio.duration} min</TableCell>
-              <TableCell>${servicio.price}</TableCell>
-              <TableCell className="text-right">
+              <TableCell className="py-4 px-6 text-muted-foreground">
+                {servicio.duration} min
+              </TableCell>
+              <TableCell className="py-4 px-6">
+                <span className="text-brand">$</span>{" "}
+                <span className="text-muted-foreground">{servicio.price}</span>
+              </TableCell>
+              <TableCell className="py-4 px-6 text-end">
                 <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        className="h-8 w-8 p-0 hover:bg-muted/50"
-                      >
-                        <span className="sr-only">Open menu</span>
-                        <IconDots className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" >
-                      <ServicioSheetUpdate
-                        id={servicio.id}
-                        name={servicio.name}
-                        duration={servicio.duration}
-                        price={servicio.price}
-                        categoryId={servicio.categoryId}
-                      />
-                      <ServicioDelete
-                        id={servicio.id}
-                        name={servicio.name}
-                      />
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="h-8 w-8 p-0 hover:bg-muted/50"
+                    >
+                      <span className="sr-only">Open menu</span>
+                      <IconDots className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <ServicioSheetUpdate
+                      id={servicio.id}
+                      name={servicio.name}
+                      duration={servicio.duration}
+                      price={servicio.price}
+                      categoryId={servicio.categoryId}
+                    />
+                    <ServicioDelete id={servicio.id} name={servicio.name} />
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </TableCell>
             </TableRow>
           ))}
