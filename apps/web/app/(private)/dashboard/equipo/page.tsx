@@ -5,7 +5,7 @@ import { EquipoPagination } from "@/modules/dashboard/equipo/equipo-pagination";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Meetzeen - Equipo",
+  title: "Meetzeen — Equipo",
 };
 
 export default function EquipoPage() {

@@ -5,7 +5,7 @@ import { CategoriasPagination } from "@/modules/dashboard/categorias/categorias-
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Meetzeen - Categorías",
+  title: "Meetzeen — Categorías",
 };
 
 export default function CategoriasPage() {
