@@ -15,13 +15,13 @@ import {
   SheetTrigger,
 } from "@meetzeen/ui/src/components/sheet";
 import { IconX, IconChevronDown, IconAdjustments } from "@tabler/icons-react";
-import { useEquipoFilters } from "@/modules/dashboard/equipo/store/useEquipoStore";
+import { useServiciosFilters } from "@/modules/dashboard/servicios/store/useServiciosStore";
 import { useCategoriasQuery } from "@/modules/dashboard/categorias/hooks/useCategorias";
 
 import { useState } from "react";
 
-export function EquipoSheetFilters() {
-  const { search, categoryId, setFilter, resetFilters } = useEquipoFilters();
+export function ServiciosSheetFilters() {
+  const { search, categoryId, setFilter, resetFilters } = useServiciosFilters();
   const { data: categoriasData } = useCategoriasQuery();
 
   const [isCategoryOpen, setIsCategoryOpen] = useState(true);

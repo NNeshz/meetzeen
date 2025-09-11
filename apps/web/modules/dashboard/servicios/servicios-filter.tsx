@@ -1,50 +1,83 @@
-import {
-    Sheet,
-    SheetContent,
-    SheetHeader,
-    SheetTitle,
-    SheetTrigger,
-  } from "@meetzeen/ui/src/components/sheet";
-  import { Button } from "@meetzeen/ui/src/components/button";
-  import { Input } from "@meetzeen/ui/src/components/input";
-  import { IconAdjustments, IconPlus, IconSearch } from "@tabler/icons-react";
+"use client";
+
+import { Input } from "@meetzeen/ui/src/components/input";
+import { IconSearch } from "@tabler/icons-react";
+
+import { ServiciosSheetCreate } from "@/modules/dashboard/servicios/components/servicios-sheet-create";
+import { ServiciosSheetFilters } from "@/modules/dashboard/servicios/components/servicios-sheet-filters";
+import { useServiciosFilters } from "@/modules/dashboard/servicios/store/useServiciosStore";
+import { useDebounce } from "@/utils/use-debounce";
+
+import { useState, useEffect, useCallback } from "react";
+import { usePathname } from "next/navigation";
+
+export function ServiciosFilter() {
+  const pathname = usePathname();
+  const { search, categoryId, setFilter } = useServiciosFilters();
+  const [searchInput, setSearchInput] = useState(search);
+  const debouncedSearch = useDebounce(searchInput, 750);
+
+  const updateURL = useCallback((key: string, value: string) => {
+    const params = new URLSearchParams(window.location.search);
+
+    if (value === "all" || value === "" || value === null) {
+      params.delete(key);
+    } else {
+      params.set(key, value);
+    }
+
+    if (key !== "page") {
+      params.delete("page");
+    }
+
+    const newURL = `${pathname}?${params.toString()}`;
+    window.history.replaceState(null, "", newURL);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const params = new URLSearchParams(window.location.search);
+
+    const searchParam = params.get("search") || "";
+    const categoryParam = params.get("categoryId") || "";
+    
+    setFilter("search", searchParam);
+    setFilter("categoryId", categoryParam);
+    setFilter("currentPage", parseInt(params.get("page") || "1", 10));
+    
+    setSearchInput(searchParam);
+  }, [setFilter]);
   
-  export function ServiciosFilter() {
-    return (
-      <div className="flex items-center justify-between">
+  useEffect(() => {
+    setFilter("search", debouncedSearch);
+  }, [debouncedSearch, setFilter]);
+
+  useEffect(() => {
+    updateURL("search", search);
+  }, [search, updateURL]);
+
+  useEffect(() => {
+    updateURL("categoryId", categoryId);
+  }, [categoryId, updateURL]);
+
+  return (
+    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <ServiciosSheetCreate />
+      <div className="flex items-center gap-2">
         <div className="relative">
           <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
             <IconSearch className="text-muted-foreground h-5 w-5" />
           </span>
-          <Input placeholder="Buscar" className="pl-10" />
+          <Input 
+            placeholder="Buscar" 
+            className="pl-10" 
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+          />
         </div>
-        <div className="flex items-center gap-2">
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="icon">
-                <IconAdjustments className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent className="w-full sm:max-w-xl">
-              <SheetHeader>
-                <SheetTitle>Filtrar</SheetTitle>
-              </SheetHeader>
-            </SheetContent>
-          </Sheet>
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="icon">
-                <IconPlus className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent className="w-full sm:max-w-xl">
-              <SheetHeader>
-                <SheetTitle>Agregar servicio</SheetTitle>
-              </SheetHeader>
-            </SheetContent>
-          </Sheet>
-        </div>
+        <ServiciosSheetFilters />
       </div>
-    );
-  }
-  
+    </div>
+  );
+}

@@ -5,7 +5,8 @@ import { betterAuthPlugin } from "@meetzeen/api/src/utils/better-auth-plugin";
 
 import { organizationRoute } from "@meetzeen/api/src/modules/organization/organization.route";
 import { categoriesRoute } from "@meetzeen/api/src/modules/categories/categories.route";
-import { employeesRoute } from "./modules/employees/employees.route";
+import { employeesRoute } from "@meetzeen/api/src/modules/employees/employees.route";
+import { servicesRoute } from "@meetzeen/api/src/modules/services/services.route";
 
 export const api = new Elysia({
   prefix: "/api",
@@ -20,5 +21,6 @@ export const api = new Elysia({
 .use(organizationRoute)
 .use(categoriesRoute)
 .use(employeesRoute)
+.use(servicesRoute)
 
 export type Api = typeof api;
