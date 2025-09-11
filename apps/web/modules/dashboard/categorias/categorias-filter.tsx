@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import { Input } from "@meetzeen/ui/src/components/input";
 import { IconSearch } from "@tabler/icons-react";
@@ -11,8 +11,7 @@ export function CategoriasFilter() {
   const pathname = usePathname();
   const { search, setFilter } = useCategoriesFilters();
 
-  // Función para actualizar la URL sin usar router.replace()
-  const updateURL = (key: string, value: string) => {
+  const updateURL = useCallback((key: string, value: string) => {
     const params = new URLSearchParams(window.location.search);
 
     if (value === "all" || value === "" || value === null) {
@@ -27,9 +26,8 @@ export function CategoriasFilter() {
 
     const newURL = `${pathname}?${params.toString()}`;
     window.history.replaceState(null, "", newURL);
-  };
+  }, [pathname]);
 
-  // Sincronizar con los parámetros de la URL al cargar
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -39,34 +37,29 @@ export function CategoriasFilter() {
     setFilter("currentPage", parseInt(params.get("page") || "1", 10));
   }, [setFilter]);
 
-  // Actualizar URL cuando cambie la búsqueda
   useEffect(() => {
     updateURL("search", search);
-  }, [search, pathname]);
+  }, [search, updateURL]);
 
-  // Manejar cambio en el input de búsqueda
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setFilter("search", value);
-    // Resetear a la página 1 cuando se busca
     setFilter("currentPage", 1);
   };
 
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <CategoriaSheetCreate />
       <div className="relative">
         <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
           <IconSearch className="text-muted-foreground h-5 w-5" />
         </span>
-        <Input 
-          placeholder="Buscar categorías..." 
-          className="pl-10" 
+        <Input
+          placeholder="Buscar categorías..."
+          className="pl-10"
           value={search}
           onChange={handleSearchChange}
         />
-      </div>
-      <div className="flex items-center gap-2">
-        <CategoriaSheetCreate />
       </div>
     </div>
   );

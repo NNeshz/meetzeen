@@ -4,7 +4,7 @@ import { CreateNegocioDTO } from "@/modules/dashboard/negocio/types/create-negoc
 export class NegocioService {
   async createCompany(body: CreateNegocioDTO) {
     try {
-      const response = await apiClient.company.createOrUpdate.post(body, {
+      const response = await apiClient.organization.createOrUpdate.post(body, {
         fetch: { credentials: "include" },
       });
 
@@ -21,12 +21,12 @@ export class NegocioService {
 
   async getMyCompany() {
     try {
-      const response = await apiClient.company.myCompany.get({
+      const response = await apiClient.organization.myOrganization.get({
         fetch: { credentials: "include" },
       });
 
       if (response.error) {
-        throw new Error("Error al obtener la empresa");
+        throw new Error("Error al obtener la organización");
       }
 
       return response.data;
@@ -43,7 +43,7 @@ export class NegocioService {
     tiktok?: string;
   }) {
     try {
-      const response = await apiClient.company.socials.post(body, {
+      const response = await apiClient.organization.socials.post(body, {
         fetch: { credentials: "include" },
       });
 

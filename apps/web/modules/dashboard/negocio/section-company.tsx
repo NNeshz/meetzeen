@@ -11,13 +11,13 @@ export function SectionCompany() {
   const { data: company, isLoading, isError } = useCompany();
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8 px-4">
+    <div className="max-w-2xl mx-auto space-y-8 px-2">
       {/* Sección de Información de la Empresa */}
-      <div className="space-y-6">
-        <div className="text-center space-y-2">
-          <h2 className="text-2xl font-bold flex items-center justify-center">
-            <IconInfoCircle className="inline-block size-5 mr-2 text-brand" />
-            Información de la empresa
+      <div className="space-y-4">
+        <div className="">
+          <h2 className="text-2xl font-bold flex items-center gap-2">
+            <IconInfoCircle className="shrink-0 size-5 text-brand" />
+            <span className="truncate">Información de la empresa</span>
           </h2>
           <p className="text-muted-foreground">
             Llena el formulario para que podamos pasar al siguiente paso
@@ -33,11 +33,11 @@ export function SectionCompany() {
       <Separator className="my-8" />
       
       {/* Sección de Redes Sociales */}
-      <div className="space-y-6">
-        <div className="text-center space-y-2">
-          <h2 className="text-2xl font-bold flex items-center justify-center">
-            <IconDeviceMobile className="inline-block size-5 mr-2 text-brand" />
-            Redes Sociales
+      <div className="space-y-4">
+        <div className="">
+          <h2 className="text-2xl font-bold flex items-center gap-2">
+            <IconDeviceMobile className="shrink-0 size-5 text-brand" />
+            <span className="truncate">Redes Sociales</span>
           </h2>
           <p className="text-muted-foreground">
             Conecta tus redes sociales para mayor visibilidad
