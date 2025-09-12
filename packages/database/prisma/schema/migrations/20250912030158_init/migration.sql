@@ -148,6 +148,7 @@ CREATE TABLE "public"."Organization" (
     "endHour" TEXT,
     "endMinute" TEXT,
     "endAmPm" TEXT,
+    "onboardingCompleted" BOOLEAN NOT NULL DEFAULT false,
     "facebook" TEXT,
     "instagram" TEXT,
     "tiktok" TEXT,

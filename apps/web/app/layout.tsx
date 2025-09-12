@@ -18,6 +18,11 @@ const geist = Geist({
 export const metadata: Metadata = {
   title: "Meetzeen — Organiza tus citas de manera sencilla",
   description: "Ahorra tiempo, no pierdas clientes y conoce tu negocio.",
+  icons: {
+    icon: "/logo.svg",
+    shortcut: "/logo.svg",
+    apple: "/logo.svg",
+  },
 };
 
 export default function RootLayout({

@@ -7,6 +7,7 @@ import { organizationRoute } from "@meetzeen/api/src/modules/organization/organi
 import { categoriesRoute } from "@meetzeen/api/src/modules/categories/categories.route";
 import { employeesRoute } from "@meetzeen/api/src/modules/employees/employees.route";
 import { servicesRoute } from "@meetzeen/api/src/modules/services/services.route";
+import { progressRoute } from "@meetzeen/api/src/modules/progress/progress.route";
 
 export const api = new Elysia({
   prefix: "/api",
@@ -22,5 +23,6 @@ export const api = new Elysia({
 .use(categoriesRoute)
 .use(employeesRoute)
 .use(servicesRoute)
+.use(progressRoute)
 
 export type Api = typeof api;

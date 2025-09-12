@@ -90,17 +90,17 @@ model Organization {
   endMinute   String?
   endAmPm     String?
   
+  onboardingCompleted Boolean @default(false)
+  
   // Redes sociales
   facebook    String?
   instagram   String?
   tiktok      String?
   twitterX    String?
   
-  // Relaciones Better Auth
   invitations Invitation[]
   members     Member[]
   
-  // Relaciones migradas de Company
   categories  Category[]
   employees   Employee[]
   services    Service[]
