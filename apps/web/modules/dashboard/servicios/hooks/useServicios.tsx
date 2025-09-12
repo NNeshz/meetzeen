@@ -131,6 +131,8 @@ export const useCreateServicioMutation = () => {
     onSuccess: () => {
       toast.success("Servicio creado con éxito 🚀");
       queryClient.invalidateQueries({ queryKey: ["servicios"] });
+      // Invalidar también el progreso para que se actualice automáticamente
+      queryClient.invalidateQueries({ queryKey: ["progress"] });
     },
     
     onError: (error: Error, variables, context) => {

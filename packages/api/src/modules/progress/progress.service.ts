@@ -36,8 +36,9 @@ export class ProgressService {
         }
       });
 
+      // Si el usuario no tiene organización, devolver progreso inicial
       if (!membership) {
-        throw new Error("Usuario no pertenece a ninguna organización");
+        return this.getInitialProgress();
       }
 
       const org = membership.organization;
@@ -103,6 +104,45 @@ export class ProgressService {
     }
   }
 
+  private getInitialProgress(): UserProgress {
+    // Progreso inicial para usuarios sin organización
+    const steps: ProgressStep[] = [
+      {
+        id: 1,
+        title: "Paso 1",
+        description: "Crea tu empresa para comenzar",
+        completed: false,
+        current: true
+      },
+      {
+        id: 2,
+        title: "Paso 2",
+        description: "Crea las categorías",
+        completed: false
+      },
+      {
+        id: 3,
+        title: "Paso 3",
+        description: "Crea tus primeros empleados",
+        completed: false
+      },
+      {
+        id: 4,
+        title: "Paso 4",
+        description: "Completa tus servicios",
+        completed: false
+      }
+    ];
+
+    return {
+      currentStep: 1,
+      totalSteps: steps.length,
+      progress: 0,
+      steps,
+      onboardingCompleted: false
+    };
+  }
+
   private isCompanySetupComplete(org: any): boolean {
     // Verificar que los campos básicos estén completos
     return !!(
@@ -128,7 +168,9 @@ export class ProgressService {
       });
 
       if (!membership) {
-        throw new Error("Usuario no pertenece a ninguna organización");
+        // Para usuarios sin organización, no hay nada que actualizar manualmente
+        // El progreso se actualizará automáticamente cuando creen su organización
+        return;
       }
 
       // Aquí podrías implementar lógica adicional si necesitas

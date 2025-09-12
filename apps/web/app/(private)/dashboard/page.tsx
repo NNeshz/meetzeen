@@ -1,7 +1,7 @@
 import { SectionCards } from "@/modules/dashboard/home/section-cards";
 import { SectionChartAppointments } from "@/modules/dashboard/home/section-chart-appointmets";
 import { SectionHeader } from "@/modules/dashboard/home/section-header";
-import { SectionSteps } from "@/modules/dashboard/home/section-steps";
+import { SectionSteps } from "@/modules/dashboard/home/progress/section-steps";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
