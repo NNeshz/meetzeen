@@ -367,6 +367,27 @@ export class OrganizationService {
             },
           },
         },
+        employees: {
+          select: {
+            imageUrl: true,
+            name: true,
+            id: true,
+          }
+        },
+        services: {
+          select: {
+            id: true,
+            name: true,
+            price: true,
+            duration: true,
+            category: {
+              select: {
+                id: true,
+                name: true,
+              }
+            }
+          }
+        }
       },
     });
 
