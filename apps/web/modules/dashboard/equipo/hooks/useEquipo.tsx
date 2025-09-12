@@ -129,6 +129,8 @@ export const useCreateEmployeeMutation = () => {
     onSuccess: () => {
       toast.success("Empleado creado con éxito 🚀");
       queryClient.invalidateQueries({ queryKey: ["equipo"] });
+      // Invalidar también el progreso para que se actualice automáticamente
+      queryClient.invalidateQueries({ queryKey: ["progress"] });
     },
     
     onError: (error: Error, variables, context) => {

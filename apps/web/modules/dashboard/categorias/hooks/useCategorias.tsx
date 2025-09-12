@@ -6,7 +6,6 @@ import { toast } from "sonner";
 
 const categoriasService = new CategoriasService();
 
-// Tipos para las categorías basados en la API
 interface Categoria {
   id: string;
   name: string;
@@ -103,6 +102,8 @@ export const useCreateCategoriaMutation = () => {
     onSuccess: () => {
       toast.success("Categoría creada con éxito 🚀");
       queryClient.invalidateQueries({ queryKey: ["categorias"] });
+      // Invalidar también el progreso para que se actualice automáticamente
+      queryClient.invalidateQueries({ queryKey: ["progress"] });
     },
     
     onError: (error: Error, variables, context) => {

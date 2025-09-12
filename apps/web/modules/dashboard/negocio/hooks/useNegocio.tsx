@@ -20,6 +20,8 @@ export const useCreateCompany = () => {
     onSuccess: () => {
       toast.success("Empresa creada con éxito 🚀");
       queryClient.invalidateQueries({ queryKey: ["company"] });
+      // Invalidar también el progreso para que se actualice automáticamente
+      queryClient.invalidateQueries({ queryKey: ["progress"] });
     },
     onError: (error: Error) => {
       toast.error(error?.message || "Error al crear la empresa");
