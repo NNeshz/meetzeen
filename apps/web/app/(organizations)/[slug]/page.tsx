@@ -1,7 +1,7 @@
 "use client";
 
 import { Header } from "@/modules/landing/slug/components/header";
-import { Services } from "@/modules/landing/slug/components/services";
+import { BookingStepper } from "@/modules/landing/slug/components/booking-stepper";
 import { Loading } from "@/modules/landing/components/loading";
 import { Error } from "@/modules/landing/components/error";
 import { Empty } from "@/modules/landing/components/empty";
@@ -62,8 +62,8 @@ export default function OrganizationPage({ params }: PageProps) {
   return (
     <div className="">
       <Header slugName={slug} />
-      <div className="max-w-3xl mx-auto px-4">
-        <Services slugName={slug} />
+      <div className="max-w-6xl mx-auto px-4">
+        <BookingStepper slugName={slug} />
       </div>
     </div>
   );

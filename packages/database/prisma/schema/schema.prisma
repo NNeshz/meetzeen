@@ -104,6 +104,7 @@ model Organization {
   categories  Category[]
   employees   Employee[]
   services    Service[]
+  appointments Appointment[]
   
   @@index([name])
   @@index([phoneNumber])

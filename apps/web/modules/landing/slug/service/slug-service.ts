@@ -10,4 +10,23 @@ export class SlugService {
 
     return response.data;
   }
+
+  async checkAvailavility(data: {
+    services: Array<{
+      id: string;
+      duration: string;
+      name?: string;
+      categoryId: string;
+    }>;
+  }, organizationId: string) {
+    const response = await apiClient.appointments.checkAvailability({ organizationId }).post({
+      serviciosSolicitados: data.services,
+    });
+
+    if (response.error) {
+      throw response.error.value;
+    }
+
+    return response.data;
+  }
 }

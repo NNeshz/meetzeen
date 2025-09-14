@@ -13,3 +13,18 @@ export const useSlugQuery = (slugName: string) => {
     staleTime: 5 * 60 * 1000,
   });
 };
+
+export const useCheckAvailability = (data: {
+  services: Array<{
+    id: string;
+    duration: string;
+    name?: string;
+    categoryId: string;
+  }>;
+}, organizationId: string) => {
+  return useQuery({
+    queryKey: ["availability", data, organizationId],
+    queryFn: () => slugService.checkAvailavility(data, organizationId),
+    enabled: !!data.services.length && !!organizationId,
+  });
+}

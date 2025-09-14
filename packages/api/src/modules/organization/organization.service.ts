@@ -372,6 +372,12 @@ export class OrganizationService {
             imageUrl: true,
             name: true,
             id: true,
+            categories: {
+              select: {
+                id: true,
+                name: true,
+              }
+            }
           }
         },
         services: {

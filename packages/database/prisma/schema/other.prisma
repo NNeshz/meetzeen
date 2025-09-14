@@ -1,22 +1,22 @@
 model Category {
-  id          String     @id @default(uuid())
-  name        String
+  id   String @id @default(uuid())
+  name String
 
   // Relaciones actualizadas
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  employees   Employee[] @relation("EmployeeCategories")
-  services    Service[]
+  employees Employee[] @relation("EmployeeCategories")
+  services  Service[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([name])
 }
 
 model Employee {
-  id          String   @id @default(uuid())
+  id          String  @id @default(uuid())
   imageUrl    String?
   name        String
   phoneNumber String
@@ -26,12 +26,13 @@ model Employee {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  schedules   EmployeeSchedule[]
-  exceptions  EmployeeException[]
-  categories  Category[] @relation("EmployeeCategories")
+  schedules    EmployeeSchedule[]
+  exceptions   EmployeeException[]
+  categories   Category[]          @relation("EmployeeCategories")
+  appointments AppointmentSlot[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([name])
 }
@@ -41,12 +42,12 @@ model EmployeeSchedule {
   employeeId String
   employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
-  dayOfWeek  Int      // 0 = domingo, 1 = lunes ... 6 = sábado
-  startTime  String   // Ej: "08:00"
-  endTime    String   // Ej: "12:00"
+  dayOfWeek Int // 0 = domingo, 1 = lunes ... 6 = sábado
+  startTime String // Ej: "08:00"
+  endTime   String // Ej: "12:00"
 
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model EmployeeException {
@@ -54,31 +55,70 @@ model EmployeeException {
   employeeId String
   employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
-  date       DateTime // Fecha exacta, ej: 2025-09-05 (UTC)
-  startTime  String?  // Ej: "09:00" (opcional)
-  endTime    String?  // Ej: "12:00" (opcional)
-  isAvailable Boolean // false = no trabaja ese día, true = horario extra
+  date        DateTime 
+  startTime   String? 
+  endTime     String? 
+  isAvailable Boolean 
 
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-
 model Service {
-  id          String   @id @default(uuid())
-  name        String
-  duration    String
-  price       Float
+  id       String @id @default(uuid())
+  name     String
+  duration String
+  price    Float
 
   // Relaciones actualizadas
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  categoryId  String
-  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  appointments AppointmentSlot[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([name])
+}
+
+model Appointment {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  customerName  String
+  customerPhone String?
+  customerEmail String?
+
+  date     DateTime // día + hora de inicio (UTC)
+  duration Int // minutos totales de la cita
+  status   String // pending, confirmed, cancelled, etc.
+
+  // Relación con subcitas (cada servicio dentro de la cita)
+  slots AppointmentSlot[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AppointmentSlot {
+  id            String      @id @default(uuid())
+  appointmentId String
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+
+  employeeId String
+  employee   Employee @relation(fields: [employeeId], references: [id])
+
+  serviceId String
+  service   Service @relation(fields: [serviceId], references: [id])
+
+  startTime DateTime // hora exacta inicio (UTC)
+  endTime   DateTime // hora exacta fin (UTC)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
