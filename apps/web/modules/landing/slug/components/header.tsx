@@ -100,7 +100,7 @@ export function Header({ slugName }: { slugName: string }) {
 
   return (
     <div className="w-full">
-      <section className="max-w-7xl mx-auto px-4 mt-4">
+      <section className="max-w-3xl mx-auto px-4 mt-4">
         {/* Imagen más nombre*/}
         <div className="flex flex-col w-full">
           <div className="flex flex-col md:flex-row items-center md:items-center w-full md:justify-between">

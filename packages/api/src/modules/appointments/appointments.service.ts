@@ -293,11 +293,6 @@ export class AppointmentsService {
     data: ResultadoDisponibilidad | null;
   }> {
     try {
-
-      console.log('Servicios socilitados:', serviciosSolicitados);
-      console.log('Organization ID:', organizationId);
-
-      // 1. Validar entrada
       if (!serviciosSolicitados || serviciosSolicitados.length === 0) {
         throw new Error("Debe seleccionar al menos un servicio");
       }
@@ -311,73 +306,41 @@ export class AppointmentsService {
         combinado: []
       };
 
-      // 2. Generar rango de fechas: hoy + 21 días
       const fechas = this.generarFechasProximosDias(21);
-      console.log('Fechas generadas:', fechas.length);
-
-      // 3. Para cada servicio → encontrar empleados que pueden hacerlo
-      for (const servicio of serviciosSolicitados) {
-        console.log(`\n=== Procesando servicio: ${servicio.name} (ID: ${servicio.id}) ===`);
-        console.log('Category ID:', servicio.categoryId);
-        
+      
+      for (const servicio of serviciosSolicitados) {    
         const empleados = await this.obtenerEmpleadosPorCategoria(
           servicio.categoryId,
           organizationId
         );
 
-        console.log(`Empleados encontrados para categoría ${servicio.categoryId}:`, empleados.length);
-        
         if (empleados.length === 0) {
           console.log(`⚠️  No se encontraron empleados para la categoría: ${servicio.categoryId}`);
           continue;
         }
 
-        // Log de empleados encontrados
-        empleados.forEach(emp => {
-          console.log(`- Empleado: ${emp.name} (ID: ${emp.id})`);
-          console.log(`  Horarios: ${emp.schedules?.length || 0}`);
-          console.log(`  Categorías: ${emp.categories?.map(c => c.id).join(', ') || 'ninguna'}`);
-        });
-
-        // 4. Calcular disponibilidad de cada empleado
-        for (const empleado of empleados) {
-          console.log(`\n--- Procesando empleado: ${empleado.name} ---`);
-          
+        for (const empleado of empleados) {          
           for (const fecha of fechas) {
             const horarioBase = this.obtenerHorarioEmpleado(empleado, fecha.dayOfWeek);
             
             if (!horarioBase) {
-              console.log(`Sin horario para ${empleado.name} el día ${fecha.dayOfWeek} (${fecha.toString()})`);
               continue;
             }
-
-            console.log(`Horario base para ${fecha.toString()}:`, {
-              startTime: horarioBase.startTime,
-              endTime: horarioBase.endTime,
-              dayOfWeek: horarioBase.dayOfWeek
-            });
 
             const excepciones = this.obtenerExcepcionesEmpleado(empleado, fecha);
             const citasOcupadas = await this.obtenerCitasEmpleado(empleado.id, fecha);
 
-            console.log('Excepciones:', excepciones);
-            console.log('Citas ocupadas:', citasOcupadas.length);
-
             const slotsDisponibles = this.construirSlots(horarioBase, excepciones, citasOcupadas);
-            console.log(`Slots disponibles generados: ${slotsDisponibles.length}`);
             
             if (slotsDisponibles.length > 0) {
               console.log('Primeros 3 slots:', slotsDisponibles.slice(0, 3));
             }
 
             const duracionServicio = this.parseDurationToMinutes(servicio.duration);
-            console.log(`Duración del servicio: ${duracionServicio} minutos`);
             
             const slotsValidos = this.filtrarSlotsPorDuracion(slotsDisponibles, duracionServicio);
-            console.log(`Slots válidos después del filtrado: ${slotsValidos.length}`);
-
+           
             if (slotsValidos.length > 0) {
-              console.log(`✅ Agregando ${slotsValidos.length} slots para ${empleado.name} el ${fecha.toString()}`);
               resultado.individual.push({
                 servicioId: servicio.id,
                 empleadoId: empleado.id,
@@ -386,17 +349,12 @@ export class AppointmentsService {
                 slots: slotsValidos
               });
             } else {
-              console.log(`❌ No hay slots válidos para ${empleado.name} el ${fecha.toString()}`);
+              
             }
           }
         }
       }
 
-      console.log(`\n=== RESUMEN FINAL ===`);
-      console.log(`Slots individuales encontrados: ${resultado.individual.length}`);
-      console.log(`Slots combinados encontrados: ${resultado.combinado.length}`);
-
-      // 5. Escenario A: mismo empleado puede realizar todos los servicios
       const todosLosEmpleados = await prismaClient.employee.findMany({
         where: {
           organizationId
@@ -409,7 +367,6 @@ export class AppointmentsService {
       });
 
       for (const empleado of todosLosEmpleados) {
-        // Verificar si puede hacer todos los servicios
         const puedeHacerTodos = serviciosSolicitados.every(servicio => 
           empleado.categories?.some(cat => cat.id === servicio.categoryId) || false
         );
@@ -446,7 +403,6 @@ export class AppointmentsService {
         }
       }
 
-      // 6. Escenario B: encadenar diferentes empleados
       if (serviciosSolicitados.length > 1) {
         for (const fecha of fechas) {
           const fechaString = fecha.toString();

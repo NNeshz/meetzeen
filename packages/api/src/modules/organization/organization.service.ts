@@ -367,33 +367,6 @@ export class OrganizationService {
             },
           },
         },
-        employees: {
-          select: {
-            imageUrl: true,
-            name: true,
-            id: true,
-            categories: {
-              select: {
-                id: true,
-                name: true,
-              }
-            }
-          }
-        },
-        services: {
-          select: {
-            id: true,
-            name: true,
-            price: true,
-            duration: true,
-            category: {
-              select: {
-                id: true,
-                name: true,
-              }
-            }
-          }
-        }
       },
     });
 
@@ -409,6 +382,65 @@ export class OrganizationService {
       status: 200,
       message: "Organización encontrada",
       data: organization,
+    };
+  }
+
+  async getServicesBySlugName(slugName: string) {
+    const organization = await prismaClient.organization.findFirst({
+      where: {
+        slug: slugName,
+      },
+      select: {
+        services: {
+          select: {
+            id: true,
+            name: true,
+            price: true,
+            duration: true,
+            category: {
+              select: {
+                id: true,
+                name: true,
+              }
+            },
+          }
+        },
+        employees: {
+          select: {
+            id: true,
+            name: true,
+            imageUrl: true,
+            categories: {
+              select: {
+                id: true,
+                name: true,
+              }
+            }
+          }
+        }
+      }
+    });
+    if (!organization) {
+      return {
+        status: 404,
+        message: "Organización no encontrada",
+        data: null,
+      };
+    }
+    // Transform services to match desired output format
+    const formattedServices = organization.services.map(service => ({
+      service: service.name,
+      duration: service.duration,
+      category: service.category,
+      price: service.price,
+      employees: organization.employees.filter(employee => 
+        employee.categories.some(cat => cat.id === service.category.id)
+      )
+    }));
+    return {
+      status: 200,
+      message: "Servicios encontrados",
+      data: formattedServices,
     };
   }
 

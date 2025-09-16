@@ -1,5 +1,15 @@
 import { create } from 'zustand'
 
+interface Employee {
+  id: string;
+  name: string;
+  imageUrl: string | null;
+  categories: {
+    id: string;
+    name: string;
+  }[];
+}
+
 interface Service {
   id: string;
   name: string;
@@ -11,46 +21,54 @@ interface Service {
   };
 }
 
+interface ServiceWithEmployee {
+  service: Service;
+  selectedEmployees: Employee[];
+  availableEmployees: Employee[];
+}
+
 interface BookingState {
-  // Servicios seleccionados
-  selectedServices: Service[];
-  // Datos del cliente
+  selectedServicesWithEmployees: ServiceWithEmployee[];
   customerData: {
     name: string;
     email: string;
     phone: string;
   };
-  // Fecha y hora seleccionada
   selectedDateTime: Date | null;
-  // Paso actual
   currentStep: number;
   
-  // Acciones
-  addService: (service: Service) => void;
+  addService: (service: Service, availableEmployees: Employee[]) => void;
   removeService: (serviceId: string) => void;
-  toggleService: (service: Service) => void;
+  toggleService: (service: Service, availableEmployees?: Employee[]) => void;
   clearServices: () => void;
+  
+  addEmployeeToService: (serviceId: string, employee: Employee) => void;
+  removeEmployeeFromService: (serviceId: string, employeeId: string) => void;
+  toggleEmployeeForService: (serviceId: string, employee: Employee) => void;
+  
+  isServiceSelected: (serviceId: string) => boolean;
+  isEmployeeSelectedForService: (serviceId: string, employeeId: string) => boolean;
+  areAllServicesComplete: () => boolean;
   
   setCustomerData: (data: Partial<BookingState['customerData']>) => void;
   setSelectedDateTime: (date: Date | null) => void;
   setCurrentStep: (step: number) => void;
   
-  // Datos para useCheckAvailability
   getAvailabilityData: () => {
     services: Array<{
       id: string;
       duration: string;
       name?: string;
       categoryId: string;
+      employeeIds: string[];
     }>;
   };
   
-  // Reset completo
   reset: () => void;
 }
 
 const initialState = {
-  selectedServices: [],
+  selectedServicesWithEmployees: [],
   customerData: {
     name: '',
     email: '',
@@ -63,25 +81,87 @@ const initialState = {
 export const useBookingStore = create<BookingState>((set, get) => ({
   ...initialState,
   
-  addService: (service) => set((state) => ({
-    selectedServices: [...state.selectedServices, service]
+  addService: (service, availableEmployees = []) => set((state) => ({
+    selectedServicesWithEmployees: [...state.selectedServicesWithEmployees, {
+      service,
+      selectedEmployees: [],
+      availableEmployees
+    }]
   })),
   
   removeService: (serviceId) => set((state) => ({
-    selectedServices: state.selectedServices.filter(s => s.id !== serviceId)
+    selectedServicesWithEmployees: state.selectedServicesWithEmployees.filter(
+      item => item.service.id !== serviceId
+    )
   })),
   
-  toggleService: (service) => {
+  toggleService: (service, availableEmployees = []) => {
     const state = get();
-    const exists = state.selectedServices.find(s => s.id === service.id);
+    const exists = state.selectedServicesWithEmployees.find(
+      item => item.service.id === service.id
+    );
     if (exists) {
       state.removeService(service.id);
     } else {
-      state.addService(service);
+      state.addService(service, availableEmployees);
     }
   },
   
-  clearServices: () => set({ selectedServices: [] }),
+  clearServices: () => set({ selectedServicesWithEmployees: [] }),
+  
+  addEmployeeToService: (serviceId, employee) => set((state) => ({
+    selectedServicesWithEmployees: state.selectedServicesWithEmployees.map(item =>
+      item.service.id === serviceId
+        ? { ...item, selectedEmployees: [...item.selectedEmployees, employee] }
+        : item
+    )
+  })),
+  
+  removeEmployeeFromService: (serviceId, employeeId) => set((state) => ({
+    selectedServicesWithEmployees: state.selectedServicesWithEmployees.map(item =>
+      item.service.id === serviceId
+        ? { 
+            ...item, 
+            selectedEmployees: item.selectedEmployees.filter(emp => emp.id !== employeeId) 
+          }
+        : item
+    )
+  })),
+  
+  toggleEmployeeForService: (serviceId, employee) => {
+    const state = get();
+    const serviceItem = state.selectedServicesWithEmployees.find(
+      item => item.service.id === serviceId
+    );
+    
+    if (serviceItem) {
+      const isSelected = serviceItem.selectedEmployees.some(emp => emp.id === employee.id);
+      if (isSelected) {
+        state.removeEmployeeFromService(serviceId, employee.id);
+      } else {
+        state.addEmployeeToService(serviceId, employee);
+      }
+    }
+  },
+  
+  isServiceSelected: (serviceId) => {
+    const state = get();
+    return state.selectedServicesWithEmployees.some(item => item.service.id === serviceId);
+  },
+  
+  isEmployeeSelectedForService: (serviceId, employeeId) => {
+    const state = get();
+    const serviceItem = state.selectedServicesWithEmployees.find(
+      item => item.service.id === serviceId
+    );
+    return serviceItem?.selectedEmployees.some(emp => emp.id === employeeId) || false;
+  },
+  
+  areAllServicesComplete: () => {
+    const state = get();
+    return state.selectedServicesWithEmployees.length > 0 && 
+           state.selectedServicesWithEmployees.every(item => item.selectedEmployees.length > 0);
+  },
   
   setCustomerData: (data) => set((state) => ({
     customerData: { ...state.customerData, ...data }
@@ -94,14 +174,19 @@ export const useBookingStore = create<BookingState>((set, get) => ({
   getAvailabilityData: () => {
     const state = get();
     return {
-      services: state.selectedServices.map(service => ({
-        id: service.id,
-        duration: service.duration,
-        name: service.name,
-        categoryId: service.category.id
+      services: state.selectedServicesWithEmployees.map(item => ({
+        id: item.service.id,
+        duration: item.service.duration,
+        name: item.service.name,
+        categoryId: item.service.category.id,
+        employeeIds: item.selectedEmployees.map(emp => emp.id)
       }))
     };
   },
   
   reset: () => set(initialState),
+  
+  selectedServices: [],
 }));
+
+export type { Service, Employee };

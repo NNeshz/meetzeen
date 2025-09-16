@@ -14,6 +14,17 @@ export const useSlugQuery = (slugName: string) => {
   });
 };
 
+export const useServicesQuery = (slugName: string) => {
+  return useQuery({
+    queryKey: ["services", slugName],
+    queryFn: () => slugService.findServicesBySlug(slugName),
+    enabled: !!slugName, 
+    refetchOnWindowFocus: false,
+    retry: 1, 
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
 export const useCheckAvailability = (data: {
   services: Array<{
     id: string;

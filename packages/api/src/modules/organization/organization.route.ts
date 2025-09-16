@@ -101,7 +101,7 @@ export const organizationRoute = new Elysia({
     }
   )
   .get(
-    "/:slugName",
+    "/org/:slugName",
     async ({ params, organizationService }) => {
       return organizationService.getOrganizationBySlugName(params.slugName);
     },
@@ -111,6 +111,9 @@ export const organizationRoute = new Elysia({
       }),
     }
   )
+  .get("/services/:slugName", async ({ params, organizationService }) => {
+    return organizationService.getServicesBySlugName(params.slugName);
+  })
   .get(
     "/id/:id",
     async ({ params, organizationService }) => {

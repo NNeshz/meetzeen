@@ -87,7 +87,6 @@ export class EmployeesService {
         },
       });
 
-      // Heredar horario de la organización
       await this.inheritOrganizationSchedule(
         employee.id,
         membership.organization
@@ -123,21 +122,29 @@ export class EmployeesService {
     }
   ) {
     if (!organization.startHour || !organization.endHour) {
-      return; // No hay horario definido en la organización
+      return;
     }
 
-    const startTime = `${organization.startHour}:${organization.startMinute} ${organization.startAmPm}`;
-    const endTime = `${organization.endHour}:${organization.endMinute} ${organization.endAmPm}`;
+    const startTime = this.convertTo24HourFormat(
+      organization.startHour,
+      organization.startMinute || "00",
+      organization.startAmPm || "AM"
+    );
 
-    // Mapear días de la semana (asumiendo que workDays contiene nombres en español)
+    const endTime = this.convertTo24HourFormat(
+      organization.endHour,
+      organization.endMinute || "00",
+      organization.endAmPm || "PM"
+    );
+
     const dayMapping: { [key: string]: number } = {
-      domingo: 0,
-      lunes: 1,
-      martes: 2,
-      miércoles: 3,
-      jueves: 4,
-      viernes: 5,
-      sábado: 6,
+      sunday: 0,
+      monday: 1,
+      tuesday: 2,
+      wednesday: 3,
+      thursday: 4,
+      friday: 5,
+      saturday: 6,
     };
 
     const schedules = organization.workDays.map((day) => {
@@ -154,9 +161,33 @@ export class EmployeesService {
       };
     });
 
-    await prismaClient.employeeSchedule.createMany({
-      data: schedules,
-    });
+    try {
+      await prismaClient.employeeSchedule.createMany({
+        data: schedules,
+      });
+      console.log("✅ Horarios creados exitosamente");
+    } catch (error) {
+      console.error("❌ Error al crear horarios:", error);
+      throw error;
+    }
+  }
+
+  // Agregar este método helper
+  private convertTo24HourFormat(
+    hour: string,
+    minute: string,
+    ampm: string
+  ): string {
+    let hourNum = parseInt(hour);
+    const minuteStr = minute.padStart(2, "0");
+
+    if (ampm.toUpperCase() === "PM" && hourNum !== 12) {
+      hourNum += 12;
+    } else if (ampm.toUpperCase() === "AM" && hourNum === 12) {
+      hourNum = 0;
+    }
+
+    return `${hourNum.toString().padStart(2, "0")}:${minuteStr}`;
   }
 
   async listEmployees(filters: EmployeesFilters, userId: string) {

@@ -1,13 +1,15 @@
 "use client";
 
 import { Header } from "@/modules/landing/slug/components/header";
-import { BookingStepper } from "@/modules/landing/slug/components/booking-stepper";
 import { Loading } from "@/modules/landing/components/loading";
 import { Error } from "@/modules/landing/components/error";
 import { Empty } from "@/modules/landing/components/empty";
 import { useSlugQuery } from "@/modules/landing/slug/hooks/useSlugs";
 
 import { use } from "react";
+import { Services } from "@/modules/landing/slug/components/services";
+import { useStepsStore } from "@/modules/landing/slug/store/useStepsStore";
+import { Schedule } from "@/modules/landing/slug/components/schedule";
 
 interface PageProps {
   params: Promise<{
@@ -17,9 +19,9 @@ interface PageProps {
 
 export default function OrganizationPage({ params }: PageProps) {  
   const { slug } = use(params);
+  const { step } = useStepsStore()
   const { data, isLoading, isError, refetch } = useSlugQuery(slug);
   
-  // Estado de carga
   if (isLoading) {
     return (
       <Loading 
@@ -32,7 +34,6 @@ export default function OrganizationPage({ params }: PageProps) {
     );
   }
   
-  // Estado de error
   if (isError) {
     return (
       <Error 
@@ -46,7 +47,6 @@ export default function OrganizationPage({ params }: PageProps) {
     );
   }
   
-  // Estado vacío (no se encontró la organización)
   if (!data || !data.data) {
     return (
       <Empty 
@@ -62,8 +62,9 @@ export default function OrganizationPage({ params }: PageProps) {
   return (
     <div className="">
       <Header slugName={slug} />
-      <div className="max-w-6xl mx-auto px-4">
-        <BookingStepper slugName={slug} />
+      <div className="max-w-3xl mx-auto px-4">
+        {step === 1 && <Services slugName={slug} />}
+        {step === 2 && <Schedule />}
       </div>
     </div>
   );
