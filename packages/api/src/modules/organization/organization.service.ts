@@ -429,6 +429,7 @@ export class OrganizationService {
     }
     // Transform services to match desired output format
     const formattedServices = organization.services.map(service => ({
+      id: service.id,
       service: service.name,
       duration: service.duration,
       category: service.category,

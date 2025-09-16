@@ -1,39 +1,31 @@
 import { prismaClient } from "@meetzeen/api/src/modules/prisma";
 import { Temporal } from 'temporal-polyfill';
 
-export interface ServicioSolicitado {
-  id: string;
-  categoryId: string;
-  duration: string;
-  name?: string;
+export interface ServiceEmployeeRequest {
+  serviceId: string;
+  employeeId: string;
 }
 
-export interface SlotIndividual {
-  servicioId: string;
-  empleadoId: string;
-  empleadoNombre: string;
-  fecha: string;
-  slots: string[];
+export interface DateAvailability {
+  day: Date;
+  hours: string[];
 }
 
-export interface StepCombinado {
-  servicioId: string;
-  servicioNombre?: string;
-  empleadoId: string;
-  empleadoNombre: string;
-  start: string;
-  end: string;
+export interface IndividualAvailability {
+  employeeId: string;
+  serviceId: string;
+  datesAvailable: DateAvailability[];
 }
 
-export interface SlotCombinado {
-  fecha: string;
-  empleadoId?: string;
-  steps: StepCombinado[];
+export interface SetAvailability {
+  day: Date;
+  startHour: string;
+  endHour: string;
 }
 
-export interface ResultadoDisponibilidad {
-  individual: SlotIndividual[];
-  combinado: SlotCombinado[];
+export interface AvailabilityResponseV2 {
+  set?: SetAvailability;
+  individuals: IndividualAvailability[];
 }
 
 export class AppointmentsService {
@@ -96,27 +88,6 @@ export class AppointmentsService {
     }
     
     return fechas;
-  }
-
-  /**
-   * Obtiene empleados que pueden realizar un servicio por categoría
-   */
-  private async obtenerEmpleadosPorCategoria(categoryId: string, organizationId: string) {
-    return await prismaClient.employee.findMany({
-      where: {
-        organizationId,
-        categories: {
-          some: {
-            id: categoryId
-          }
-        }
-      },
-      include: {
-        schedules: true,
-        exceptions: true,
-        categories: true
-      }
-    });
   }
 
   /**
@@ -233,67 +204,18 @@ export class AppointmentsService {
   }
 
   /**
-   * Suma duraciones de todos los servicios
-   */
-  private sumarDuraciones(servicios: ServicioSolicitado[]): number {
-    return servicios.reduce((total, servicio) => {
-      return total + this.parseDurationToMinutes(servicio.duration);
-    }, 0);
-  }
-
-  /**
-   * Divide un bloque de tiempo en pasos de servicios
-   */
-  private dividirBloqueEnServicios(
-    bloque: { start: string; empleadoId: string; empleadoNombre: string },
-    servicios: ServicioSolicitado[]
-  ): StepCombinado[] {
-    const pasos: StepCombinado[] = [];
-    let horaActual = this.timeToMinutes(bloque.start);
-    
-    for (const servicio of servicios) {
-      const duracion = this.parseDurationToMinutes(servicio.duration);
-      pasos.push({
-        servicioId: servicio.id,
-        servicioNombre: servicio.name,
-        empleadoId: bloque.empleadoId,
-        empleadoNombre: bloque.empleadoNombre,
-        start: this.minutesToTime(horaActual),
-        end: this.minutesToTime(horaActual + duracion)
-      });
-      horaActual += duracion;
-    }
-    
-    return pasos;
-  }
-
-  /**
-   * Busca un slot que inicie exactamente en la hora esperada
-   */
-  private buscarSlotQueInicieExacto(
-    slotsServicio: SlotIndividual[],
-    horaEsperada: number
-  ): SlotIndividual | null {
-    const horaEsperadaString = this.minutesToTime(horaEsperada);
-    
-    return slotsServicio.find(slot => 
-      slot.slots.includes(horaEsperadaString)
-    ) || null;
-  }
-
-  /**
-   * Función principal para calcular disponibilidad
+   * Nuevo método para calcular disponibilidad con formato V2
    */
   async calcularDisponibilidad(
-    serviciosSolicitados: ServicioSolicitado[],
+    serviciosEmpleados: ServiceEmployeeRequest[],
     organizationId: string
   ): Promise<{
     status: number;
     message: string;
-    data: ResultadoDisponibilidad | null;
+    data: AvailabilityResponseV2 | null;
   }> {
     try {
-      if (!serviciosSolicitados || serviciosSolicitados.length === 0) {
+      if (!serviciosEmpleados || serviciosEmpleados.length === 0) {
         throw new Error("Debe seleccionar al menos un servicio");
       }
 
@@ -301,62 +223,17 @@ export class AppointmentsService {
         throw new Error("Se requiere el ID de la organización");
       }
 
-      const resultado: ResultadoDisponibilidad = {
-        individual: [],
-        combinado: []
-      };
-
-      const fechas = this.generarFechasProximosDias(21);
-      
-      for (const servicio of serviciosSolicitados) {    
-        const empleados = await this.obtenerEmpleadosPorCategoria(
-          servicio.categoryId,
-          organizationId
-        );
-
-        if (empleados.length === 0) {
-          console.log(`⚠️  No se encontraron empleados para la categoría: ${servicio.categoryId}`);
-          continue;
-        }
-
-        for (const empleado of empleados) {          
-          for (const fecha of fechas) {
-            const horarioBase = this.obtenerHorarioEmpleado(empleado, fecha.dayOfWeek);
-            
-            if (!horarioBase) {
-              continue;
-            }
-
-            const excepciones = this.obtenerExcepcionesEmpleado(empleado, fecha);
-            const citasOcupadas = await this.obtenerCitasEmpleado(empleado.id, fecha);
-
-            const slotsDisponibles = this.construirSlots(horarioBase, excepciones, citasOcupadas);
-            
-            if (slotsDisponibles.length > 0) {
-              console.log('Primeros 3 slots:', slotsDisponibles.slice(0, 3));
-            }
-
-            const duracionServicio = this.parseDurationToMinutes(servicio.duration);
-            
-            const slotsValidos = this.filtrarSlotsPorDuracion(slotsDisponibles, duracionServicio);
-           
-            if (slotsValidos.length > 0) {
-              resultado.individual.push({
-                servicioId: servicio.id,
-                empleadoId: empleado.id,
-                empleadoNombre: empleado.name || 'Sin nombre',
-                fecha: fecha.toString(),
-                slots: slotsValidos
-              });
-            } else {
-              
-            }
-          }
-        }
-      }
-
-      const todosLosEmpleados = await prismaClient.employee.findMany({
+      // Obtener información de servicios y empleados
+      const servicios = await prismaClient.service.findMany({
         where: {
+          id: { in: serviciosEmpleados.map(se => se.serviceId) },
+          organizationId
+        }
+      });
+
+      const empleados = await prismaClient.employee.findMany({
+        where: {
+          id: { in: serviciosEmpleados.map(se => se.employeeId) },
           organizationId
         },
         include: {
@@ -366,107 +243,183 @@ export class AppointmentsService {
         }
       });
 
-      for (const empleado of todosLosEmpleados) {
-        const puedeHacerTodos = serviciosSolicitados.every(servicio => 
-          empleado.categories?.some(cat => cat.id === servicio.categoryId) || false
-        );
+      // Validar que todos los servicios y empleados existen
+      for (const se of serviciosEmpleados) {
+        const servicio = servicios.find(s => s.id === se.serviceId);
+        const empleado = empleados.find(e => e.id === se.employeeId);
+        
+        if (!servicio) {
+          throw new Error(`Servicio ${se.serviceId} no encontrado`);
+        }
+        if (!empleado) {
+          throw new Error(`Empleado ${se.employeeId} no encontrado`);
+        }
+        
+        // Verificar que el empleado puede realizar el servicio
+        const puedeRealizarServicio = empleado.categories?.some(cat => cat.id === servicio.categoryId);
+        if (!puedeRealizarServicio) {
+          throw new Error(`El empleado ${empleado.name} no puede realizar el servicio ${servicio.name}`);
+        }
+      }
 
-        if (!puedeHacerTodos) continue;
+      const fechas = this.generarFechasProximosDias(21);
+      const individuals: IndividualAvailability[] = [];
+
+      // Calcular disponibilidad individual para cada servicio-empleado
+      for (const se of serviciosEmpleados) {
+        const servicio = servicios.find(s => s.id === se.serviceId)!;
+        const empleado = empleados.find(e => e.id === se.employeeId)!;
+        
+        const datesAvailable: DateAvailability[] = [];
 
         for (const fecha of fechas) {
           const horarioBase = this.obtenerHorarioEmpleado(empleado, fecha.dayOfWeek);
+          
           if (!horarioBase) continue;
 
           const excepciones = this.obtenerExcepcionesEmpleado(empleado, fecha);
           const citasOcupadas = await this.obtenerCitasEmpleado(empleado.id, fecha);
-          const slotsDisponibles = this.construirSlots(horarioBase, excepciones, citasOcupadas);
 
-          const duracionTotal = this.sumarDuraciones(serviciosSolicitados);
+          const slotsDisponibles = this.construirSlots(horarioBase, excepciones, citasOcupadas);
+          const duracionServicio = this.parseDurationToMinutes(servicio.duration);
+          const slotsValidos = this.filtrarSlotsPorDuracion(slotsDisponibles, duracionServicio);
+
+          if (slotsValidos.length > 0) {
+            datesAvailable.push({
+              day: new Date(fecha.toString()),
+              hours: slotsValidos
+            });
+          }
+        }
+
+        individuals.push({
+          employeeId: se.employeeId,
+          serviceId: se.serviceId,
+          datesAvailable
+        });
+      }
+
+      // Determinar si hay un conjunto combinado disponible
+      let setAvailability: SetAvailability | undefined;
+
+      // Caso 1: Un solo servicio - no hay conjunto
+      if (serviciosEmpleados.length === 1) {
+        return {
+          status: 200,
+          message: "Disponibilidad calculada para servicio individual",
+          data: { individuals }
+        };
+      }
+
+      // Caso 2: Múltiples servicios con el mismo empleado
+      const empleadosUnicos = [...new Set(serviciosEmpleados.map(se => se.employeeId))];
+      
+      if (empleadosUnicos.length === 1) {
+        // Todos los servicios son con el mismo empleado
+        const empleadoId = empleadosUnicos[0];
+        const empleado = empleados.find(e => e.id === empleadoId)!;
+        
+        // Calcular duración total
+        const duracionTotal = serviciosEmpleados.reduce((total, se) => {
+          const servicio = servicios.find(s => s.id === se.serviceId)!;
+          return total + this.parseDurationToMinutes(servicio.duration);
+        }, 0);
+
+        // Buscar fechas donde se pueden hacer todos los servicios consecutivos
+        for (const fecha of fechas) {
+          const horarioBase = this.obtenerHorarioEmpleado(empleado, fecha.dayOfWeek);
+          
+          if (!horarioBase) continue;
+
+          const excepciones = this.obtenerExcepcionesEmpleado(empleado, fecha);
+          const citasOcupadas = await this.obtenerCitasEmpleado(empleado.id, fecha);
+
+          const slotsDisponibles = this.construirSlots(horarioBase, excepciones, citasOcupadas);
           const slotsContinuos = this.filtrarSlotsPorDuracion(slotsDisponibles, duracionTotal);
 
-          for (const slot of slotsContinuos) {
-            const steps = this.dividirBloqueEnServicios(
-              {
-                start: slot,
-                empleadoId: empleado.id,
-                empleadoNombre: empleado.name || 'Sin nombre'
-              },
-              serviciosSolicitados
+          if (slotsContinuos.length > 0) {
+            const primerSlot = slotsContinuos[0];
+            if (primerSlot) {
+              const ultimoSlot = this.minutesToTime(
+                this.timeToMinutes(primerSlot) + duracionTotal
+              );
+
+              setAvailability = {
+                day: new Date(fecha.toString()),
+                startHour: primerSlot,
+                endHour: ultimoSlot
+              };
+              break;
+            }
+          }
+        }
+      } else {
+        // Caso 3: Múltiples servicios con diferentes empleados
+        // Buscar fechas donde todos los empleados están disponibles en secuencia
+        for (const fecha of fechas) {
+          let puedenTodos = true;
+          let horaInicio: string | null = null;
+          let horaFin: string | null = null;
+
+          // Verificar disponibilidad secuencial
+          let horaActual = 8 * 60; // Empezar a las 8:00 AM
+
+          for (const se of serviciosEmpleados) {
+            const servicio = servicios.find(s => s.id === se.serviceId)!;
+            const empleado = empleados.find(e => e.id === se.employeeId)!;
+            
+            const horarioBase = this.obtenerHorarioEmpleado(empleado, fecha.dayOfWeek);
+            if (!horarioBase) {
+              puedenTodos = false;
+              break;
+            }
+
+            const excepciones = this.obtenerExcepcionesEmpleado(empleado, fecha);
+            const citasOcupadas = await this.obtenerCitasEmpleado(empleado.id, fecha);
+            const slotsDisponibles = this.construirSlots(horarioBase, excepciones, citasOcupadas);
+            
+            const duracionServicio = this.parseDurationToMinutes(servicio.duration);
+            const horaInicioString = this.minutesToTime(horaActual);
+            
+            // Verificar si el empleado está disponible en esta hora
+            const slotDisponible = slotsDisponibles.find(slot => 
+              this.timeToMinutes(slot.start) <= horaActual &&
+              this.timeToMinutes(slot.end) >= horaActual + duracionServicio
             );
 
-            resultado.combinado.push({
-              fecha: fecha.toString(),
-              empleadoId: empleado.id,
-              steps
-            });
+            if (!slotDisponible) {
+              puedenTodos = false;
+              break;
+            }
+
+            if (!horaInicio) horaInicio = horaInicioString;
+            horaActual += duracionServicio;
+          }
+
+          if (puedenTodos && horaInicio) {
+            horaFin = this.minutesToTime(horaActual);
+            setAvailability = {
+              day: new Date(fecha.toString()),
+              startHour: horaInicio,
+              endHour: horaFin
+            };
+            break;
           }
         }
       }
 
-      if (serviciosSolicitados.length > 1) {
-        for (const fecha of fechas) {
-          const fechaString = fecha.toString();
-          const primerServicio = serviciosSolicitados[0];
-          if (!primerServicio) continue;
-          
-          const siguientesServicios = serviciosSolicitados.slice(1);
+      const response: AvailabilityResponseV2 = {
+        individuals
+      };
 
-          const slotsIniciales = resultado.individual.filter(x => 
-            x.servicioId === primerServicio.id && x.fecha === fechaString
-          );
-
-          for (const slotInicial of slotsIniciales) {
-            for (const slotStart of slotInicial.slots) {
-              let horaActual = this.timeToMinutes(slotStart) + this.parseDurationToMinutes(primerServicio.duration);
-              const secuencia: StepCombinado[] = [{
-                servicioId: primerServicio.id,
-                servicioNombre: primerServicio.name,
-                empleadoId: slotInicial.empleadoId,
-                empleadoNombre: slotInicial.empleadoNombre,
-                start: slotStart,
-                end: this.minutesToTime(this.timeToMinutes(slotStart) + this.parseDurationToMinutes(primerServicio.duration))
-              }];
-              let valido = true;
-
-              for (const servicio of siguientesServicios) {
-                const slotsServicio = resultado.individual.filter(x => 
-                  x.servicioId === servicio.id && x.fecha === fechaString
-                );
-
-                const slotEncontrado = this.buscarSlotQueInicieExacto(slotsServicio, horaActual);
-
-                if (slotEncontrado) {
-                  const duracionServicio = this.parseDurationToMinutes(servicio.duration);
-                  secuencia.push({
-                    servicioId: servicio.id,
-                    servicioNombre: servicio.name,
-                    empleadoId: slotEncontrado.empleadoId,
-                    empleadoNombre: slotEncontrado.empleadoNombre,
-                    start: this.minutesToTime(horaActual),
-                    end: this.minutesToTime(horaActual + duracionServicio)
-                  });
-                  horaActual += duracionServicio;
-                } else {
-                  valido = false;
-                  break;
-                }
-              }
-
-              if (valido) {
-                resultado.combinado.push({
-                  fecha: fechaString,
-                  steps: secuencia
-                });
-              }
-            }
-          }
-        }
+      if (setAvailability) {
+        response.set = setAvailability;
       }
 
       return {
         status: 200,
-        message: `Disponibilidad calculada: ${resultado.individual.length} slots individuales, ${resultado.combinado.length} slots combinados`,
-        data: resultado
+        message: `Disponibilidad calculada: ${individuals.length} servicios individuales${setAvailability ? ', con opción de conjunto disponible' : ''}`,
+        data: response
       };
 
     } catch (error) {

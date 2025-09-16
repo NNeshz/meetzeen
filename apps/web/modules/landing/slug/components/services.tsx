@@ -15,14 +15,16 @@ import {
   AccordionTrigger,
 } from "@meetzeen/ui/src/components/accordion";
 import { Avatar, AvatarFallback, AvatarImage } from "@meetzeen/ui/src/components/avatar";
-import { useServicesQuery } from "@/modules/landing/slug/hooks/useSlugs";
+import { useServicesQuery, useSlugQuery, useCheckAvailability } from "@/modules/landing/slug/hooks/useSlugs";
 import { useBookingStore } from "@/modules/landing/slug/store/useBookingStore";
 import { IconClock, IconTag } from "@tabler/icons-react";
 import { Label } from "@meetzeen/ui/src/components/label";
 import { Button } from "@meetzeen/ui/src/components/button";
 import { useStepsStore } from "../store/useStepsStore";
+import { toast } from "sonner";
 
 interface ApiService {
+  id: string; // Agregar el campo id que falta
   service: string;
   duration: string;
   category: {
@@ -74,6 +76,7 @@ interface ServicesProps {
 
 export function Services({ slugName }: ServicesProps) {
   const { data, isLoading, isError } = useServicesQuery(slugName);
+  const { data: orgData } = useSlugQuery(slugName);
   const {
     selectedServicesWithEmployees,
     toggleService,
@@ -81,8 +84,13 @@ export function Services({ slugName }: ServicesProps) {
     isServiceSelected,
     isEmployeeSelectedForService,
     areAllServicesComplete,
+    setAvailabilityData,
   } = useBookingStore();
   const { nextStep } = useStepsStore();
+  
+  // Get organization ID from the organization data
+  const organizationId = orgData?.data?.id;
+  const checkAvailabilityMutation = useCheckAvailability(organizationId || "");
 
   if (isLoading || isError || !data) {
     return null;
@@ -137,7 +145,7 @@ export function Services({ slugName }: ServicesProps) {
     apiService: ApiService,
     index: number
   ): Service => ({
-    id: `${apiService.category.id}-${index}`,
+    id: apiService.id, // Usar el ID real del servicio en lugar de category.id-index
     name: apiService.service,
     price: apiService.price,
     duration: apiService.duration,
@@ -158,6 +166,46 @@ export function Services({ slugName }: ServicesProps) {
     checked: boolean
   ) => {
     toggleEmployeeForService(serviceId, employee);
+  };
+
+  // Handle continue button click
+  const handleContinue = async () => {
+    if (!organizationId) {
+      toast.error("Error: No se pudo obtener la información de la organización");
+      return;
+    }
+
+    // Convert selected services to the API format
+    const servicesForApi = selectedServicesWithEmployees.flatMap(serviceWithEmployee => 
+      serviceWithEmployee.selectedEmployees.map(employee => ({
+        serviceId: serviceWithEmployee.service.id,
+        employeeId: employee.id,
+      }))
+    );
+
+    if (servicesForApi.length === 0) {
+      toast.error("Por favor selecciona al menos un servicio con empleado");
+      return;
+    }
+
+    console.log("servicesForApi:", servicesForApi);
+
+    try {
+      const result = await checkAvailabilityMutation.mutateAsync({
+        services: servicesForApi
+      });
+
+      if (result.data !== null) {
+        setAvailabilityData(result.data);
+      }
+
+      // If successful, proceed to next step
+      toast.success("Disponibilidad verificada correctamente");
+      nextStep();
+    } catch (error) {
+      console.error("Error checking availability:", error);
+      toast.error("Error al verificar disponibilidad. Por favor intenta de nuevo.");
+    }
   };
 
   // Verificar si todos los servicios están completos
@@ -291,12 +339,12 @@ export function Services({ slugName }: ServicesProps) {
       )}
       
       <Button 
-        onClick={nextStep} 
+        onClick={handleContinue} 
         className="w-full" 
         size={"sm"}
-        disabled={!canContinue}
+        disabled={!canContinue || checkAvailabilityMutation.isPending}
       >
-        Continuar
+        {checkAvailabilityMutation.isPending ? "Verificando disponibilidad..." : "Continuar"}
       </Button>
     </div>
   );

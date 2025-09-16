@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { SlugService } from "@/modules/landing/slug/service/slug-service";
 
 const slugService = new SlugService();
@@ -25,17 +25,13 @@ export const useServicesQuery = (slugName: string) => {
   });
 }
 
-export const useCheckAvailability = (data: {
-  services: Array<{
-    id: string;
-    duration: string;
-    name?: string;
-    categoryId: string;
-  }>;
-}, organizationId: string) => {
-  return useQuery({
-    queryKey: ["availability", data, organizationId],
-    queryFn: () => slugService.checkAvailavility(data, organizationId),
-    enabled: !!data.services.length && !!organizationId,
+export const useCheckAvailability = (organizationId: string) => {
+  return useMutation({
+    mutationFn: (data: {
+      services: Array<{
+        serviceId: string;
+        employeeId: string;
+      }>;
+    }) => slugService.checkAvailability(data, organizationId),
   });
 }

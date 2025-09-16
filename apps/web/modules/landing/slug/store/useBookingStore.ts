@@ -27,6 +27,29 @@ interface ServiceWithEmployee {
   availableEmployees: Employee[];
 }
 
+// Interfaces para la respuesta de disponibilidad
+interface DateAvailability {
+  day: Date;
+  hours: string[];
+}
+
+interface IndividualAvailability {
+  employeeId: string;
+  serviceId: string;
+  datesAvailable: DateAvailability[];
+}
+
+interface SetAvailability {
+  day: Date;
+  startHour: string;
+  endHour: string;
+}
+
+interface AvailabilityResponse {
+  set?: SetAvailability;
+  individuals: IndividualAvailability[];
+}
+
 interface BookingState {
   selectedServicesWithEmployees: ServiceWithEmployee[];
   customerData: {
@@ -36,6 +59,7 @@ interface BookingState {
   };
   selectedDateTime: Date | null;
   currentStep: number;
+  availabilityData: AvailabilityResponse | null;
   
   addService: (service: Service, availableEmployees: Employee[]) => void;
   removeService: (serviceId: string) => void;
@@ -53,6 +77,7 @@ interface BookingState {
   setCustomerData: (data: Partial<BookingState['customerData']>) => void;
   setSelectedDateTime: (date: Date | null) => void;
   setCurrentStep: (step: number) => void;
+  setAvailabilityData: (data: AvailabilityResponse) => void;
   
   getAvailabilityData: () => {
     services: Array<{
@@ -76,6 +101,7 @@ const initialState = {
   },
   selectedDateTime: null,
   currentStep: 0,
+  availabilityData: null,
 };
 
 export const useBookingStore = create<BookingState>((set, get) => ({
@@ -171,6 +197,8 @@ export const useBookingStore = create<BookingState>((set, get) => ({
   
   setCurrentStep: (step) => set({ currentStep: step }),
   
+  setAvailabilityData: (data) => set({ availabilityData: data }),
+  
   getAvailabilityData: () => {
     const state = get();
     return {
@@ -189,4 +217,4 @@ export const useBookingStore = create<BookingState>((set, get) => ({
   selectedServices: [],
 }));
 
-export type { Service, Employee };
+export type { Service, Employee, AvailabilityResponse, IndividualAvailability, SetAvailability, DateAvailability };
