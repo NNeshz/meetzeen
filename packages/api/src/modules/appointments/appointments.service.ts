@@ -120,12 +120,14 @@ export class AppointmentsService {
 
   /**
    * Construye slots disponibles considerando horario base, excepciones y citas ocupadas
+   * Ahora genera slots basados en la duración del servicio
    */
   private construirSlots(
     horarioBase: any,
     excepciones: any,
-    citasOcupadas: Array<{ start: string; end: string }>
-  ): Array<{ start: string; end: string }> {
+    citasOcupadas: Array<{ start: string; end: string }>,
+    duracionServicioMinutos: number
+  ): string[] {
     if (!horarioBase) return [];
 
     let startTime = horarioBase.startTime;
@@ -142,65 +144,27 @@ export class AppointmentsService {
 
     const startMinutes = this.timeToMinutes(startTime);
     const endMinutes = this.timeToMinutes(endTime);
-    const slots: Array<{ start: string; end: string }> = [];
+    const slotsDisponibles: string[] = [];
 
-    // Generar slots de 5 minutos
-    for (let current = startMinutes; current < endMinutes; current += 5) {
+    // Generar slots basados en la duración del servicio
+    for (let current = startMinutes; current + duracionServicioMinutos <= endMinutes; current += duracionServicioMinutos) {
       const slotStart = this.minutesToTime(current);
-      const slotEnd = this.minutesToTime(current + 5);
+      const slotEnd = this.minutesToTime(current + duracionServicioMinutos);
       
       // Verificar que no choque con citas ocupadas
       const isOccupied = citasOcupadas.some(cita => {
         const citaStart = this.timeToMinutes(cita.start);
         const citaEnd = this.timeToMinutes(cita.end);
-        return current < citaEnd && (current + 5) > citaStart;
+        // Verificar si hay solapamiento
+        return current < citaEnd && (current + duracionServicioMinutos) > citaStart;
       });
 
       if (!isOccupied) {
-        slots.push({ start: slotStart, end: slotEnd });
+        slotsDisponibles.push(slotStart);
       }
     }
 
-    return slots;
-  }
-
-  /**
-   * Filtra slots por duración mínima requerida
-   */
-  private filtrarSlotsPorDuracion(
-    slots: Array<{ start: string; end: string }>,
-    duracionMinutos: number
-  ): string[] {
-    const slotsValidos: string[] = [];
-    
-    for (let i = 0; i < slots.length; i++) {
-      const slot = slots[i];
-      if (!slot) continue;
-      
-      const startMinutes = this.timeToMinutes(slot.start);
-      let duracionDisponible = 0;
-      
-      // Verificar cuántos slots consecutivos hay disponibles
-      for (let j = i; j < slots.length; j++) {
-        const currentSlot = slots[j];
-        if (!currentSlot) break;
-        
-        const currentStart = this.timeToMinutes(currentSlot.start);
-        const expectedStart = startMinutes + (j - i) * 5;
-        
-        if (currentStart === expectedStart) {
-          duracionDisponible += 5;
-          if (duracionDisponible >= duracionMinutos) {
-            slotsValidos.push(slot.start);
-            break;
-          }
-        } else {
-          break;
-        }
-      }
-    }
-    
-    return slotsValidos;
+    return slotsDisponibles;
   }
 
   /**
@@ -271,6 +235,7 @@ export class AppointmentsService {
         const empleado = empleados.find(e => e.id === se.employeeId)!;
         
         const datesAvailable: DateAvailability[] = [];
+        const duracionServicio = this.parseDurationToMinutes(servicio.duration);
 
         for (const fecha of fechas) {
           const horarioBase = this.obtenerHorarioEmpleado(empleado, fecha.dayOfWeek);
@@ -280,14 +245,13 @@ export class AppointmentsService {
           const excepciones = this.obtenerExcepcionesEmpleado(empleado, fecha);
           const citasOcupadas = await this.obtenerCitasEmpleado(empleado.id, fecha);
 
-          const slotsDisponibles = this.construirSlots(horarioBase, excepciones, citasOcupadas);
-          const duracionServicio = this.parseDurationToMinutes(servicio.duration);
-          const slotsValidos = this.filtrarSlotsPorDuracion(slotsDisponibles, duracionServicio);
+          // Usar la nueva lógica que genera slots basados en la duración del servicio
+          const slotsDisponibles = this.construirSlots(horarioBase, excepciones, citasOcupadas, duracionServicio);
 
-          if (slotsValidos.length > 0) {
+          if (slotsDisponibles.length > 0) {
             datesAvailable.push({
               day: new Date(fecha.toString()),
-              hours: slotsValidos
+              hours: slotsDisponibles
             });
           }
         }
@@ -334,19 +298,36 @@ export class AppointmentsService {
           const excepciones = this.obtenerExcepcionesEmpleado(empleado, fecha);
           const citasOcupadas = await this.obtenerCitasEmpleado(empleado.id, fecha);
 
-          const slotsDisponibles = this.construirSlots(horarioBase, excepciones, citasOcupadas);
-          const slotsContinuos = this.filtrarSlotsPorDuracion(slotsDisponibles, duracionTotal);
+          // Para servicios consecutivos, necesitamos verificar disponibilidad continua
+          let startTime = horarioBase.startTime;
+          let endTime = horarioBase.endTime;
 
-          if (slotsContinuos.length > 0) {
-            const primerSlot = slotsContinuos[0];
-            if (primerSlot) {
-              const ultimoSlot = this.minutesToTime(
-                this.timeToMinutes(primerSlot) + duracionTotal
-              );
+          if (excepciones) {
+            if (!excepciones.isAvailable) continue;
+            if (excepciones.startTime && excepciones.endTime) {
+              startTime = excepciones.startTime;
+              endTime = excepciones.endTime;
+            }
+          }
+
+          const startMinutes = this.timeToMinutes(startTime);
+          const endMinutes = this.timeToMinutes(endTime);
+
+          // Verificar si hay tiempo suficiente para todos los servicios
+          if (startMinutes + duracionTotal <= endMinutes) {
+            // Verificar que no haya conflictos con citas ocupadas
+            const isOccupied = citasOcupadas.some(cita => {
+              const citaStart = this.timeToMinutes(cita.start);
+              const citaEnd = this.timeToMinutes(cita.end);
+              return startMinutes < citaEnd && (startMinutes + duracionTotal) > citaStart;
+            });
+
+            if (!isOccupied) {
+              const ultimoSlot = this.minutesToTime(startMinutes + duracionTotal);
 
               setAvailability = {
                 day: new Date(fecha.toString()),
-                startHour: primerSlot,
+                startHour: startTime,
                 endHour: ultimoSlot
               };
               break;
@@ -376,16 +357,13 @@ export class AppointmentsService {
 
             const excepciones = this.obtenerExcepcionesEmpleado(empleado, fecha);
             const citasOcupadas = await this.obtenerCitasEmpleado(empleado.id, fecha);
-            const slotsDisponibles = this.construirSlots(horarioBase, excepciones, citasOcupadas);
-            
             const duracionServicio = this.parseDurationToMinutes(servicio.duration);
+            const slotsDisponibles = this.construirSlots(horarioBase, excepciones, citasOcupadas, duracionServicio);
+            
             const horaInicioString = this.minutesToTime(horaActual);
             
             // Verificar si el empleado está disponible en esta hora
-            const slotDisponible = slotsDisponibles.find(slot => 
-              this.timeToMinutes(slot.start) <= horaActual &&
-              this.timeToMinutes(slot.end) >= horaActual + duracionServicio
-            );
+            const slotDisponible = slotsDisponibles.includes(horaInicioString);
 
             if (!slotDisponible) {
               puedenTodos = false;

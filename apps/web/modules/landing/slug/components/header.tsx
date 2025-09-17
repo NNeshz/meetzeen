@@ -110,7 +110,7 @@ export function Header({ slugName }: { slugName: string }) {
                   src={organization.imageUrl || ""}
                   className="w-full h-full object-cover"
                 />
-                <AvatarFallback>{organization.name}</AvatarFallback>
+                <AvatarFallback className="w-24 h-24 md:w-20 md:h-20 rounded">{organization.name}</AvatarFallback>
               </Avatar>
               <div className="flex flex-col items-center md:items-start text-center md:text-left">
                 <p className="text-2xl font-bold">{organization.name}</p>

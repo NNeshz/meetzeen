@@ -58,6 +58,8 @@ interface BookingState {
     phone: string;
   };
   selectedDateTime: Date | null;
+  selectedDate: Date | null;
+  selectedTime: string | null;
   currentStep: number;
   availabilityData: AvailabilityResponse | null;
   
@@ -76,6 +78,8 @@ interface BookingState {
   
   setCustomerData: (data: Partial<BookingState['customerData']>) => void;
   setSelectedDateTime: (date: Date | null) => void;
+  setSelectedDate: (date: Date | null) => void;
+  setSelectedTime: (time: string | null) => void;
   setCurrentStep: (step: number) => void;
   setAvailabilityData: (data: AvailabilityResponse) => void;
   
@@ -100,6 +104,8 @@ const initialState = {
     phone: '',
   },
   selectedDateTime: null,
+  selectedDate: null,
+  selectedTime: null,
   currentStep: 0,
   availabilityData: null,
 };
@@ -194,6 +200,10 @@ export const useBookingStore = create<BookingState>((set, get) => ({
   })),
   
   setSelectedDateTime: (date) => set({ selectedDateTime: date }),
+  
+  setSelectedDate: (date) => set({ selectedDate: date }),
+  
+  setSelectedTime: (time) => set({ selectedTime: time }),
   
   setCurrentStep: (step) => set({ currentStep: step }),
   

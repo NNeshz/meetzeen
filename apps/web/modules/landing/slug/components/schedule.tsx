@@ -1,42 +1,152 @@
-"use client"
+'use client'
 
-import { Button } from "@meetzeen/ui/src/components/button";
-import { useStepsStore } from "../store/useStepsStore";
-import { useBookingStore } from "../store/useBookingStore";
-import { useEffect } from "react";
+import { useState } from 'react'
+import { Calendar } from '@meetzeen/ui/components/calendar'
+import { Button } from '@meetzeen/ui/components/button'
+import { useBookingStore, type DateAvailability } from '../store/useBookingStore'
+import { useStepsStore } from '../store/useStepsStore'
 
 export function Schedule() {
+  const { 
+    availabilityData, 
+    selectedDate, 
+    selectedTime,
+    setSelectedDate, 
+    setSelectedTime,
+    setSelectedDateTime 
+  } = useBookingStore()
+  const { nextStep, prevStep } = useStepsStore()
   
-  const { prevStep, nextStep } = useStepsStore();
-  const { availabilityData } = useBookingStore();
+  const [availableHours, setAvailableHours] = useState<string[]>([])
 
-  useEffect(() => {
-    if (availabilityData) {
-      console.log("Respuesta de checkAvailability:", availabilityData);
+  const getAvailableDates = (): Date[] => {
+    if (!availabilityData?.individuals?.[0]?.datesAvailable) {
+      return []
     }
-  }, [availabilityData]);
+    
+    return availabilityData.individuals[0].datesAvailable.map((dateAvail: DateAvailability) => dateAvail.day)
+  }
+
+  const handleDateSelect = (date: Date | undefined) => {
+    if (!date) return
+    
+    setSelectedDate(date)
+    setSelectedTime(null)
+    
+    const dateAvailability = availabilityData?.individuals?.[0]?.datesAvailable?.find(
+      (dateAvail: DateAvailability) => dateAvail.day.toDateString() === date.toDateString()
+    )
+    
+    setAvailableHours(dateAvailability?.hours || [])
+  }
+
+  const handleTimeSelect = (time: string) => {
+    setSelectedTime(time)
+    
+    if (selectedDate) {
+      const [hours, minutes] = time.split(':').map(Number)
+      const fullDateTime = new Date(selectedDate)
+      
+      if (hours !== undefined && minutes !== undefined) {
+        fullDateTime.setHours(hours, minutes, 0, 0)
+        setSelectedDateTime(fullDateTime)
+      }
+    }
+  }
+
+  const handleContinue = () => {
+    if (selectedDate && selectedTime) {
+      nextStep()
+    }
+  }
+
+  const availableDates = getAvailableDates()
 
   return (
-    <div>
-      <h2 className="text-2xl font-bold mb-4">Horarios Disponibles</h2>
-      
-      {availabilityData && (
-        <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-          <h3 className="text-lg font-semibold mb-2">Datos de Disponibilidad:</h3>
-          <pre className="text-sm bg-white p-3 rounded border overflow-auto">
-            {JSON.stringify(availabilityData, null, 2)}
-          </pre>
+    <div className="py-12 space-y-4">
+      <div className="text-center">
+        <h2 className="text-2xl font-bold">Selecciona fecha y hora</h2>
+        <p className="text-muted-foreground">Elige el día y horario que mejor te convenga</p>
+      </div>
+
+      <div className="w-full">
+        <Calendar
+          mode="single"
+          selected={selectedDate || undefined}
+          onSelect={handleDateSelect}
+          disabled={(date) => {
+            return !availableDates.some(availDate => 
+              availDate.toDateString() === date.toDateString()
+            )
+          }}
+          className="w-full"
+        />
+      </div>
+
+      {selectedDate && (
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">
+            Horarios disponibles para {selectedDate.toLocaleDateString('es-ES', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            })}
+          </h3>
+          
+          {availableHours.length > 0 ? (
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+              {availableHours.map((hour) => (
+                <Button
+                  key={hour}
+                  variant={selectedTime === hour ? "default" : "outline"}
+                  onClick={() => handleTimeSelect(hour)}
+                  className="h-12 text-sm"
+                >
+                  {hour}
+                </Button>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center py-8">
+              No hay horarios disponibles para esta fecha
+            </p>
+          )}
         </div>
       )}
-      
-      <div className="flex justify-between">
-        <Button onClick={prevStep} size={"sm"} variant={"outline"}>
-          Anterior
-        </Button>
-        <Button onClick={nextStep} size={"sm"}>
-          Siguiente
-        </Button>
-      </div>
+
+
+      {selectedDate && selectedTime && (
+        <div className="flex justify-between items-center pt-6">
+          <Button 
+            onClick={prevStep} 
+            variant="outline"
+            size="sm"
+          >
+            Regresar
+          </Button>
+          <Button 
+            onClick={handleContinue}
+            size="sm"
+          >
+            Continuar
+          </Button>
+        </div>
+      )}
+
+      {selectedDate && selectedTime && (
+        <div className="p-4">
+          <p>
+            <strong>Fecha y hora seleccionada:</strong> {' '}
+            {selectedDate.toLocaleDateString('es-ES', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            })} a las {selectedTime}
+          </p>
+        </div>
+      )}
     </div>
-  );
+  )
 }

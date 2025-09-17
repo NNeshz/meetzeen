@@ -3,12 +3,6 @@
 import { Badge } from "@meetzeen/ui/src/components/badge";
 import { Checkbox } from "@meetzeen/ui/src/components/checkbox";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@meetzeen/ui/src/components/card";
-import {
   Accordion,
   AccordionContent,
   AccordionItem,
@@ -24,7 +18,7 @@ import { useStepsStore } from "../store/useStepsStore";
 import { toast } from "sonner";
 
 interface ApiService {
-  id: string; // Agregar el campo id que falta
+  id: string;
   service: string;
   duration: string;
   category: {
