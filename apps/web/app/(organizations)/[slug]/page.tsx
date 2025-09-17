@@ -10,6 +10,7 @@ import { use } from "react";
 import { Services } from "@/modules/landing/slug/components/services";
 import { useStepsStore } from "@/modules/landing/slug/store/useStepsStore";
 import { Schedule } from "@/modules/landing/slug/components/schedule";
+import { Resume } from "@/modules/landing/slug/components/resume";
 
 interface PageProps {
   params: Promise<{
@@ -65,6 +66,7 @@ export default function OrganizationPage({ params }: PageProps) {
       <div className="max-w-3xl mx-auto px-4">
         {step === 1 && <Services slugName={slug} />}
         {step === 2 && <Schedule />}
+        {step === 3 && <Resume />}
       </div>
     </div>
   );

@@ -17,10 +17,19 @@ export interface IndividualAvailability {
   datesAvailable: DateAvailability[];
 }
 
+export interface ServiceSlot {
+  serviceId: string;
+  employeeId: string;
+  startTime: string;
+  endTime: string;
+  order: number;
+}
+
 export interface SetAvailability {
   day: Date;
   startHour: string;
   endHour: string;
+  services?: ServiceSlot[]; // Nueva propiedad para detallar la secuencia
 }
 
 export interface AvailabilityResponseV2 {
@@ -187,7 +196,6 @@ export class AppointmentsService {
         throw new Error("Se requiere el ID de la organización");
       }
 
-      // Obtener información de servicios y empleados
       const servicios = await prismaClient.service.findMany({
         where: {
           id: { in: serviciosEmpleados.map(se => se.serviceId) },
@@ -207,7 +215,6 @@ export class AppointmentsService {
         }
       });
 
-      // Validar que todos los servicios y empleados existen
       for (const se of serviciosEmpleados) {
         const servicio = servicios.find(s => s.id === se.serviceId);
         const empleado = empleados.find(e => e.id === se.employeeId);
@@ -219,7 +226,6 @@ export class AppointmentsService {
           throw new Error(`Empleado ${se.employeeId} no encontrado`);
         }
         
-        // Verificar que el empleado puede realizar el servicio
         const puedeRealizarServicio = empleado.categories?.some(cat => cat.id === servicio.categoryId);
         if (!puedeRealizarServicio) {
           throw new Error(`El empleado ${empleado.name} no puede realizar el servicio ${servicio.name}`);
@@ -229,7 +235,6 @@ export class AppointmentsService {
       const fechas = this.generarFechasProximosDias(21);
       const individuals: IndividualAvailability[] = [];
 
-      // Calcular disponibilidad individual para cada servicio-empleado
       for (const se of serviciosEmpleados) {
         const servicio = servicios.find(s => s.id === se.serviceId)!;
         const empleado = empleados.find(e => e.id === se.employeeId)!;
@@ -245,7 +250,6 @@ export class AppointmentsService {
           const excepciones = this.obtenerExcepcionesEmpleado(empleado, fecha);
           const citasOcupadas = await this.obtenerCitasEmpleado(empleado.id, fecha);
 
-          // Usar la nueva lógica que genera slots basados en la duración del servicio
           const slotsDisponibles = this.construirSlots(horarioBase, excepciones, citasOcupadas, duracionServicio);
 
           if (slotsDisponibles.length > 0) {
@@ -263,10 +267,8 @@ export class AppointmentsService {
         });
       }
 
-      // Determinar si hay un conjunto combinado disponible
       let setAvailability: SetAvailability | undefined;
 
-      // Caso 1: Un solo servicio - no hay conjunto
       if (serviciosEmpleados.length === 1) {
         return {
           status: 200,
@@ -275,7 +277,6 @@ export class AppointmentsService {
         };
       }
 
-      // Caso 2: Múltiples servicios con el mismo empleado
       const empleadosUnicos = [...new Set(serviciosEmpleados.map(se => se.employeeId))];
       
       if (empleadosUnicos.length === 1) {
@@ -283,13 +284,11 @@ export class AppointmentsService {
         const empleadoId = empleadosUnicos[0];
         const empleado = empleados.find(e => e.id === empleadoId)!;
         
-        // Calcular duración total
         const duracionTotal = serviciosEmpleados.reduce((total, se) => {
           const servicio = servicios.find(s => s.id === se.serviceId)!;
           return total + this.parseDurationToMinutes(servicio.duration);
         }, 0);
 
-        // Buscar fechas donde se pueden hacer todos los servicios consecutivos
         for (const fecha of fechas) {
           const horarioBase = this.obtenerHorarioEmpleado(empleado, fecha.dayOfWeek);
           
@@ -298,7 +297,6 @@ export class AppointmentsService {
           const excepciones = this.obtenerExcepcionesEmpleado(empleado, fecha);
           const citasOcupadas = await this.obtenerCitasEmpleado(empleado.id, fecha);
 
-          // Para servicios consecutivos, necesitamos verificar disponibilidad continua
           let startTime = horarioBase.startTime;
           let endTime = horarioBase.endTime;
 
@@ -313,9 +311,7 @@ export class AppointmentsService {
           const startMinutes = this.timeToMinutes(startTime);
           const endMinutes = this.timeToMinutes(endTime);
 
-          // Verificar si hay tiempo suficiente para todos los servicios
           if (startMinutes + duracionTotal <= endMinutes) {
-            // Verificar que no haya conflictos con citas ocupadas
             const isOccupied = citasOcupadas.some(cita => {
               const citaStart = this.timeToMinutes(cita.start);
               const citaEnd = this.timeToMinutes(cita.end);
@@ -325,29 +321,54 @@ export class AppointmentsService {
             if (!isOccupied) {
               const ultimoSlot = this.minutesToTime(startMinutes + duracionTotal);
 
+              const serviceSlots: ServiceSlot[] = [];
+              let currentTime = startMinutes;
+              
+              serviciosEmpleados.forEach((se, index) => {
+                const servicio = servicios.find(s => s.id === se.serviceId)!;
+                const duracionServicio = this.parseDurationToMinutes(servicio.duration);
+                
+                serviceSlots.push({
+                  serviceId: se.serviceId,
+                  employeeId: se.employeeId,
+                  startTime: this.minutesToTime(currentTime),
+                  endTime: this.minutesToTime(currentTime + duracionServicio),
+                  order: index + 1
+                });
+                
+                currentTime += duracionServicio;
+              });
+
               setAvailability = {
                 day: new Date(fecha.toString()),
                 startHour: startTime,
-                endHour: ultimoSlot
+                endHour: ultimoSlot,
+                services: serviceSlots
               };
               break;
             }
           }
         }
       } else {
-        // Caso 3: Múltiples servicios con diferentes empleados
-        // Buscar fechas donde todos los empleados están disponibles en secuencia
         for (const fecha of fechas) {
           let puedenTodos = true;
           let horaInicio: string | null = null;
           let horaFin: string | null = null;
+          const serviceSlots: ServiceSlot[] = [];
 
-          // Verificar disponibilidad secuencial
-          let horaActual = 8 * 60; // Empezar a las 8:00 AM
+          let horaActual = 8 * 60;
 
-          for (const se of serviciosEmpleados) {
-            const servicio = servicios.find(s => s.id === se.serviceId)!;
-            const empleado = empleados.find(e => e.id === se.employeeId)!;
+          for (let i = 0; i < serviciosEmpleados.length; i++) {
+            const se = serviciosEmpleados[i];
+            if (!se) continue;
+            
+            const servicio = servicios.find(s => s.id === se.serviceId);
+            const empleado = empleados.find(e => e.id === se.employeeId);
+            
+            if (!servicio || !empleado) {
+              puedenTodos = false;
+              break;
+            }
             
             const horarioBase = this.obtenerHorarioEmpleado(empleado, fecha.dayOfWeek);
             if (!horarioBase) {
@@ -362,13 +383,20 @@ export class AppointmentsService {
             
             const horaInicioString = this.minutesToTime(horaActual);
             
-            // Verificar si el empleado está disponible en esta hora
             const slotDisponible = slotsDisponibles.includes(horaInicioString);
 
             if (!slotDisponible) {
               puedenTodos = false;
               break;
             }
+
+            serviceSlots.push({
+              serviceId: se.serviceId,
+              employeeId: se.employeeId,
+              startTime: horaInicioString,
+              endTime: this.minutesToTime(horaActual + duracionServicio),
+              order: i + 1
+            });
 
             if (!horaInicio) horaInicio = horaInicioString;
             horaActual += duracionServicio;
@@ -379,7 +407,8 @@ export class AppointmentsService {
             setAvailability = {
               day: new Date(fecha.toString()),
               startHour: horaInicio,
-              endHour: horaFin
+              endHour: horaFin,
+              services: serviceSlots
             };
             break;
           }

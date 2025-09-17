@@ -1,10 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Calendar } from '@meetzeen/ui/components/calendar'
 import { Button } from '@meetzeen/ui/components/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@meetzeen/ui/components/card'
-import { useBookingStore, type DateAvailability } from '../store/useBookingStore'
+import { Badge } from '@meetzeen/ui/components/badge'
+import { Clock, CheckCircle, ArrowRight } from 'lucide-react'
+import { useBookingStore, type DateAvailability, type ServiceSlot } from '../store/useBookingStore'
 import { useStepsStore } from '../store/useStepsStore'
 
 export function Schedule() {
@@ -13,13 +15,25 @@ export function Schedule() {
     selectedServicesWithEmployees,
     setServiceSelection,
     getServiceSelection,
-    areAllServiceSelectionsComplete
+    areAllServiceSelectionsComplete,
+    applySlotSelection,
+    clearSlotSelection,
+    canUseSlot,
+    isUsingSlot
   } = useBookingStore()
   const { nextStep, prevStep } = useStepsStore()
   
   const [currentServiceIndex, setCurrentServiceIndex] = useState(0)
   const [currentEmployeeIndex, setCurrentEmployeeIndex] = useState(0)
   const [availableHours, setAvailableHours] = useState<string[]>([])
+  const [showSlotSuggestion, setShowSlotSuggestion] = useState(false)
+
+  // Verificar si se puede mostrar sugerencia de slot al cargar
+  useEffect(() => {
+    if (canUseSlot() && !isUsingSlot) {
+      setShowSlotSuggestion(true)
+    }
+  }, [availabilityData, selectedServicesWithEmployees, canUseSlot, isUsingSlot])
 
   const getScenarioType = () => {
     if (selectedServicesWithEmployees.length === 0) return 'none'
@@ -42,6 +56,109 @@ export function Schedule() {
   const scenarioType = getScenarioType()
   const currentService = selectedServicesWithEmployees[currentServiceIndex]
   const currentEmployee = currentService?.selectedEmployees[currentEmployeeIndex]
+
+  // Manejar aceptación de slot sugerido
+  const handleAcceptSlot = () => {
+    if (availabilityData?.set) {
+      applySlotSelection(availabilityData.set)
+      setShowSlotSuggestion(false)
+    }
+  }
+
+  // Manejar rechazo de slot sugerido
+  const handleRejectSlot = () => {
+    setShowSlotSuggestion(false)
+  }
+
+  // Renderizar sugerencia de slot
+  const renderSlotSuggestion = () => {
+    if (!showSlotSuggestion || !availabilityData?.set || !availabilityData.set.services) {
+      return null
+    }
+
+    const slot = availabilityData.set
+    const services = slot.services
+
+    // Validación adicional para evitar undefined
+    if (!services || services.length === 0) {
+      return null
+    }
+
+    return (
+      <Card className="mb-6 border-blue-200 bg-blue-50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-blue-800">
+            <Clock className="h-5 w-5" />
+            ¡Horario conjunto disponible!
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <p className="text-blue-700">
+              Encontramos un horario donde puedes tener todos tus servicios de forma consecutiva:
+            </p>
+            
+            <div className="bg-white rounded-lg p-4 border">
+              <div className="flex items-center justify-between mb-3">
+                <span className="font-semibold">
+                  {slot.day.toLocaleDateString('es-ES', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </span>
+                <Badge variant="secondary">
+                  {slot.startHour} - {slot.endHour}
+                </Badge>
+              </div>
+              
+              <div className="space-y-2">
+                {services
+                  .sort((a, b) => a.order - b.order)
+                  .map((serviceSlot, index) => {
+                    const service = selectedServicesWithEmployees
+                      .find(s => s.service.id === serviceSlot.serviceId)?.service
+                    const employee = selectedServicesWithEmployees
+                      .flatMap(s => s.selectedEmployees)
+                      .find(e => e.id === serviceSlot.employeeId)
+                    
+                    return (
+                      <div key={`${serviceSlot.serviceId}-${serviceSlot.employeeId}`} 
+                           className="flex items-center gap-3 p-2 bg-gray-50 rounded">
+                        <Badge variant="outline" className="min-w-[24px] h-6 flex items-center justify-center">
+                          {serviceSlot.order}
+                        </Badge>
+                        <div className="flex-1">
+                          <span className="font-medium">{service?.name}</span>
+                          <span className="text-muted-foreground"> con {employee?.name}</span>
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {serviceSlot.startTime} - {serviceSlot.endTime}
+                        </div>
+                        {index < services.length - 1 && (
+                          <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                        )}
+                      </div>
+                    )
+                  })}
+              </div>
+            </div>
+            
+            <div className="flex gap-3">
+              <Button onClick={handleAcceptSlot} className="flex-1">
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Aceptar horario conjunto
+              </Button>
+              <Button onClick={handleRejectSlot} variant="outline">
+                Seleccionar individualmente
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
 
   // Obtener fechas disponibles según el escenario
   const getAvailableDates = (): Date[] => {
@@ -139,6 +256,28 @@ export function Schedule() {
 
   // Renderizar título según el escenario
   const renderTitle = () => {
+    if (isUsingSlot) {
+      return (
+        <div className="text-center">
+          <h2 className="text-2xl font-bold">Horario conjunto seleccionado</h2>
+          <p className="text-muted-foreground">
+            Todos tus servicios están programados de forma consecutiva
+          </p>
+          <Button 
+            onClick={() => {
+              clearSlotSelection()
+              setShowSlotSuggestion(true)
+            }}
+            variant="outline"
+            size="sm"
+            className="mt-2"
+          >
+            Cambiar a selección individual
+          </Button>
+        </div>
+      )
+    }
+
     if (scenarioType === '1:1') {
       return (
         <div className="text-center">
@@ -182,7 +321,9 @@ export function Schedule() {
     return (
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle className="text-lg">Resumen de selecciones</CardTitle>
+          <CardTitle className="text-lg">
+            {isUsingSlot ? 'Horario conjunto programado' : 'Resumen de selecciones'}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
@@ -190,13 +331,25 @@ export function Schedule() {
               item.selectedEmployees.map((employee, empIndex) => {
                 const selection = getServiceSelection(item.service.id, employee.id)
                 return (
-                  <div key={`${item.service.id}-${employee.id}`} className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                    <span className="text-sm">
-                      {item.service.name} - {employee.name}
-                    </span>
+                  <div key={`${item.service.id}-${employee.id}`} 
+                       className={`flex justify-between items-center p-2 rounded ${
+                         isUsingSlot ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50'
+                       }`}>
+                    <div className="flex items-center gap-2">
+                      {isUsingSlot && selection?.order && (
+                        <Badge variant="outline" className="min-w-[24px] h-6 flex items-center justify-center">
+                          {selection.order}
+                        </Badge>
+                      )}
+                      <span className="text-sm">
+                        {item.service.name} - {employee.name}
+                      </span>
+                    </div>
                     <span className="text-sm font-medium">
                       {selection?.selectedDate && selection?.selectedTime ? (
-                        `${selection.selectedDate.toLocaleDateString('es-ES')} a las ${selection.selectedTime}`
+                        <span className={isUsingSlot ? 'text-blue-700' : ''}>
+                          {selection.selectedDate.toLocaleDateString('es-ES')} a las {selection.selectedTime}
+                        </span>
                       ) : (
                         <span className="text-muted-foreground">Pendiente</span>
                       )}
@@ -219,9 +372,39 @@ export function Schedule() {
     )
   }
 
+  // Si está usando slot, mostrar solo el resumen
+  if (isUsingSlot) {
+    return (
+      <div className="py-12 space-y-6">
+        {renderTitle()}
+        {renderSelectionSummary()}
+        
+        {/* Botones de navegación principal */}
+        <div className="flex justify-between items-center pt-6">
+          <Button 
+            onClick={prevStep} 
+            variant="outline"
+            size="sm"
+          >
+            Regresar
+          </Button>
+          
+          <Button 
+            onClick={handleContinue}
+            size="sm"
+          >
+            Continuar
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="py-12 space-y-6">
       {renderTitle()}
+      
+      {renderSlotSuggestion()}
       
       {renderSelectionSummary()}
 
