@@ -50,6 +50,14 @@ interface AvailabilityResponse {
   individuals: IndividualAvailability[];
 }
 
+interface ServiceSelection {
+  serviceId: string;
+  employeeId: string;
+  selectedDate: Date | null;
+  selectedTime: string | null;
+  selectedDateTime: Date | null;
+}
+
 interface BookingState {
   selectedServicesWithEmployees: ServiceWithEmployee[];
   customerData: {
@@ -60,6 +68,7 @@ interface BookingState {
   selectedDateTime: Date | null;
   selectedDate: Date | null;
   selectedTime: string | null;
+  serviceSelections: ServiceSelection[]; // Nueva propiedad para manejar múltiples selecciones
   currentStep: number;
   availabilityData: AvailabilityResponse | null;
   
@@ -82,6 +91,11 @@ interface BookingState {
   setSelectedTime: (time: string | null) => void;
   setCurrentStep: (step: number) => void;
   setAvailabilityData: (data: AvailabilityResponse) => void;
+  
+  // Nuevos métodos para manejar selecciones por servicio
+  setServiceSelection: (serviceId: string, employeeId: string, date: Date | null, time: string | null) => void;
+  getServiceSelection: (serviceId: string, employeeId: string) => ServiceSelection | undefined;
+  areAllServiceSelectionsComplete: () => boolean;
   
   getAvailabilityData: () => {
     services: Array<{
@@ -106,6 +120,7 @@ const initialState = {
   selectedDateTime: null,
   selectedDate: null,
   selectedTime: null,
+  serviceSelections: [],
   currentStep: 0,
   availabilityData: null,
 };
@@ -209,6 +224,63 @@ export const useBookingStore = create<BookingState>((set, get) => ({
   
   setAvailabilityData: (data) => set({ availabilityData: data }),
   
+  // Nuevos métodos para manejar selecciones por servicio
+  setServiceSelection: (serviceId, employeeId, date, time) => set((state) => {
+    const existingIndex = state.serviceSelections.findIndex(
+      sel => sel.serviceId === serviceId && sel.employeeId === employeeId
+    );
+    
+    let selectedDateTime: Date | null = null;
+    if (date && time) {
+      const [hours, minutes] = time.split(':').map(Number);
+      selectedDateTime = new Date(date);
+      if (hours !== undefined && minutes !== undefined) {
+        selectedDateTime.setHours(hours, minutes, 0, 0);
+      }
+    }
+    
+    const newSelection: ServiceSelection = {
+      serviceId,
+      employeeId,
+      selectedDate: date,
+      selectedTime: time,
+      selectedDateTime
+    };
+    
+    if (existingIndex >= 0) {
+      // Actualizar selección existente
+      const updatedSelections = [...state.serviceSelections];
+      updatedSelections[existingIndex] = newSelection;
+      return { serviceSelections: updatedSelections };
+    } else {
+      // Agregar nueva selección
+      return { serviceSelections: [...state.serviceSelections, newSelection] };
+    }
+  }),
+  
+  getServiceSelection: (serviceId, employeeId) => {
+    const state = get();
+    return state.serviceSelections.find(
+      sel => sel.serviceId === serviceId && sel.employeeId === employeeId
+    );
+  },
+  
+  areAllServiceSelectionsComplete: () => {
+    const state = get();
+    const requiredSelections = state.selectedServicesWithEmployees.flatMap(item =>
+      item.selectedEmployees.map(emp => ({ serviceId: item.service.id, employeeId: emp.id }))
+    );
+    
+    return requiredSelections.every(required =>
+      state.serviceSelections.some(sel =>
+        sel.serviceId === required.serviceId &&
+        sel.employeeId === required.employeeId &&
+        sel.selectedDate &&
+        sel.selectedTime
+      )
+    );
+  },
+  
   getAvailabilityData: () => {
     const state = get();
     return {
@@ -227,4 +299,4 @@ export const useBookingStore = create<BookingState>((set, get) => ({
   selectedServices: [],
 }));
 
-export type { Service, Employee, AvailabilityResponse, IndividualAvailability, SetAvailability, DateAvailability };
+export type { Service, Employee, AvailabilityResponse, IndividualAvailability, SetAvailability, DateAvailability, ServiceSelection };
