@@ -344,8 +344,65 @@ export const useBookingStore = create<BookingState>((set, get) => ({
   reorderSlotServices: (newOrder) => set((state) => {
     if (!state.isUsingSlot || !state.availabilityData?.set) return state;
     
+    // Función para parsear duración en minutos
+    const parseDurationToMinutes = (duration: string): number => {
+      if (/^\d+$/.test(duration)) {
+        return parseInt(duration);
+      } else {
+        let minutes = 0;
+        const hourMatch = duration.match(/(\d+)h/);
+        const minuteMatch = duration.match(/(\d+)m/);
+        
+        if (hourMatch && hourMatch[1]) minutes += parseInt(hourMatch[1]) * 60;
+        if (minuteMatch && minuteMatch[1]) minutes += parseInt(minuteMatch[1]);
+        
+        return minutes;
+      }
+    };
+
+    // Función para sumar minutos a una hora
+    const addMinutesToTime = (timeStr: string, minutesToAdd: number): string => {
+      const [hours, minutes] = timeStr.split(':').map(Number);
+      const safeHours = hours ?? 0;
+      const safeMinutes = minutes ?? 0;
+      const totalMinutes = safeHours * 60 + safeMinutes + minutesToAdd;
+      const newHours = Math.floor(totalMinutes / 60);
+      const newMinutes = totalMinutes % 60;
+      return `${newHours.toString().padStart(2, '0')}:${newMinutes.toString().padStart(2, '0')}`;
+    };
+
+    // Obtener el horario de inicio del slot
+    const slotStartTime = state.availabilityData.set.startHour;
+    
+    // Calcular nuevos horarios basados en el orden
+    let currentTime = slotStartTime;
+    const updatedSlots: ServiceSlot[] = [];
+    
+    newOrder.forEach((slot, index) => {
+      // Encontrar el servicio correspondiente para obtener su duración
+      const serviceWithEmployee = state.selectedServicesWithEmployees.find(swe => 
+        swe.service.id === slot.serviceId
+      );
+      
+      if (serviceWithEmployee) {
+        const serviceDuration = parseDurationToMinutes(serviceWithEmployee.service.duration);
+        const endTime = addMinutesToTime(currentTime, serviceDuration);
+        
+        updatedSlots.push({
+          ...slot,
+          startTime: currentTime,
+          endTime: endTime,
+          order: index + 1
+        });
+        
+        // El siguiente servicio empieza cuando termina el actual
+        currentTime = endTime;
+      }
+    });
+    
+    // Actualizar las selecciones con los nuevos horarios
     const updatedSelections = state.serviceSelections.map(selection => {
-      const newSlot = newOrder.find(slot => 
+      const newSlot = updatedSlots.find(slot => 
         slot.serviceId === selection.serviceId && 
         slot.employeeId === selection.employeeId
       );

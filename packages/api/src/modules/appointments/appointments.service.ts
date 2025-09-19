@@ -29,7 +29,7 @@ export interface SetAvailability {
   day: Date;
   startHour: string;
   endHour: string;
-  services?: ServiceSlot[]; // Nueva propiedad para detallar la secuencia
+  services?: ServiceSlot[];
 }
 
 export interface AvailabilityResponseV2 {
@@ -356,20 +356,21 @@ export class AppointmentsService {
           let horaFin: string | null = null;
           const serviceSlots: ServiceSlot[] = [];
 
-          let horaActual = 8 * 60;
-
-          for (let i = 0; i < serviciosEmpleados.length; i++) {
-            const se = serviciosEmpleados[i];
-            if (!se) continue;
-            
+          const duracionTotal = serviciosEmpleados.reduce((total, se) => {
             const servicio = servicios.find(s => s.id === se.serviceId);
+            return total + (servicio ? this.parseDurationToMinutes(servicio.duration) : 0);
+          }, 0);
+
+          let horaInicioComun = 8 * 60; 
+          let horaFinComun = 18 * 60;
+
+          for (const se of serviciosEmpleados) {
             const empleado = empleados.find(e => e.id === se.employeeId);
-            
-            if (!servicio || !empleado) {
+            if (!empleado) {
               puedenTodos = false;
               break;
             }
-            
+
             const horarioBase = this.obtenerHorarioEmpleado(empleado, fecha.dayOfWeek);
             if (!horarioBase) {
               puedenTodos = false;
@@ -377,16 +378,69 @@ export class AppointmentsService {
             }
 
             const excepciones = this.obtenerExcepcionesEmpleado(empleado, fecha);
+            
+            let startTime = horarioBase.startTime;
+            let endTime = horarioBase.endTime;
+
+            if (excepciones) {
+              if (!excepciones.isAvailable) {
+                puedenTodos = false;
+                break;
+              }
+              if (excepciones.startTime && excepciones.endTime) {
+                startTime = excepciones.startTime;
+                endTime = excepciones.endTime;
+              }
+            }
+
+            const empleadoInicio = this.timeToMinutes(startTime);
+            const empleadoFin = this.timeToMinutes(endTime);
+
+            horaInicioComun = Math.max(horaInicioComun, empleadoInicio);
+            horaFinComun = Math.min(horaFinComun, empleadoFin);
+          }
+
+          if (!puedenTodos || horaInicioComun >= horaFinComun) {
+            continue;
+          }
+
+          if (horaInicioComun + duracionTotal > horaFinComun) {
+            continue;
+          }
+
+          let horaActual = horaInicioComun;
+          let todosDisponibles = true;
+
+          for (let i = 0; i < serviciosEmpleados.length; i++) {
+            const se = serviciosEmpleados[i];
+            
+            if (!se) {
+              todosDisponibles = false;
+              break;
+            }
+            
+            const servicio = servicios.find(s => s.id === se.serviceId);
+            const empleado = empleados.find(e => e.id === se.employeeId);
+            
+            if (!servicio || !empleado) {
+              todosDisponibles = false;
+              break;
+            }
+
             const citasOcupadas = await this.obtenerCitasEmpleado(empleado.id, fecha);
             const duracionServicio = this.parseDurationToMinutes(servicio.duration);
-            const slotsDisponibles = this.construirSlots(horarioBase, excepciones, citasOcupadas, duracionServicio);
-            
-            const horaInicioString = this.minutesToTime(horaActual);
-            
-            const slotDisponible = slotsDisponibles.includes(horaInicioString);
 
-            if (!slotDisponible) {
-              puedenTodos = false;
+            const horaInicioString = this.minutesToTime(horaActual);
+            const horaFinString = this.minutesToTime(horaActual + duracionServicio);
+
+            const isOccupied = citasOcupadas.some(cita => {
+              const citaStart = this.timeToMinutes(cita.start);
+              const citaEnd = this.timeToMinutes(cita.end);
+              return horaActual < citaEnd && (horaActual + duracionServicio) > citaStart;
+            });
+
+            if (isOccupied) {
+              todosDisponibles = false;
               break;
             }
 
@@ -394,7 +448,7 @@ export class AppointmentsService {
               serviceId: se.serviceId,
               employeeId: se.employeeId,
               startTime: horaInicioString,
-              endTime: this.minutesToTime(horaActual + duracionServicio),
+              endTime: horaFinString,
               order: i + 1
             });
 
@@ -402,7 +456,7 @@ export class AppointmentsService {
             horaActual += duracionServicio;
           }
 
-          if (puedenTodos && horaInicio) {
+          if (todosDisponibles && horaInicio) {
             horaFin = this.minutesToTime(horaActual);
             setAvailability = {
               day: new Date(fecha.toString()),

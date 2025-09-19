@@ -252,12 +252,13 @@ export function Resume() {
       if (oldIndex !== -1 && newIndex !== -1) {
         const newOrder = arrayMove(orderedServices, oldIndex, newIndex)
 
-        // Actualizar órdenes en el store
+        // Crear el nuevo orden de slots para enviar al store
+        // El store se encargará de recalcular los horarios automáticamente
         const updatedSlots: ServiceSlot[] = newOrder.map((item, index) => ({
           serviceId: item.service.id,
           employeeId: item.employee.id,
-          startTime: item.selection.selectedTime || '',
-          endTime: '', // Se calculará en el backend
+          startTime: '', // Se calculará en el store
+          endTime: '', // Se calculará en el store
           order: index + 1
         }))
 
@@ -432,7 +433,7 @@ export function Resume() {
                 </h4>
                 <p className="text-sm text-blue-700">
                   Tus servicios están programados uno después del otro. 
-                  Puedes cambiar el orden arrastrando los elementos si lo deseas.
+                  Puedes cambiar el orden arrastrando los elementos. Los horarios se ajustarán automáticamente.
                 </p>
               </div>
             </div>
