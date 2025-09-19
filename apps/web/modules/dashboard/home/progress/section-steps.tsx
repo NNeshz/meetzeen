@@ -76,34 +76,29 @@ export function SectionSteps() {
     // Calcular pasos completados
     const completedSteps = Math.floor((progress / 100) * businessSteps.length);
 
-    // Obtener pasos no completados
-    const incompleteSteps = businessSteps.filter((_, index) => index >= completedSteps);
+    // Obtener el siguiente paso a completar (solo el primero de los incompletos)
+    const nextStep = businessSteps[completedSteps];
 
-    // No mostrar nada si no hay pasos a seguir
-    if (incompleteSteps.length === 0) return;
+    // No mostrar nada si no hay siguiente paso
+    if (!nextStep) return;
 
-    // Mostrar toast para cada paso no completado
-    incompleteSteps.forEach((step, index) => {
-      const StepIcon = step.icon;
-      const route = stepRoutes[step.id as keyof typeof stepRoutes];
+    // Mostrar toast solo para el siguiente paso
+    const StepIcon = nextStep.icon;
+    const route = stepRoutes[nextStep.id as keyof typeof stepRoutes];
 
-      // Delay progresivo para que no aparezcan todos al mismo tiempo
-      setTimeout(() => {
-        toast(step.title, {
-          description: step.description,
-          icon: <StepIcon className="w-5 h-5" />,
-          duration: Infinity, // Toast persistente
-          action: route ? {
-            label: (
-              <div className="flex items-center gap-1">
-                Ir
-                <IconChevronRight className="w-3 h-3" />
-              </div>
-            ),
-            onClick: () => router.push(route),
-          } : undefined,
-        });
-      }, index * 200); // 200ms de delay entre cada toast
+    toast(nextStep.title, {
+      description: nextStep.description,
+      icon: <StepIcon className="w-5 h-5" />,
+      duration: Infinity, // Toast persistente
+      action: route ? {
+        label: (
+          <div className="flex items-center gap-1">
+            Ir
+            <IconChevronRight className="w-3 h-3" />
+          </div>
+        ),
+        onClick: () => router.push(route),
+      } : undefined,
     });
 
     // Cleanup function para limpiar toasts cuando el componente se desmonte

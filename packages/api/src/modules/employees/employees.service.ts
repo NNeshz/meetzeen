@@ -165,7 +165,6 @@ export class EmployeesService {
       await prismaClient.employeeSchedule.createMany({
         data: schedules,
       });
-      console.log("✅ Horarios creados exitosamente");
     } catch (error) {
       console.error("❌ Error al crear horarios:", error);
       throw error;

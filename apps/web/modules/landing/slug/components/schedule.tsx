@@ -439,7 +439,7 @@ export function Schedule() {
 
       {/* Lista de horarios disponibles */}
       {currentSelection?.selectedDate && (
-        <div className="space-y-4">
+        <div className="space-y-4 px-4">
           <h3 className="text-lg font-semibold">
             Horarios disponibles para {currentSelection.selectedDate.toLocaleDateString('es-ES', {
               weekday: 'long',
@@ -472,7 +472,7 @@ export function Schedule() {
 
       {/* Navegación entre servicios */}
       {(scenarioType === 'X:X' || scenarioType === 'X:1') && (
-        <div className="flex justify-between items-center pt-6">
+        <div className="flex justify-between items-center pt-4 px-4">
           <Button 
             onClick={handlePrevious}
             variant="outline"
@@ -496,7 +496,7 @@ export function Schedule() {
       )}
 
       {/* Botones de navegación principal */}
-      <div className="flex justify-between items-center pt-6">
+      <div className="flex justify-between items-center pt-4 px-4">
         <Button 
           onClick={prevStep} 
           variant="outline"
