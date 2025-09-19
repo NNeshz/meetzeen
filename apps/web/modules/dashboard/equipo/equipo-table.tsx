@@ -33,6 +33,19 @@ import { EquipoDelete } from "@/modules/dashboard/equipo/components/equipo-delet
 import { useEffect } from "react";
 import { useEquipoFilters } from "@/modules/dashboard/equipo/store/useEquipoStore";
 
+interface Employee {
+  name: string;
+  email: string;
+  id: string;
+  createdAt: Date;
+  phoneNumber: string;
+  imageUrl: string | null;
+  categories: {
+    name: string;
+    id: string;
+  }[];
+}
+
 export function EquipoTable() {
   const { data, isLoading, isError } = useEquipoQuery();
   const { setPagination } = useEquipoFilters();
@@ -67,8 +80,7 @@ export function EquipoTable() {
       <Table className="w-full">
         <TableHeader className="bg-muted/30 border-b border-border/50">
           <TableRow className="hover:bg-transparent border-none">
-            <TableHead className="text-muted-foreground font-medium py-4 px-6 w-16">
-            </TableHead>
+            <TableHead className="text-muted-foreground font-medium py-4 px-6 w-16"></TableHead>
             <TableHead className="text-muted-foreground font-medium py-4 px-6">
               Nombre
             </TableHead>
@@ -90,7 +102,7 @@ export function EquipoTable() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {employees.map((item) => {
+          {employees.map((item: Employee) => {
             return (
               <TableRow
                 key={item.id}
@@ -141,7 +153,7 @@ export function EquipoTable() {
                         <IconDots className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" >
+                    <DropdownMenuContent align="end">
                       <EquipoSheetUpdate employee={item} />
                       <EquipoDelete id={item.id} name={item.name} />
                     </DropdownMenuContent>
