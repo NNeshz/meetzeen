@@ -6,6 +6,7 @@ import { Button } from '@meetzeen/ui/components/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@meetzeen/ui/components/card'
 import { Badge } from '@meetzeen/ui/components/badge'
 import { Clock, CheckCircle, ArrowRight } from 'lucide-react'
+import { toast } from 'sonner'
 import { useBookingStore, type DateAvailability, type ServiceSlot } from '../store/useBookingStore'
 import { useStepsStore } from '../store/useStepsStore'
 
@@ -62,6 +63,9 @@ export function Schedule() {
     if (availabilityData?.set) {
       applySlotSelection(availabilityData.set)
       setShowSlotSuggestion(false)
+      toast.success('Horario conjunto confirmado', {
+        description: 'Todos tus servicios han sido programados de forma consecutiva'
+      })
     }
   }
 
@@ -85,22 +89,22 @@ export function Schedule() {
     }
 
     return (
-      <Card className="mb-6 border-blue-200 bg-blue-50">
+      <Card className="mb-6 border-muted bg-muted/30">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-blue-800">
+          <CardTitle className="flex items-center gap-2 text-foreground">
             <Clock className="h-5 w-5" />
             ¡Horario conjunto disponible!
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <p className="text-blue-700">
+            <p className="text-muted-foreground">
               Encontramos un horario donde puedes tener todos tus servicios de forma consecutiva:
             </p>
             
-            <div className="bg-white rounded-lg p-4 border">
+            <div className="bg-background rounded-lg p-4 border border-border">
               <div className="flex items-center justify-between mb-3">
-                <span className="font-semibold">
+                <span className="font-medium text-foreground">
                   {slot.day.toLocaleDateString('es-ES', {
                     weekday: 'long',
                     year: 'numeric',
@@ -125,12 +129,12 @@ export function Schedule() {
                     
                     return (
                       <div key={`${serviceSlot.serviceId}-${serviceSlot.employeeId}`} 
-                           className="flex items-center gap-3 p-2 bg-gray-50 rounded">
+                           className="flex items-center gap-3 p-2 bg-muted/50 rounded">
                         <Badge variant="outline" className="min-w-[24px] h-6 flex items-center justify-center">
                           {serviceSlot.order}
                         </Badge>
                         <div className="flex-1">
-                          <span className="font-medium">{service?.name}</span>
+                          <span className="font-medium text-foreground">{service?.name}</span>
                           <span className="text-muted-foreground"> con {employee?.name}</span>
                         </div>
                         <div className="text-sm text-muted-foreground">
@@ -217,6 +221,16 @@ export function Schedule() {
     
     const currentSelection = getServiceSelection(currentService.service.id, currentEmployee.id)
     setServiceSelection(currentService.service.id, currentEmployee.id, currentSelection?.selectedDate || null, time)
+    
+    // Mostrar toast de confirmación
+    toast.success('Horario seleccionado', {
+      description: `${currentService.service.name} con ${currentEmployee.name} - ${currentSelection?.selectedDate?.toLocaleDateString('es-ES', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })} a las ${time}`
+    })
   }
 
   // Navegar entre servicios/empleados
@@ -333,7 +347,7 @@ export function Schedule() {
                 return (
                   <div key={`${item.service.id}-${employee.id}`} 
                        className={`flex justify-between items-center p-2 rounded ${
-                         isUsingSlot ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50'
+                         isUsingSlot ? 'bg-muted/50 border border-border' : 'bg-muted/30'
                        }`}>
                     <div className="flex items-center gap-2">
                       {isUsingSlot && selection?.order && (
@@ -341,13 +355,13 @@ export function Schedule() {
                           {selection.order}
                         </Badge>
                       )}
-                      <span className="text-sm">
+                      <span className="text-sm text-foreground">
                         {item.service.name} - {employee.name}
                       </span>
                     </div>
                     <span className="text-sm font-medium">
                       {selection?.selectedDate && selection?.selectedTime ? (
-                        <span className={isUsingSlot ? 'text-blue-700' : ''}>
+                        <span className={isUsingSlot ? 'text-foreground' : 'text-foreground'}>
                           {selection.selectedDate.toLocaleDateString('es-ES')} a las {selection.selectedTime}
                         </span>
                       ) : (
@@ -449,7 +463,7 @@ export function Schedule() {
               ))}
             </div>
           ) : (
-            <p className="text-center py-8">
+            <p className="text-center py-8 text-muted-foreground">
               No hay horarios disponibles para esta fecha
             </p>
           )}
@@ -499,22 +513,6 @@ export function Schedule() {
           Continuar
         </Button>
       </div>
-
-      {/* Información de selección actual */}
-      {currentSelection?.selectedDate && currentSelection?.selectedTime && (
-        <div className="p-4 bg-blue-50 rounded-lg">
-          <p className="text-blue-800">
-            <strong>Selección actual:</strong> {' '}
-            {currentService?.service.name} con {currentEmployee?.name} - {' '}
-            {currentSelection.selectedDate.toLocaleDateString('es-ES', {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
-            })} a las {currentSelection.selectedTime}
-          </p>
-        </div>
-      )}
     </div>
   )
 }

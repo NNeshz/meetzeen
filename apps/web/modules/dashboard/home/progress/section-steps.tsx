@@ -1,19 +1,17 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Button } from "@meetzeen/ui/components/button";
 import {
   IconBuilding,
   IconTags,
   IconUsers,
   IconBriefcase,
-  IconCheck,
   IconChevronRight,
-  IconLoader2,
 } from "@tabler/icons-react";
-import { Card } from "@meetzeen/ui/src/components/card";
 import { useProgress } from "./hook/useProgress";
-import { cn } from "@meetzeen/ui/src/lib/utils";
-import { useRouter } from "next/navigation";
 
 // Mapeo de iconos por paso
 const stepIcons = {
@@ -63,241 +61,57 @@ export function SectionSteps() {
   const { data: progressData, isLoading } = useProgress();
   const router = useRouter();
 
-  if (isLoading) {
-    return (
-      <Card className="p-6">
-        <div className="flex items-center justify-center h-32">
-          <IconLoader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-          <span className="ml-2 text-muted-foreground">Cargando progreso...</span>
-        </div>
-      </Card>
-    );
-  }
+  useEffect(() => {
+    // No mostrar nada si está cargando
+    if (isLoading) return;
 
-  if (!progressData) {
-    return (
-      <Card className="p-6">
-        <div className="text-center text-muted-foreground">
-          No se pudo cargar el progreso
-        </div>
-      </Card>
-    );
-  }
+    // No mostrar nada si no hay datos
+    if (!progressData) return;
 
-  const { progress, currentStep, onboardingCompleted } = progressData;
-  const completedSteps = Math.floor((progress / 100) * businessSteps.length);
-  const currentStepData = businessSteps.find(step => step.id === currentStep) || businessSteps[0];
-  const CurrentIcon = currentStepData?.icon || IconBuilding;
+    const { progress, onboardingCompleted } = progressData;
 
-  const handleContinueClick = () => {
-    const route = stepRoutes[currentStep as keyof typeof stepRoutes] || stepRoutes[1];
-    router.push(route);
-  };
+    // No mostrar nada si el onboarding está completado o el progreso es 100%
+    if (onboardingCompleted || progress >= 100) return;
 
-  // Calcular el radio y circunferencia para la barra circular
-  const radius = 45;
-  const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - (progress / 100) * circumference;
+    // Calcular pasos completados
+    const completedSteps = Math.floor((progress / 100) * businessSteps.length);
 
-  // Dividir pasos en 2 grupos para desktop
-  const firstGroup = businessSteps.slice(0, 2);
-  const secondGroup = businessSteps.slice(2, 4);
+    // Obtener pasos no completados
+    const incompleteSteps = businessSteps.filter((_, index) => index >= completedSteps);
 
-  // Si el onboarding está completado o el progreso es 100%, no mostrar la card
-  if (onboardingCompleted || progress >= 100) {
-    return null;
-  }
+    // No mostrar nada si no hay pasos a seguir
+    if (incompleteSteps.length === 0) return;
 
-  const renderStepCard = (step: typeof businessSteps[0], index: number) => {
-    const isCompleted = index < completedSteps;
-    const isCurrent = step.id === currentStep;
-    const StepIcon = step.icon;
-    
-    return (
-      <div 
-        key={step.id}
-        className="flex items-center gap-4 p-3 rounded-lg border hover:bg-accent transition-colors cursor-pointer group"
-        onClick={() => {
-          const route = stepRoutes[step.id as keyof typeof stepRoutes];
-          if (route) router.push(route);
-        }}
-      >
-        {/* Icono de estado */}
-        <div className={cn(
-          "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0",
-          isCompleted 
-            ? "bg-green-500 text-white" 
-            : isCurrent
-            ? "bg-primary text-primary-foreground"
-            : "bg-muted text-muted-foreground"
-        )}>
-          {isCompleted ? (
-            <IconCheck className="w-5 h-5" />
-          ) : (
-            <StepIcon className={cn(
-              "w-5 h-5",
-              isCurrent && "animate-pulse"
-            )} />
-          )}
-        </div>
-        
-        {/* Contenido del paso */}
-        <div className="flex-1">
-          <h3 className={cn(
-            "font-medium text-sm",
-            isCompleted 
-              ? "text-green-600" 
-              : isCurrent 
-                ? "text-primary" 
-                : "text-foreground"
-          )}>
-            {step.title}
-          </h3>
-          <p className="text-muted-foreground text-xs mt-1">
-            {step.description}
-          </p>
-        </div>
-        
-        {/* Flecha */}
-        <IconChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-      </div>
-    );
-  };
+    // Mostrar toast para cada paso no completado
+    incompleteSteps.forEach((step, index) => {
+      const StepIcon = step.icon;
+      const route = stepRoutes[step.id as keyof typeof stepRoutes];
 
-  return (
-    <Card className="p-6">
-      {/* Layout Mobile: Stack vertical */}
-      <div className="block md:hidden space-y-6">
-        {/* Progreso circular centrado */}
-        <div className="flex flex-col items-center text-center">
-          <div className="relative mb-4">
-            <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 100 100">
-              {/* Círculo de fondo */}
-              <circle
-                cx="50"
-                cy="50"
-                r={radius}
-                stroke="currentColor"
-                strokeWidth="6"
-                fill="transparent"
-                className="text-muted"
-              />
-              {/* Círculo de progreso */}
-              <circle
-                cx="50"
-                cy="50"
-                r={radius}
-                stroke="currentColor"
-                strokeWidth="6"
-                fill="transparent"
-                strokeDasharray={circumference}
-                strokeDashoffset={strokeDashoffset}
-                strokeLinecap="round"
-                className="text-primary transition-all duration-500 ease-out"
-              />
-            </svg>
-            
-            {/* Icono del paso actual en el centro */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center">
-                <CurrentIcon className="w-8 h-8 text-primary" />
+      // Delay progresivo para que no aparezcan todos al mismo tiempo
+      setTimeout(() => {
+        toast(step.title, {
+          description: step.description,
+          icon: <StepIcon className="w-5 h-5" />,
+          duration: Infinity, // Toast persistente
+          action: route ? {
+            label: (
+              <div className="flex items-center gap-1">
+                Ir
+                <IconChevronRight className="w-3 h-3" />
               </div>
-            </div>
-          </div>
-          
-          {/* Porcentaje */}
-          <span className="text-2xl font-bold text-foreground mb-2">
-            {Math.round(progress)}%
-          </span>
-          
-          {/* Texto descriptivo */}
-          <h2 className="text-xl font-semibold mb-1">
-            Configuración Inicial
-          </h2>
-          <p className="text-muted-foreground text-sm mb-4">
-            Completa estos pasos para comenzar
-          </p>
-          
-          <Button onClick={handleContinueClick} size="sm" variant="default">
-            Continuar
-            <IconChevronRight className="w-4 h-4 ml-1" />
-          </Button>
-        </div>
-        
-        {/* Lista de pasos en mobile */}
-        <div className="space-y-3">
-          {businessSteps.map((step, index) => renderStepCard(step, index))}
-        </div>
-      </div>
+            ),
+            onClick: () => router.push(route),
+          } : undefined,
+        });
+      }, index * 200); // 200ms de delay entre cada toast
+    });
 
-      {/* Layout Desktop: Horizontal con 3 columnas */}
-      <div className="hidden md:flex items-start gap-8">
-        {/* Columna 1: Progreso circular y texto (1/3) */}
-        <div className="w-1/3 flex flex-col items-center text-center">
-          <div className="relative mb-4">
-            <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 100 100">
-              {/* Círculo de fondo */}
-              <circle
-                cx="50"
-                cy="50"
-                r={radius}
-                stroke="currentColor"
-                strokeWidth="6"
-                fill="transparent"
-                className="text-muted"
-              />
-              {/* Círculo de progreso */}
-              <circle
-                cx="50"
-                cy="50"
-                r={radius}
-                stroke="currentColor"
-                strokeWidth="6"
-                fill="transparent"
-                strokeDasharray={circumference}
-                strokeDashoffset={strokeDashoffset}
-                strokeLinecap="round"
-                className="text-primary transition-all duration-500 ease-out"
-              />
-            </svg>
-            
-            {/* Icono del paso actual en el centro */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center">
-                <CurrentIcon className="w-8 h-8 text-primary" />
-              </div>
-            </div>
-          </div>
-          
-          {/* Porcentaje */}
-          <span className="text-2xl font-bold text-foreground mb-2">
-            {Math.round(progress)}%
-          </span>
-          
-          {/* Texto descriptivo */}
-          <h2 className="text-xl font-semibold mb-1">
-            Configuración Inicial
-          </h2>
-          <p className="text-muted-foreground text-sm mb-4">
-            Completa estos pasos para comenzar
-          </p>
-          
-          <Button onClick={handleContinueClick} size="sm" variant="default">
-            Continuar
-            <IconChevronRight className="w-4 h-4 ml-1" />
-          </Button>
-        </div>
-        
-        {/* Columna 2: Primeros 2 pasos (1/3) */}
-        <div className="w-1/3 space-y-4">
-          {firstGroup.map((step, index) => renderStepCard(step, index))}
-        </div>
-        
-        {/* Columna 3: Últimos 2 pasos (1/3) */}
-        <div className="w-1/3 space-y-4">
-          {secondGroup.map((step, index) => renderStepCard(step, index + 2))}
-        </div>
-      </div>
-    </Card>
-  );
+    // Cleanup function para limpiar toasts cuando el componente se desmonte
+    return () => {
+      toast.dismiss();
+    };
+  }, [progressData, isLoading, router]);
+
+  // No renderizar nada - solo manejamos toasts
+  return null;
 }

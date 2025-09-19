@@ -15,6 +15,7 @@ import {
   CheckCircle2,
   AlertCircle
 } from 'lucide-react'
+import { toast } from 'sonner'
 import {
   DndContext,
   closestCenter,
@@ -75,6 +76,14 @@ function SortableServiceItem({ item, index, isUsingSlot, isDragOverlay = false }
     transition,
   }
 
+  // Formatear duración con minutero
+  const formatServiceDuration = (duration: string) => {
+    if (/^\d+$/.test(duration)) {
+      return `${duration} min`
+    }
+    return duration
+  }
+
   return (
     <div
       ref={setNodeRef}
@@ -84,8 +93,8 @@ function SortableServiceItem({ item, index, isUsingSlot, isDragOverlay = false }
         p-4 border rounded-lg transition-all duration-200
         ${isDragging ? 'opacity-50' : ''}
         ${isDragOverlay ? 'shadow-lg' : ''}
-        ${canDrag ? 'cursor-move hover:border-blue-200' : ''}
-        border-border
+        ${canDrag ? 'cursor-move hover:border-muted-foreground/50' : ''}
+        border-border bg-background
       `}
     >
       <div className="flex items-start gap-3">
@@ -97,38 +106,31 @@ function SortableServiceItem({ item, index, isUsingSlot, isDragOverlay = false }
             <GripVertical className="h-4 w-4 text-muted-foreground" />
           </div>
         )}
-        
-        {isUsingSlot && (
-          <Badge variant="outline" className="min-w-[24px] h-6 flex items-center justify-center">
-            {selection.order || index + 1}
-          </Badge>
-        )}
 
-        <div className="flex-1 space-y-2">
+        <div className="flex-1 space-y-3">
           <div className="flex justify-between items-start">
             <div>
-              <h4 className="font-semibold">{service.name}</h4>
+              <h4 className="font-medium text-foreground">{service.name}</h4>
               <p className="text-sm text-muted-foreground">
                 con {employee.name}
               </p>
             </div>
             <div className="text-right">
-              <div className="font-semibold">${service.price}</div>
+              <div className="font-medium text-foreground">${service.price}</div>
               <div className="text-sm text-muted-foreground">
-                {service.duration}
+                {formatServiceDuration(service.duration)}
               </div>
             </div>
           </div>
 
           {selection.selectedDate && selection.selectedTime && (
-            <div className="flex items-center gap-4 text-sm">
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
               <div className="flex items-center gap-1">
                 <Calendar className="h-4 w-4" />
                 <span>
                   {selection.selectedDate.toLocaleDateString('es-ES', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
+                    weekday: 'short',
+                    month: 'short',
                     day: 'numeric'
                   })}
                 </span>
@@ -229,11 +231,11 @@ export function Resume() {
     const mins = minutes % 60
     
     if (hours > 0 && mins > 0) {
-      return `${hours}h ${mins}m`
+      return `${hours}h ${mins} min`
     } else if (hours > 0) {
       return `${hours}h`
     } else {
-      return `${mins}m`
+      return `${mins} min`
     }
   }
 
@@ -253,7 +255,6 @@ export function Resume() {
         const newOrder = arrayMove(orderedServices, oldIndex, newIndex)
 
         // Crear el nuevo orden de slots para enviar al store
-        // El store se encargará de recalcular los horarios automáticamente
         const updatedSlots: ServiceSlot[] = newOrder.map((item, index) => ({
           serviceId: item.service.id,
           employeeId: item.employee.id,
@@ -263,6 +264,11 @@ export function Resume() {
         }))
 
         reorderSlotServices(updatedSlots)
+        
+        // Mostrar toast de confirmación
+        toast.success('Orden actualizado', {
+          description: 'Los horarios se han ajustado automáticamente'
+        })
       }
     }
 
@@ -276,14 +282,14 @@ export function Resume() {
     }
 
     return (
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+      <Card className="mb-6 border-border">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2 text-lg">
             <User className="h-5 w-5" />
             Información del cliente
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2">
+        <CardContent className="space-y-3">
           {customerData.name && (
             <div className="flex justify-between">
               <span className="text-muted-foreground">Nombre:</span>
@@ -314,7 +320,7 @@ export function Resume() {
     return (
       <div className="py-12 text-center">
         <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-        <h3 className="text-lg font-semibold mb-2">No hay servicios seleccionados</h3>
+        <h3 className="text-lg font-medium mb-2">No hay servicios seleccionados</h3>
         <p className="text-muted-foreground mb-6">
           Regresa al paso anterior para seleccionar tus servicios y horarios.
         </p>
@@ -338,10 +344,10 @@ export function Resume() {
       {renderCustomerInfo()}
 
       {/* Lista de servicios */}
-      <Card>
-        <CardHeader>
+      <Card className="border-border">
+        <CardHeader className="pb-4">
           <CardTitle className="flex items-center justify-between">
-            <span className="flex items-center gap-2">
+            <span className="flex items-center gap-2 text-lg">
               <Calendar className="h-5 w-5" />
               Servicios programados
             </span>
@@ -390,9 +396,9 @@ export function Resume() {
       </Card>
 
       {/* Resumen de totales */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+      <Card className="border-border">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2 text-lg">
             <DollarSign className="h-5 w-5" />
             Resumen de costos
           </CardTitle>
@@ -401,8 +407,8 @@ export function Resume() {
           <div className="space-y-3">
             {orderedServices.map(({ service, employee, id }) => (
               <div key={id} className="flex justify-between text-sm">
-                <span>{service.name} - {employee.name}</span>
-                <span>${service.price}</span>
+                <span className="text-foreground">{service.name} - {employee.name}</span>
+                <span className="font-medium">${service.price}</span>
               </div>
             ))}
             
@@ -410,7 +416,7 @@ export function Resume() {
             
             <div className="flex justify-between items-center">
               <div>
-                <div className="font-semibold">Total</div>
+                <div className="font-medium text-foreground">Total</div>
                 <div className="text-sm text-muted-foreground">
                   Duración total: {formatDuration(totalDuration)}
                 </div>
@@ -423,17 +429,17 @@ export function Resume() {
 
       {/* Información adicional para slots */}
       {isUsingSlot && orderedServices.length > 1 && (
-        <Card className="border-blue-200 bg-blue-50">
-          <CardContent className="pt-6">
+        <Card className="border-muted bg-muted/30">
+          <CardContent>
             <div className="flex items-start gap-3">
-              <CheckCircle2 className="h-5 w-5 text-blue-600 mt-0.5" />
+              <CheckCircle2 className="h-5 w-5 text-foreground mt-0.5" />
               <div>
-                <h4 className="font-semibold text-blue-800 mb-1">
+                <h4 className="font-medium text-foreground mb-1">
                   Servicios programados consecutivamente
                 </h4>
-                <p className="text-sm text-blue-700">
+                <p className="text-sm text-muted-foreground">
                   Tus servicios están programados uno después del otro. 
-                  Puedes cambiar el orden arrastrando los elementos. Los horarios se ajustarán automáticamente.
+                  Puedes cambiar el orden arrastrando los elementos.
                 </p>
               </div>
             </div>
