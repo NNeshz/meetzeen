@@ -20,6 +20,13 @@ import { useCategoriasQuery } from "@/modules/dashboard/categorias/hooks/useCate
 
 import { useState } from "react";
 
+interface Category {
+  name: string;
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export function EquipoSheetFilters() {
   const { search, categoryId, setFilter, resetFilters } = useEquipoFilters();
   const { data: categoriasData } = useCategoriasQuery();
@@ -73,7 +80,7 @@ export function EquipoSheetFilters() {
                 >
                   Todas las categorías
                 </button>
-                {categoriasData?.data?.map((categoria) => (
+                {categoriasData?.data?.map((categoria: Category) => (
                   <button
                     key={categoria.id}
                     onClick={() => setFilter("categoryId", categoria.id)}
