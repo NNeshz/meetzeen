@@ -11,6 +11,13 @@ import { Input } from "@meetzeen/ui/src/components/input"
 import { Button } from "@meetzeen/ui/src/components/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@meetzeen/ui/src/components/select"
 
+interface Category {
+  name: string;
+  id: string;
+  createdAt: Date;
+  updatedAt: Date
+}
+
 const schema = z.object({
   name: z.string().min(1, { message: "Nombre es requerido" }),
   duration: z.number().min(1, { message: "La duración debe ser al menos 1 minuto" }).max(1440, { message: "La duración no puede exceder 24 horas (1440 minutos)" }),
@@ -143,7 +150,7 @@ export function ServicioCreate({ onSuccess }: ServicioCreateProps) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {categoriasData?.data?.map((categoria) => (
+                  {categoriasData?.data?.map((categoria: Category) => (
                     <SelectItem key={categoria.id} value={categoria.id}>
                       {categoria.name}
                     </SelectItem>
