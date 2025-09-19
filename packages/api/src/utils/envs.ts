@@ -2,9 +2,6 @@ import { Type as t } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 
 const envSchema = t.Object({
-  NODE_ENV: t.Union([t.Literal("development"), t.Literal("production")], {
-    default: "development",
-  }),
   AUTH_SECRET: t.String(),
   DATABASE_URL: t.String(),
   NEXT_PUBLIC_BACKEND_URL: t.String(),
@@ -39,7 +36,6 @@ declare global {
   namespace NodeJS {
     interface ProcessEnv {
       [key: string]: string | undefined;
-      NODE_ENV: "development" | "production";
       AUTH_SECRET: string;
       DATABASE_URL: string;
       NEXT_PUBLIC_BACKEND_URL: string;

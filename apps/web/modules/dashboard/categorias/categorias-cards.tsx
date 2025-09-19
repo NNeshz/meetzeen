@@ -10,6 +10,13 @@ import { Empty } from "@/modules/dashboard/components/empty";
 import { CategoriasCard } from "@/modules/dashboard/categorias/components/categoria-card";
 import { useCategoriesFilters } from "./store/useCategoriesStore";
 
+interface Category {
+  name: string;
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export function CategoriasCards() {
   const {
     data: categories,
@@ -42,7 +49,7 @@ export function CategoriasCards() {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4 auto-rows-fr">
-      {categories?.data?.map((categoria) => (
+      {categories?.data?.map((categoria: Category) => (
         <CategoriasCard key={categoria.id} categoria={categoria} />
       ))}
     </div>
