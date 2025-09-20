@@ -18,6 +18,13 @@ const schema = z.object({
   categoryId: z.string().min(1, { message: "Categoría es requerida" }),
 })
 
+interface Category {
+  name: string;
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 interface ServicioUpdateProps {
   id: string;
   name: string;
@@ -154,7 +161,7 @@ export function ServicioUpdate({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {categoriasData?.data?.map((categoria) => (
+                  {categoriasData?.data?.map((categoria: Category) => (
                     <SelectItem key={categoria.id} value={categoria.id}>
                       {categoria.name}
                     </SelectItem>
