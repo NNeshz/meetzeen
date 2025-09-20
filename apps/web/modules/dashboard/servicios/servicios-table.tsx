@@ -26,6 +26,21 @@ import {
 import { ServicioSheetUpdate } from "@/modules/dashboard/servicios/components/servicios-sheet-update";
 import { ServicioDelete } from "./components/servicios-delete";
 
+interface Service {
+  name: string;
+  duration: string;
+  price: number;
+  categoryId: string;
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
+  organizationId: string;
+  category: {
+    name: string;
+    id: string;
+  };
+}
+
 export function ServiciosTable() {
   const { search, setPagination } = useServiciosFilters();
   const {
@@ -110,7 +125,7 @@ export function ServiciosTable() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {servicios.map((servicio) => (
+          {servicios.map((servicio: Service) => (
             <TableRow
               key={servicio.id}
               className="border-b border-border/30 hover:bg-muted/20 transition-colors"
