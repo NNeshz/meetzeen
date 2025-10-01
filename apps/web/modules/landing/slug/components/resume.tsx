@@ -76,7 +76,6 @@ function SortableServiceItem({ item, index, isUsingSlot, isDragOverlay = false }
     transition,
   }
 
-  // Formatear duración con minutero
   const formatServiceDuration = (duration: string) => {
     if (/^\d+$/.test(duration)) {
       return `${duration} min`
@@ -448,15 +447,15 @@ export function Resume() {
       )}
 
       {/* Botones de navegación */}
-      <div className="flex justify-between items-center pt-6">
+      <div className="flex justify-between items-center">
         <Button onClick={prevStep} variant="outline">
           <Edit className="h-4 w-4 mr-2" />
           Modificar selección
         </Button>
         
-        <Button onClick={nextStep} size="lg">
+        <Button onClick={nextStep} size="sm">
           <CheckCircle2 className="h-4 w-4 mr-2" />
-          Confirmar reserva
+          Mis datos
         </Button>
       </div>
     </div>

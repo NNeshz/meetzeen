@@ -11,6 +11,7 @@ import { Services } from "@/modules/landing/slug/components/services";
 import { useStepsStore } from "@/modules/landing/slug/store/useStepsStore";
 import { Schedule } from "@/modules/landing/slug/components/schedule";
 import { Resume } from "@/modules/landing/slug/components/resume";
+import { UserData } from "@/modules/landing/slug/components/user-data";
 
 interface PageProps {
   params: Promise<{
@@ -67,6 +68,7 @@ export default function OrganizationPage({ params }: PageProps) {
         {step === 1 && <Services slugName={slug} />}
         {step === 2 && <Schedule />}
         {step === 3 && <Resume />}
+        {step === 4 && <UserData />}
       </div>
     </div>
   );

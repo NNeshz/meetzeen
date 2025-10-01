@@ -21,14 +21,22 @@ export const useStepsStore = create<StepsStore & StepsActions>((set, get) => ({
     }
   },
   
-  prevStep: () => set((state) => ({ step: state.step - 1 })),
+  prevStep: () => set((state) => ({ step: Math.max(1, state.step - 1) })),
   
   canProceedToNextStep: () => {
     const { step } = get();
+    const bookingStore = useBookingStore.getState();
     
     if (step === 1) {
-      const bookingStore = useBookingStore.getState();
       return bookingStore.areAllServicesComplete();
+    }
+    
+    if (step === 2) {
+      return bookingStore.areAllServiceSelectionsComplete();
+    }
+    
+    if (step === 4) {
+      return bookingStore.otpData.isOtpVerified;
     }
   
     return true;

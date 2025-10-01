@@ -72,8 +72,14 @@ interface BookingState {
   selectedServicesWithEmployees: ServiceWithEmployee[];
   customerData: {
     name: string;
+    lastName: string;
     email: string;
     phone: string;
+  };
+  otpData: {
+    isOtpSent: boolean;
+    isOtpVerified: boolean;
+    otpCode: string;
   };
   selectedDateTime: Date | null;
   selectedDate: Date | null;
@@ -97,6 +103,10 @@ interface BookingState {
   areAllServicesComplete: () => boolean;
   
   setCustomerData: (data: Partial<BookingState['customerData']>) => void;
+  sendOtp: (phoneNumber: string) => Promise<boolean>;
+  verifyOtp: (code: string) => Promise<boolean>;
+  setOtpCode: (code: string) => void;
+  resetOtp: () => void;
   setSelectedDateTime: (date: Date | null) => void;
   setSelectedDate: (date: Date | null) => void;
   setSelectedTime: (time: string | null) => void;
@@ -131,8 +141,14 @@ const initialState = {
   selectedServicesWithEmployees: [],
   customerData: {
     name: '',
+    lastName: '',
     email: '',
     phone: '',
+  },
+  otpData: {
+    isOtpSent: false,
+    isOtpVerified: false,
+    otpCode: '',
   },
   selectedDateTime: null,
   selectedDate: null,
@@ -443,7 +459,58 @@ export const useBookingStore = create<BookingState>((set, get) => ({
   
   reset: () => set(initialState),
   
-  selectedServices: [],
+  sendOtp: async (phoneNumber: string) => {
+    try {
+      const { authClientVanilla } = await import('@meetzeen/auth/client/vanilla');
+      const result = await authClientVanilla.phoneNumber.sendOtp({
+        phoneNumber,
+      });
+      
+      if (result.data) {
+        set((state) => ({
+          otpData: { ...state.otpData, isOtpSent: true }
+        }));
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error sending OTP:', error);
+      return false;
+    }
+  },
+
+  verifyOtp: async (code: string) => {
+    try {
+      const { authClientVanilla } = await import('@meetzeen/auth/client/vanilla');
+      const result = await authClientVanilla.phoneNumber.verify({
+        phoneNumber: get().customerData.phone,
+        code,
+      });
+      
+      if (result.data) {
+        set((state) => ({
+          otpData: { ...state.otpData, isOtpVerified: true, otpCode: code }
+        }));
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error verifying OTP:', error);
+      return false;
+    }
+  },
+
+  setOtpCode: (code: string) => set((state) => ({
+    otpData: { ...state.otpData, otpCode: code }
+  })),
+
+  resetOtp: () => set((state) => ({
+    otpData: {
+      isOtpSent: false,
+      isOtpVerified: false,
+      otpCode: '',
+    }
+  })),
 }));
 
 export type { Service, Employee, AvailabilityResponse, IndividualAvailability, SetAvailability, DateAvailability, ServiceSelection, ServiceSlot };

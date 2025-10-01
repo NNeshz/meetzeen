@@ -1,9 +1,15 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { openAPI, organization } from "better-auth/plugins";
+import { openAPI, organization, phoneNumber } from "better-auth/plugins";
 
+import twilio from "twilio"
 import { PrismaClient } from "@meetzeen/database";
 
+const TWILIO_ACCOUNT_SID = process.env.TWILIO_SID;
+const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH;
+const TWILIO_VERIFY_SERVICE_SID = process.env.TWILIO_VERIFY_SERVICE_SID;
+
+const twilioClient = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
 const prisma = new PrismaClient();
 
 export const auth: ReturnType<typeof betterAuth> = betterAuth({
@@ -37,6 +43,19 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
     organization({
       allowUserToCreateOrganization: true,
       organizationLimit: 1
+    }),
+    phoneNumber({
+      sendOTP: async ({ phoneNumber, code }) => {
+        try {
+          await twilioClient.verify.v2.services(TWILIO_VERIFY_SERVICE_SID as string)
+            .verifications
+            .create({ to: phoneNumber, channel: 'whatsapp', customCode: code });
+          console.log("OTP sent to", phoneNumber, code);
+        } catch (error) {
+          console.error("This is the error: ", error);
+          throw new Error("Failed to send OTP");
+        }
+      },
     }),
   ]
 })
