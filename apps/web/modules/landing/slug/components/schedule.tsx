@@ -7,8 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@meetzeen/ui/component
 import { Badge } from '@meetzeen/ui/components/badge'
 import { Clock, CheckCircle, ArrowRight } from 'lucide-react'
 import { toast } from 'sonner'
-import { useBookingStore, type DateAvailability, type ServiceSlot } from '../store/useBookingStore'
-import { useStepsStore } from '../store/useStepsStore'
+import { useBookingStores } from '../store/useBookingStores'
+import type { DateAvailability } from '../store/types'
 
 export function Schedule() {
   const { 
@@ -20,9 +20,10 @@ export function Schedule() {
     applySlotSelection,
     clearSlotSelection,
     canUseSlot,
-    isUsingSlot
-  } = useBookingStore()
-  const { nextStep, prevStep } = useStepsStore()
+    isUsingSlot,
+    nextStep,
+    prevStep
+  } = useBookingStores()
   
   const [currentServiceIndex, setCurrentServiceIndex] = useState(0)
   const [currentEmployeeIndex, setCurrentEmployeeIndex] = useState(0)

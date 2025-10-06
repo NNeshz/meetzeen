@@ -10,12 +10,12 @@ import {
 } from "@meetzeen/ui/src/components/accordion";
 import { Avatar, AvatarFallback, AvatarImage } from "@meetzeen/ui/src/components/avatar";
 import { useServicesQuery, useSlugQuery, useCheckAvailability } from "@/modules/landing/slug/hooks/useSlugs";
-import { useBookingStore } from "@/modules/landing/slug/store/useBookingStore";
+import { useBookingStores } from "@/modules/landing/slug/store/useBookingStores";
 import { IconClock, IconTag } from "@tabler/icons-react";
 import { Label } from "@meetzeen/ui/src/components/label";
 import { Button } from "@meetzeen/ui/src/components/button";
-import { useStepsStore } from "../store/useStepsStore";
 import { toast } from "sonner";
+import { useEffect } from "react";
 
 interface ApiService {
   id: string;
@@ -79,12 +79,21 @@ export function Services({ slugName }: ServicesProps) {
     isEmployeeSelectedForService,
     areAllServicesComplete,
     setAvailabilityData,
-  } = useBookingStore();
-  const { nextStep } = useStepsStore();
+    setOrganizationId,
+    getServicesForBackend,
+    nextStep,
+  } = useBookingStores();
   
   // Get organization ID from the organization data
   const organizationId = orgData?.data?.id;
   const checkAvailabilityMutation = useCheckAvailability(organizationId || "");
+
+  // Set organization ID when it's available - usando useEffect para evitar bucle infinito
+  useEffect(() => {
+    if (organizationId) {
+      setOrganizationId(organizationId);
+    }
+  }, [organizationId, setOrganizationId]);
 
   if (isLoading || isError || !data) {
     return null;
@@ -164,41 +173,33 @@ export function Services({ slugName }: ServicesProps) {
 
   // Handle continue button click
   const handleContinue = async () => {
-    if (!organizationId) {
-      toast.error("Error: No se pudo obtener la información de la organización");
+    if (!areAllServicesComplete()) {
+      toast.error("Por favor, selecciona al menos un empleado para cada servicio");
       return;
     }
-
-    // Convert selected services to the API format
-    const servicesForApi = selectedServicesWithEmployees.flatMap(serviceWithEmployee => 
-      serviceWithEmployee.selectedEmployees.map(employee => ({
-        serviceId: serviceWithEmployee.service.id,
-        employeeId: employee.id,
-      }))
-    );
-
-    if (servicesForApi.length === 0) {
-      toast.error("Por favor selecciona al menos un servicio con empleado");
-      return;
-    }
-
-    console.log("servicesForApi:", servicesForApi);
 
     try {
-      const result = await checkAvailabilityMutation.mutateAsync({
-        services: servicesForApi
+      const servicesForBackend = getServicesForBackend();
+      
+      // Flatten the services to create individual entries for each employee
+      const flattenedServices = servicesForBackend.flatMap(service => 
+        service.employeeIds.map(employeeId => ({
+          serviceId: service.serviceId,
+          employeeId: employeeId,
+        }))
+      );
+      
+      const response = await checkAvailabilityMutation.mutateAsync({
+        services: flattenedServices,
       });
 
-      if (result.data !== null) {
-        setAvailabilityData(result.data);
+      if (response?.data) {
+        setAvailabilityData(response.data);
+        nextStep();
       }
-
-      // If successful, proceed to next step
-      toast.success("Disponibilidad verificada correctamente");
-      nextStep();
     } catch (error) {
       console.error("Error checking availability:", error);
-      toast.error("Error al verificar disponibilidad. Por favor intenta de nuevo.");
+      toast.error("Error al verificar disponibilidad");
     }
   };
 

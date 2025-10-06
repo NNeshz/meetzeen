@@ -1,134 +1,128 @@
-'use client'
+"use client"
 
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { Card, CardContent, CardHeader, CardTitle } from '@meetzeen/ui/components/card'
-import { Button } from '@meetzeen/ui/components/button'
-import { Input } from '@meetzeen/ui/components/input'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@meetzeen/ui/components/form'
-import { toast } from 'sonner'
-import { User } from 'lucide-react'
-import { useBookingStore } from '../store/useBookingStore'
-import { useStepsStore } from '../store/useStepsStore'
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+import { Button } from "@meetzeen/ui/components/button"
+import { Input } from "@meetzeen/ui/components/input"
+import { Label } from "@meetzeen/ui/components/label"
+import { Card, CardContent, CardHeader, CardTitle } from "@meetzeen/ui/components/card"
+import { useBookingStores } from "../store/useBookingStores"
+import { toast } from "sonner"
 
-// Schema de validación con Zod
-const customerDataSchema = z.object({
-  name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
-  lastName: z.string().min(2, 'El apellido debe tener al menos 2 caracteres'),
-  email: z.string().email('Ingresa un email válido'),
-  phone: z.string().min(10, 'El teléfono debe tener al menos 10 dígitos').regex(/^\+?[1-9]\d{1,14}$/, 'Formato de teléfono inválido'),
+const customerSchema = z.object({
+  name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
+  lastName: z.string().min(2, "El apellido debe tener al menos 2 caracteres"),
+  email: z.string().email("Email inválido"),
+  phone: z.string().min(10, "El teléfono debe tener al menos 10 dígitos"),
 })
 
-type CustomerDataForm = z.infer<typeof customerDataSchema>
+type CustomerFormData = z.infer<typeof customerSchema>
 
 export function UserData() {
-  const { customerData, setCustomerData } = useBookingStore()
-  const { nextStep, prevStep } = useStepsStore()
+  const { 
+    customerData, 
+    setCustomerData, 
+    nextStep, 
+    prevStep 
+  } = useBookingStores()
 
-  // Formulario de datos del cliente
-  const customerForm = useForm<CustomerDataForm>({
-    resolver: zodResolver(customerDataSchema),
-    defaultValues: {
-      name: customerData.name,
-      lastName: customerData.lastName,
-      email: customerData.email,
-      phone: customerData.phone,
-    },
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<CustomerFormData>({
+    resolver: zodResolver(customerSchema),
+    defaultValues: customerData,
   })
 
-  const onSubmitCustomerData = async (data: CustomerDataForm) => {
-    setCustomerData(data)
-    toast.success('Información guardada correctamente')
-    nextStep()
+  const onSubmit = async (data: CustomerFormData) => {
+    try {
+      setCustomerData(data)
+      toast.success("Datos guardados correctamente")
+      nextStep()
+    } catch (error) {
+      toast.error("Error al guardar los datos")
+    }
   }
 
   return (
-    <div className="py-12 space-y-6">
+    <div className="max-w-2xl mx-auto p-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" />
-            Información del cliente
-          </CardTitle>
+          <CardTitle>Datos del Cliente</CardTitle>
         </CardHeader>
         <CardContent>
-          <Form {...customerForm}>
-            <form onSubmit={customerForm.handleSubmit(onSubmitCustomerData)} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={customerForm.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nombre</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Tu nombre" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="name">Nombre</Label>
+                <Input
+                  id="name"
+                  {...register("name")}
+                  placeholder="Tu nombre"
                 />
-                <FormField
-                  control={customerForm.control}
-                  name="lastName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Apellido</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Tu apellido" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {errors.name && (
+                  <p className="text-sm text-red-500 mt-1">{errors.name.message}</p>
+                )}
               </div>
 
-              <FormField
-                control={customerForm.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="tu@email.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+              <div>
+                <Label htmlFor="lastName">Apellido</Label>
+                <Input
+                  id="lastName"
+                  {...register("lastName")}
+                  placeholder="Tu apellido"
+                />
+                {errors.lastName && (
+                  <p className="text-sm text-red-500 mt-1">{errors.lastName.message}</p>
                 )}
-              />
-
-              <FormField
-                control={customerForm.control}
-                name="phone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Teléfono</FormLabel>
-                    <FormControl>
-                      <Input placeholder="+1234567890" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="flex justify-between items-center pt-6">
-                <Button onClick={prevStep} variant="outline" size="sm" type="button">
-                  Volver
-                </Button>
-                <Button type="submit" size="sm">
-                  Agendar
-                </Button>
               </div>
-            </form>
-          </Form>
+            </div>
+
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                {...register("email")}
+                placeholder="tu@email.com"
+              />
+              {errors.email && (
+                <p className="text-sm text-red-500 mt-1">{errors.email.message}</p>
+              )}
+            </div>
+
+            <div>
+              <Label htmlFor="phone">Teléfono</Label>
+              <Input
+                id="phone"
+                {...register("phone")}
+                placeholder="Tu número de teléfono"
+              />
+              {errors.phone && (
+                <p className="text-sm text-red-500 mt-1">{errors.phone.message}</p>
+              )}
+            </div>
+
+            <div className="flex gap-4 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={prevStep}
+                className="flex-1"
+              >
+                Volver
+              </Button>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="flex-1"
+              >
+                {isSubmitting ? "Guardando..." : "Continuar"}
+              </Button>
+            </div>
+          </form>
         </CardContent>
       </Card>
     </div>

@@ -1,21 +1,26 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@meetzeen/ui/components/card'
-import { Button } from '@meetzeen/ui/components/button'
-import { Badge } from '@meetzeen/ui/components/badge'
-import { Separator } from '@meetzeen/ui/components/separator'
-import { 
-  Clock, 
-  Calendar, 
-  User, 
-  DollarSign, 
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@meetzeen/ui/components/card";
+import { Button } from "@meetzeen/ui/components/button";
+import { Badge } from "@meetzeen/ui/components/badge";
+import { Separator } from "@meetzeen/ui/components/separator";
+import {
+  Clock,
+  Calendar,
+  User,
+  DollarSign,
   GripVertical,
   Edit,
   CheckCircle2,
-  AlertCircle
-} from 'lucide-react'
-import { toast } from 'sonner'
+  AlertCircle,
+} from "lucide-react";
+import { toast } from "sonner";
 import {
   DndContext,
   closestCenter,
@@ -26,39 +31,42 @@ import {
   DragEndEvent,
   DragStartEvent,
   DragOverlay,
-} from '@dnd-kit/core'
+} from "@dnd-kit/core";
 import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
-} from '@dnd-kit/sortable'
-import {
-  useSortable,
-} from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
-import { useBookingStore, type ServiceSlot } from '../store/useBookingStore'
-import { useStepsStore } from '../store/useStepsStore'
+} from "@dnd-kit/sortable";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { useBookingStores } from "../store/useBookingStores";
+import type { ServiceSlot } from "../store/types";
 
 interface ServiceItem {
-  id: string
-  service: any
-  employee: any
-  selection: any
-  originalIndex: number
+  id: string;
+  service: any;
+  employee: any;
+  selection: any;
+  originalIndex: number;
 }
 
 interface SortableServiceItemProps {
-  item: ServiceItem
-  index: number
-  isUsingSlot: boolean
-  isDragOverlay?: boolean
+  item: ServiceItem;
+  index: number;
+  isUsingSlot: boolean;
+  isDragOverlay?: boolean;
 }
 
-function SortableServiceItem({ item, index, isUsingSlot, isDragOverlay = false }: SortableServiceItemProps) {
-  const { service, employee, selection } = item
-  const canDrag = isUsingSlot && !isDragOverlay
-  
+function SortableServiceItem({
+  item,
+  index,
+  isUsingSlot,
+  isDragOverlay = false,
+}: SortableServiceItemProps) {
+  const { service, employee, selection } = item;
+  const canDrag = isUsingSlot && !isDragOverlay;
+
   const {
     attributes,
     listeners,
@@ -66,22 +74,22 @@ function SortableServiceItem({ item, index, isUsingSlot, isDragOverlay = false }
     transform,
     transition,
     isDragging,
-  } = useSortable({ 
+  } = useSortable({
     id: item.id,
-    disabled: !canDrag
-  })
+    disabled: !canDrag,
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-  }
+  };
 
   const formatServiceDuration = (duration: string) => {
     if (/^\d+$/.test(duration)) {
-      return `${duration} min`
+      return `${duration} min`;
     }
-    return duration
-  }
+    return duration;
+  };
 
   return (
     <div
@@ -90,18 +98,15 @@ function SortableServiceItem({ item, index, isUsingSlot, isDragOverlay = false }
       {...attributes}
       className={`
         p-4 border rounded-lg transition-all duration-200
-        ${isDragging ? 'opacity-50' : ''}
-        ${isDragOverlay ? 'shadow-lg' : ''}
-        ${canDrag ? 'cursor-move hover:border-muted-foreground/50' : ''}
+        ${isDragging ? "opacity-50" : ""}
+        ${isDragOverlay ? "shadow-lg" : ""}
+        ${canDrag ? "cursor-move hover:border-muted-foreground/50" : ""}
         border-border bg-background
       `}
     >
       <div className="flex items-start gap-3">
         {canDrag && (
-          <div 
-            className="flex items-center"
-            {...listeners}
-          >
+          <div className="flex items-center" {...listeners}>
             <GripVertical className="h-4 w-4 text-muted-foreground" />
           </div>
         )}
@@ -115,7 +120,9 @@ function SortableServiceItem({ item, index, isUsingSlot, isDragOverlay = false }
               </p>
             </div>
             <div className="text-right">
-              <div className="font-medium text-foreground">${service.price}</div>
+              <div className="font-medium text-foreground">
+                ${service.price}
+              </div>
               <div className="text-sm text-muted-foreground">
                 {formatServiceDuration(service.duration)}
               </div>
@@ -127,10 +134,10 @@ function SortableServiceItem({ item, index, isUsingSlot, isDragOverlay = false }
               <div className="flex items-center gap-1">
                 <Calendar className="h-4 w-4" />
                 <span>
-                  {selection.selectedDate.toLocaleDateString('es-ES', {
-                    weekday: 'short',
-                    month: 'short',
-                    day: 'numeric'
+                  {selection.selectedDate.toLocaleDateString("es-ES", {
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
                   })}
                 </span>
               </div>
@@ -143,141 +150,146 @@ function SortableServiceItem({ item, index, isUsingSlot, isDragOverlay = false }
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export function Resume() {
-  const { 
+  const {
     selectedServicesWithEmployees,
-    serviceSelections,
     isUsingSlot,
     reorderSlotServices,
     getServiceSelection,
-    customerData
-  } = useBookingStore()
-  const { nextStep, prevStep } = useStepsStore()
-  
-  const [activeId, setActiveId] = useState<string | null>(null)
+    customerData,
+    nextStep,
+    prevStep,
+  } = useBookingStores();
+
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [draggedItem, setDraggedItem] = useState<ServiceItem | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
-  )
+  );
 
   // Obtener servicios ordenados
   const getOrderedServices = (): ServiceItem[] => {
-    const services: ServiceItem[] = []
+    const services: ServiceItem[] = [];
 
     selectedServicesWithEmployees.forEach((item, serviceIndex) => {
       item.selectedEmployees.forEach((employee, empIndex) => {
-        const selection = getServiceSelection(item.service.id, employee.id)
+        const selection = getServiceSelection(item.service.id, employee.id);
         if (selection) {
           services.push({
             id: `${item.service.id}-${employee.id}`,
             service: item.service,
             employee,
             selection,
-            originalIndex: services.length
-          })
+            originalIndex: services.length,
+          });
         }
-      })
-    })
+      });
+    });
 
     // Ordenar por order si está usando slot, sino por índice original
     if (isUsingSlot) {
-      return services.sort((a, b) => (a.selection.order || 0) - (b.selection.order || 0))
+      return services.sort(
+        (a, b) => (a.selection.order || 0) - (b.selection.order || 0)
+      );
     }
-    
-    return services
-  }
 
-  const orderedServices = getOrderedServices()
+    return services;
+  };
+
+  const orderedServices = getOrderedServices();
 
   // Calcular totales
   const calculateTotals = () => {
-    let totalPrice = 0
-    let totalDuration = 0
+    let totalPrice = 0;
+    let totalDuration = 0;
 
     orderedServices.forEach(({ service }) => {
-      totalPrice += service.price
-      
+      totalPrice += service.price;
+
       // Parsear duración
-      const duration = service.duration
+      const duration = service.duration;
       if (/^\d+$/.test(duration)) {
-        totalDuration += parseInt(duration)
+        totalDuration += parseInt(duration);
       } else {
-        let minutes = 0
-        const hourMatch = duration.match(/(\d+)h/)
-        const minuteMatch = duration.match(/(\d+)m/)
-        
-        if (hourMatch) minutes += parseInt(hourMatch[1]) * 60
-        if (minuteMatch) minutes += parseInt(minuteMatch[1])
-        
-        totalDuration += minutes
+        let minutes = 0;
+        const hourMatch = duration.match(/(\d+)h/);
+        const minuteMatch = duration.match(/(\d+)m/);
+
+        if (hourMatch) minutes += parseInt(hourMatch[1]) * 60;
+        if (minuteMatch) minutes += parseInt(minuteMatch[1]);
+
+        totalDuration += minutes;
       }
-    })
+    });
 
-    return { totalPrice, totalDuration }
-  }
+    return { totalPrice, totalDuration };
+  };
 
-  const { totalPrice, totalDuration } = calculateTotals()
+  const { totalPrice, totalDuration } = calculateTotals();
 
   // Formatear duración total
   const formatDuration = (minutes: number) => {
-    const hours = Math.floor(minutes / 60)
-    const mins = minutes % 60
-    
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+
     if (hours > 0 && mins > 0) {
-      return `${hours}h ${mins} min`
+      return `${hours}h ${mins} min`;
     } else if (hours > 0) {
-      return `${hours}h`
+      return `${hours}h`;
     } else {
-      return `${mins} min`
+      return `${mins} min`;
     }
-  }
+  };
 
   // Handlers para drag and drop
   const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id as string)
-  }
+    setActiveId(event.active.id as string);
+  };
 
   const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event
+    const { active, over } = event;
 
     if (active.id !== over?.id && over?.id) {
-      const oldIndex = orderedServices.findIndex(item => item.id === active.id)
-      const newIndex = orderedServices.findIndex(item => item.id === over.id)
+      const oldIndex = orderedServices.findIndex(
+        (item) => item.id === active.id
+      );
+      const newIndex = orderedServices.findIndex((item) => item.id === over.id);
 
       if (oldIndex !== -1 && newIndex !== -1) {
-        const newOrder = arrayMove(orderedServices, oldIndex, newIndex)
+        const newOrder = arrayMove(orderedServices, oldIndex, newIndex);
 
         // Crear el nuevo orden de slots para enviar al store
         const updatedSlots: ServiceSlot[] = newOrder.map((item, index) => ({
           serviceId: item.service.id,
           employeeId: item.employee.id,
-          startTime: '', // Se calculará en el store
-          endTime: '', // Se calculará en el store
-          order: index + 1
-        }))
+          startTime: "", // Se calculará en el store
+          endTime: "", // Se calculará en el store
+          order: index + 1,
+        }));
 
-        reorderSlotServices(updatedSlots)
-        
+        reorderSlotServices(updatedSlots);
+
         // Mostrar toast de confirmación
-        toast.success('Orden actualizado', {
-          description: 'Los horarios se han ajustado automáticamente'
-        })
+        toast.success("Orden actualizado", {
+          description: "Los horarios se han ajustado automáticamente",
+        });
       }
     }
 
-    setActiveId(null)
-  }
+    setActiveId(null);
+  };
 
   // Renderizar información del cliente
   const renderCustomerInfo = () => {
     if (!customerData.name && !customerData.email && !customerData.phone) {
-      return null
+      return null;
     }
 
     return (
@@ -309,17 +321,21 @@ export function Resume() {
           )}
         </CardContent>
       </Card>
-    )
-  }
+    );
+  };
 
   // Encontrar el item activo para el drag overlay
-  const activeItem = activeId ? orderedServices.find(item => item.id === activeId) : null
+  const activeItem = activeId
+    ? orderedServices.find((item) => item.id === activeId)
+    : null;
 
   if (orderedServices.length === 0) {
     return (
       <div className="py-12 text-center">
         <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-        <h3 className="text-lg font-medium mb-2">No hay servicios seleccionados</h3>
+        <h3 className="text-lg font-medium mb-2">
+          No hay servicios seleccionados
+        </h3>
         <p className="text-muted-foreground mb-6">
           Regresa al paso anterior para seleccionar tus servicios y horarios.
         </p>
@@ -327,7 +343,7 @@ export function Resume() {
           Regresar
         </Button>
       </div>
-    )
+    );
   }
 
   return (
@@ -364,8 +380,8 @@ export function Resume() {
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
           >
-            <SortableContext 
-              items={orderedServices.map(item => item.id)}
+            <SortableContext
+              items={orderedServices.map((item) => item.id)}
               strategy={verticalListSortingStrategy}
             >
               <div className="space-y-3">
@@ -379,12 +395,14 @@ export function Resume() {
                 ))}
               </div>
             </SortableContext>
-            
+
             <DragOverlay>
               {activeItem ? (
                 <SortableServiceItem
                   item={activeItem}
-                  index={orderedServices.findIndex(item => item.id === activeItem.id)}
+                  index={orderedServices.findIndex(
+                    (item) => item.id === activeItem.id
+                  )}
                   isUsingSlot={isUsingSlot}
                   isDragOverlay={true}
                 />
@@ -406,13 +424,15 @@ export function Resume() {
           <div className="space-y-3">
             {orderedServices.map(({ service, employee, id }) => (
               <div key={id} className="flex justify-between text-sm">
-                <span className="text-foreground">{service.name} - {employee.name}</span>
+                <span className="text-foreground">
+                  {service.name} - {employee.name}
+                </span>
                 <span className="font-medium">${service.price}</span>
               </div>
             ))}
-            
+
             <Separator />
-            
+
             <div className="flex justify-between items-center">
               <div>
                 <div className="font-medium text-foreground">Total</div>
@@ -437,8 +457,8 @@ export function Resume() {
                   Servicios programados consecutivamente
                 </h4>
                 <p className="text-sm text-muted-foreground">
-                  Tus servicios están programados uno después del otro. 
-                  Puedes cambiar el orden arrastrando los elementos.
+                  Tus servicios están programados uno después del otro. Puedes
+                  cambiar el orden arrastrando los elementos.
                 </p>
               </div>
             </div>
@@ -452,12 +472,12 @@ export function Resume() {
           <Edit className="h-4 w-4 mr-2" />
           Modificar selección
         </Button>
-        
+
         <Button onClick={nextStep} size="sm">
           <CheckCircle2 className="h-4 w-4 mr-2" />
-          Mis datos
+          Continuar con datos
         </Button>
       </div>
     </div>
-  )
+  );
 }

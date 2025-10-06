@@ -8,7 +8,7 @@ import { useSlugQuery } from "@/modules/landing/slug/hooks/useSlugs";
 
 import { use } from "react";
 import { Services } from "@/modules/landing/slug/components/services";
-import { useStepsStore } from "@/modules/landing/slug/store/useStepsStore";
+import { useBookingStores } from "@/modules/landing/slug/store/useBookingStores";
 import { Schedule } from "@/modules/landing/slug/components/schedule";
 import { Resume } from "@/modules/landing/slug/components/resume";
 import { UserData } from "@/modules/landing/slug/components/user-data";
@@ -21,7 +21,7 @@ interface PageProps {
 
 export default function OrganizationPage({ params }: PageProps) {  
   const { slug } = use(params);
-  const { step } = useStepsStore()
+  const { step } = useBookingStores()
   const { data, isLoading, isError, refetch } = useSlugQuery(slug);
   
   if (isLoading) {
