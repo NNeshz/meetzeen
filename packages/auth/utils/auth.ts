@@ -33,9 +33,64 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
       scope: ["email", "profile", "openid"]
     }
   },
+  session: {
+    additionalFields: {
+      activeOrganizationId: {
+        type: "string",
+        required: false,
+      },
+    },
+  },
   advanced: {
     crossSubDomainCookies: {
       enabled: true,
+    },
+  },
+  databaseHooks: {
+    session: {
+      create: {
+        after: async (session) => {
+          const membership = await prisma.member.findFirst({
+            where: {
+              userId: session.userId,
+              role: { in: ["owner", "member"] },
+            },
+            select: { organizationId: true },
+          });
+
+          const orgId = membership?.organizationId ?? null;
+
+          const sessionRecord = await prisma.session.findUnique({ where: { id: session.id } });
+          
+          if (sessionRecord?.activeOrganizationId !== orgId) {
+            await prisma.session.update({
+              where: { id: session.id },
+              data: { activeOrganizationId: orgId },
+            });
+          }
+        },
+      },
+      update: {
+        after: async (session) => {
+          const membership = await prisma.member.findFirst({
+            where: {
+              userId: session.userId,
+              role: { in: ["owner", "member"] },
+            },
+            select: { organizationId: true },
+          });
+
+          const orgId = membership?.organizationId ?? null;
+
+          const sessionRecord = await prisma.session.findUnique({ where: { id: session.id } });
+          if (sessionRecord?.activeOrganizationId !== orgId) {
+            await prisma.session.update({
+              where: { id: session.id },
+              data: { activeOrganizationId: orgId },
+            });
+          }
+        },
+      },
     },
   },
   plugins: [

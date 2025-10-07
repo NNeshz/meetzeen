@@ -14,6 +14,18 @@ export async function middleware(request: NextRequest) {
   }
 
   if (session.data && request.nextUrl.pathname.startsWith("/auth")) {
+    if (session.data.session.activeOrganizationId) {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    } else {
+      return NextResponse.redirect(new URL("/create", request.url));
+    }
+  }
+
+  if (session.data && !session.data.session.activeOrganizationId && !request.nextUrl.pathname.startsWith("/create")) {
+    return NextResponse.redirect(new URL("/create", request.url));
+  }
+
+  if (session.data && session.data.session.activeOrganizationId && request.nextUrl.pathname.startsWith("/create")) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
@@ -21,5 +33,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard", "/dashboard/:path*"],
+  matcher: ["/dashboard", "/dashboard/:path*", "/create", "/create/:path*"],
 };

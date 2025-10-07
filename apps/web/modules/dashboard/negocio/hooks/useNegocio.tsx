@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { negocioService } from "@/modules/dashboard/negocio/service/negocio-service";
 import { toast } from "sonner";
 import { CreateNegocioDTO } from "@/modules/dashboard/negocio/types/create-negocio";
+import { useRouter } from "next/navigation";
 
 export const useCompany = () => {
   return useQuery({
@@ -13,6 +14,7 @@ export const useCompany = () => {
 
 export const useCreateCompany = () => {
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   return useMutation({
     mutationFn: (formData: CreateNegocioDTO) =>
@@ -22,6 +24,7 @@ export const useCreateCompany = () => {
       queryClient.invalidateQueries({ queryKey: ["company"] });
       // Invalidar también el progreso para que se actualice automáticamente
       queryClient.invalidateQueries({ queryKey: ["progress"] });
+      router.push("/dashboard");
     },
     onError: (error: Error) => {
       toast.error(error?.message || "Error al crear la empresa");

@@ -8,70 +8,16 @@ export const organizationRoute = new Elysia({
 })
   .use(betterAuthPlugin)
   .use(organizationModule)
-  .post(
-    "/createOrUpdate",
+    .post(
+    "/create", 
     async ({ organizationService, user, body }) => {
-      const hasImageChanged =
-        body.hasImageChanged === "true" || body.hasImageChanged === true;
-
-      const organizationData = {
-        name: body.name,
-        slugName: body.slugName,
-        phoneNumber: body.phoneNumber,
-        slogan: body.slogan,
-        address: body.address,
-        workDays: body.workDays,
-        startHour: body.startHour,
-        startMinute: body.startMinute,
-        startAmPm: body.startAmPm,
-        endHour: body.endHour,
-        endMinute: body.endMinute,
-        endAmPm: body.endAmPm,
-        hasImageChanged,
-      };
-
-      let imageToProcess: File | string | null = null;
-
-      if (hasImageChanged) {
-        if (body.image instanceof File) {
-          imageToProcess = body.image;
-        } else {
-          throw new Error(
-            "Se esperaba un archivo de imagen pero se recibió texto"
-          );
-        }
-      } else {
-        if (typeof body.image === "string") {
-          imageToProcess = body.image;
-        } else {
-          imageToProcess = null;
-        }
-      }
-
-      return organizationService.createOrUpdateOrganization(
-        {
-          ...organizationData,
-          image: imageToProcess,
-        },
-        user.id
-      );
+      return organizationService.createOrganization(body, user.id);
     },
     {
       body: t.Object({
         name: t.String({ minLength: 3, maxLength: 100 }),
-        image: t.Optional(t.Union([t.String(), t.File()])),
-        slugName: t.String({ minLength: 3, maxLength: 50 }),
-        phoneNumber: t.String({ minLength: 10, maxLength: 10 }),
-        slogan: t.Optional(t.String()),
-        address: t.Optional(t.String()),
-        workDays: t.Array(t.String(), { minItems: 1 }),
-        startHour: t.String(),
-        startMinute: t.String(),
-        startAmPm: t.String(),
-        endHour: t.String(),
-        endMinute: t.String(),
-        endAmPm: t.String(),
-        hasImageChanged: t.Union([t.Boolean(), t.String()]),
+        timezone: t.String({ minLength: 1 }),
+        currency: t.String({ minLength: 3, maxLength: 3 }),
       }),
       authenticated: true,
     }

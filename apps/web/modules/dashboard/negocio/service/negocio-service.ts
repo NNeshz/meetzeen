@@ -4,7 +4,7 @@ import { CreateNegocioDTO } from "@/modules/dashboard/negocio/types/create-negoc
 export class NegocioService {
   async createCompany(body: CreateNegocioDTO) {
     try {
-      const response = await apiClient.organization.createOrUpdate.post(body, {
+      const response = await apiClient.organization.create.post(body, {
         fetch: { credentials: "include" },
       });
 

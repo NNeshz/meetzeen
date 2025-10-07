@@ -72,6 +72,8 @@ model Verification {
 model Organization {
   id          String   @id
   name        String
+  timezone    String
+  currency    String
   slug        String?  @unique
   logo        String?
   createdAt   DateTime @default(now())

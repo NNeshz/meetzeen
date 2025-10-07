@@ -249,7 +249,7 @@ export function CompanyForm({
         hasImageChanged,
       };
 
-      await createCompany(data);
+      // await createCompany(data);
     } catch (error) {
       console.error(error);
     }

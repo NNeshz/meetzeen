@@ -8,107 +8,37 @@ export class OrganizationService {
     this.imageService = new ImageService();
   }
 
-  async createOrUpdateOrganization(
+    async createOrganization(
     body: {
       name: string;
-      image?: File | string | null;
-      slugName: string;
-      phoneNumber: string;
-      slogan?: string;
-      address?: string;
-      workDays: string[];
-      startHour: string;
-      startMinute: string;
-      startAmPm: string;
-      endHour: string;
-      endMinute: string;
-      endAmPm: string;
-      hasImageChanged?: boolean;
+      timezone: string;
+      currency: string;
     },
     userId: string
   ) {
-    // Verificar si ya existe una organización donde el usuario es owner
     const existingMembership = await prismaClient.member.findFirst({
       where: {
         userId,
         role: "owner",
       },
-      include: {
-        organization: true,
-      },
     });
 
     if (existingMembership) {
-      // Actualizar organización existente
-      return this.updateExistingOrganization(
-        body,
-        userId,
-        existingMembership.organization
-      );
-    } else {
-      // Crear nueva organización
-      return this.createNewOrganization(body, userId);
-    }
-  }
-
-  private async createNewOrganization(
-    body: {
-      name: string;
-      image?: File | string | null;
-      slugName: string;
-      phoneNumber: string;
-      slogan?: string;
-      address?: string;
-      workDays: string[];
-      startHour: string;
-      startMinute: string;
-      startAmPm: string;
-      endHour: string;
-      endMinute: string;
-      endAmPm: string;
-    },
-    userId: string
-  ) {
-    // Verificar que el slugName no exista
-    const existingSlug = await prismaClient.organization.findFirst({
-      where: {
-        slug: body.slugName,
-      },
-    });
-
-    if (existingSlug) {
-      throw new Error(
-        "Este nombre de empresa ya está en uso. Por favor, elige otro."
-      );
+      throw new Error("Ya tienes una organización creada");
     }
 
-    let imageUrl: string = "";
-
-    // Solo procesar imagen si es un archivo
-    if (body.image && typeof body.image !== "string") {
-      imageUrl = await this.imageService.createImage(body.image, "logos");
-    }
-
+    // Generar ID único para la organización
+    const organizationId = `org_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
     // Generar ID único para el member
     const memberId = `member_${userId}_${Date.now()}`;
 
-    // Crear organización con campos directos
     const organization = await prismaClient.organization.create({
       data: {
-        id: `org_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        id: organizationId,
         name: body.name,
-        slug: body.slugName,
-        phoneNumber: body.phoneNumber,
-        slogan: body.slogan ?? null,
-        address: body.address ?? null,
-        workDays: body.workDays,
-        startHour: body.startHour,
-        startMinute: body.startMinute,
-        startAmPm: body.startAmPm,
-        endHour: body.endHour,
-        endMinute: body.endMinute,
-        endAmPm: body.endAmPm,
-        imageUrl: imageUrl,
+        timezone: body.timezone,
+        currency: body.currency,
         members: {
           create: {
             id: memberId,
@@ -133,82 +63,21 @@ export class OrganizationService {
       },
     });
 
-    return {
-      status: 201,
-      message: "¡Bienvenido! Tu organización ha sido creada con éxito",
-      data: organization,
-    };
-  }
-
-  private async updateExistingOrganization(
-    body: {
-      name: string;
-      image?: File | string | null;
-      slugName: string;
-      phoneNumber: string;
-      slogan?: string;
-      address?: string;
-      workDays: string[];
-      startHour: string;
-      startMinute: string;
-      startAmPm: string;
-      endHour: string;
-      endMinute: string;
-      endAmPm: string;
-      hasImageChanged?: boolean;
-    },
-    userId: string,
-    existingOrganization: any
-  ) {
-    let imageUrl = existingOrganization.imageUrl || "";
-
-    if (body.hasImageChanged && body.image && typeof body.image !== "string") {
-      if (existingOrganization.imageUrl) {
-        try {
-          await this.imageService.deleteImage(existingOrganization.imageUrl);
-        } catch (error) {
-          console.warn("Error al eliminar imagen anterior:", error);
-        }
-      }
-      imageUrl = await this.imageService.createImage(body.image, "logos");
-    }
-
-    const organization = await prismaClient.organization.update({
-      where: { id: existingOrganization.id },
-      data: {
-        name: body.name,
-        slug: body.slugName,
-        phoneNumber: body.phoneNumber,
-        slogan: body.slogan ?? null,
-        address: body.address ?? null,
-        workDays: body.workDays,
-        startHour: body.startHour,
-        startMinute: body.startMinute,
-        startAmPm: body.startAmPm,
-        endHour: body.endHour,
-        endMinute: body.endMinute,
-        endAmPm: body.endAmPm,
-        ...(body.hasImageChanged && { imageUrl }),
-      },
-      include: {
-        members: {
-          where: { userId },
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
-            },
-          },
+    await prismaClient.session.updateMany({
+      where: {
+        userId,
+        expiresAt: {
+          gt: new Date(), // Solo sesiones que no han expirado
         },
+      },
+      data: {
+        activeOrganizationId: organizationId,
       },
     });
 
     return {
-      status: 200,
-      message: "Organización actualizada con éxito",
+      status: 201,
+      message: "Organización creada con éxito",
       data: organization,
     };
   }
