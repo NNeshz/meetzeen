@@ -21,7 +21,7 @@ export function Hero() {
           </p>
           <div className="flex justify-center gap-4">
             <Button size={"sm"}>Ver demo</Button>
-            <Button size={"sm"} variant={"default"} className="bg-brand hover:bg-brand/90">
+            <Button size={"sm"} variant={"brand"}> 
               Comienza ahora
               <IconArrowRight className="inline-block size-4" />
             </Button>
