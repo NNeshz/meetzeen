@@ -39,6 +39,8 @@ export const organizationRoute = new Elysia({
     authenticated: true,
   })
 
+  // PATCH DE SETTINGS
+
 
   .get(
     "/org/:slugName",

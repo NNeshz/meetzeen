@@ -35,12 +35,12 @@ const formSchema = z.object({
     }),
 });
 
-export function NameForm() {
+export function NameForm({ name }: { name: string }) {
   // 1. Define your form.
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "Vikingo Barbon",
+      name,
     },
   });
 

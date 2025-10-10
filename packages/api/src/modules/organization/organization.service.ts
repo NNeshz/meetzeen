@@ -144,7 +144,7 @@ export class OrganizationService {
     return {
       status: 200,
       message: "Imagen de la organización encontrada",
-      data: organization.imageUrl,
+      data: organization,
     };
   }
 

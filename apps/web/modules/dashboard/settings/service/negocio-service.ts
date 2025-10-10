@@ -1,5 +1,5 @@
 import { apiClient } from "@/utils/api-connection";
-import { CreateNegocioDTO } from "@/modules/dashboard/negocio/types/create-negocio";
+import { CreateNegocioDTO } from "@/modules/dashboard/settings/types/create-negocio";
 
 export class NegocioService {
   async createCompany(body: CreateNegocioDTO) {
@@ -19,41 +19,36 @@ export class NegocioService {
     }
   }
 
-  async getMyCompany() {
+  async getSettings() {
     try {
-      const response = await apiClient.organization.myOrganization.get({
+      const response = await apiClient.organization.settings.get({
         fetch: { credentials: "include" },
       });
 
       if (response.error) {
-        throw new Error("Error al obtener la organización");
+        throw new Error("Error al obtener las configuraciones de la empresa");
       }
 
       return response.data;
     } catch (error) {
-      console.error("NegocioService.getMyCompany error:", error);
+      console.error("NegocioService.getSettings error:", error);
       throw error;
     }
   }
 
-  async updateSocials(body: {
-    facebook?: string;
-    instagram?: string;
-    twitterX?: string;
-    tiktok?: string;
-  }) {
+  async getImage() {
     try {
-      const response = await apiClient.organization.socials.post(body, {
+      const response = await apiClient.organization.image.get({
         fetch: { credentials: "include" },
       });
 
       if (response.error) {
-        throw new Error("Error al actualizar las redes sociales");
+        throw new Error("Error al obtener la imagen de la empresa");
       }
 
       return response.data;
     } catch (error) {
-      console.error("NegocioService.updateSocials error:", error);
+      console.error("NegocioService.getImage error:", error);
       throw error;
     }
   }

@@ -78,12 +78,12 @@ const getDefaultCurrency = (currency: string) => {
   return CURRENCIES.find((curr) => curr.value === currency)?.value || "USD";
 };
 
-export function CurrencyForm() {
+export function CurrencyForm({ currency }: { currency: string }) {
   // 1. Define your form.
   const form = useForm<z.infer<typeof currencySchema>>({
     resolver: zodResolver(currencySchema),
     defaultValues: {
-      currency: getDefaultCurrency("USD"), // Default to USD
+      currency: getDefaultCurrency(currency),
     },
   });
 

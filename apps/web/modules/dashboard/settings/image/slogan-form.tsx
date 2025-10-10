@@ -35,12 +35,12 @@ const formSchema = z.object({
     }),
 });
 
-export function SloganForm() {
+export function SloganForm({ slogan }: { slogan: string }) {
   // 1. Define your form.
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      slogan: "",
+      slogan,
     },
   });
 

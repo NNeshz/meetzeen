@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Upload, X, Camera } from "lucide-react";
 import Image from "next/image";
 
@@ -39,8 +39,8 @@ const formSchema = z.object({
     ),
 });
 
-export function ImageForm() {
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+export function ImageForm({ imageUrl }: { imageUrl?: string }) {
+  const [previewUrl, setPreviewUrl] = useState<string | null>(imageUrl ?? null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // 1. Define your form.
@@ -57,6 +57,10 @@ export function ImageForm() {
     // ✅ This will be type-safe and validated.
     console.log(values);
   }
+
+  useEffect(() => {
+    setPreviewUrl(imageUrl ?? null);
+  }, [imageUrl]);
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];

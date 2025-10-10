@@ -70,14 +70,12 @@ const getDefaultTimezone = (timezone: string) => {
   return TIMEZONES.find((tz) => tz.value === timezone)?.value || "UTC";
 };
 
-export function TimezoneForm() {
+export function TimezoneForm({ timezone }: { timezone: string }) {
   // 1. Define your form.
   const form = useForm<z.infer<typeof timezoneSchema>>({
     resolver: zodResolver(timezoneSchema),
     defaultValues: {
-      timezone: getDefaultTimezone(
-        Intl.DateTimeFormat().resolvedOptions().timeZone
-      ),
+      timezone: getDefaultTimezone(timezone),
     },
   });
 

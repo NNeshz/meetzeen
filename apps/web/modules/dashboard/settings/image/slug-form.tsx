@@ -39,14 +39,13 @@ const slugSchema = z.object({
   slug: z.string().min(1, "El slug es requerido"),
 });
 
-export function SlugForm() {
+export function SlugForm({ slug }: { slug: string }) {
   const { copyToClipboard, isCopied } = useCopyToClipboard();
-  const [isFavorite, setIsFavorite] = React.useState(false);
 
   const form = useForm<z.infer<typeof slugSchema>>({
     resolver: zodResolver(slugSchema),
     defaultValues: {
-      slug: "example",
+      slug,
     },
   });
 

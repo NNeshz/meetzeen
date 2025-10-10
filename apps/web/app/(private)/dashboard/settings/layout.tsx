@@ -1,4 +1,9 @@
 import { NavigationSettings } from "@/modules/dashboard/settings/components/navigation-settings";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Configuración | Meetzeen",
+};
 
 export default function NegocioLayout({
   children,
