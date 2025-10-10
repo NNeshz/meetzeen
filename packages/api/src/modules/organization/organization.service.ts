@@ -82,127 +82,23 @@ export class OrganizationService {
     };
   }
 
-  async updateSocials(
-    body: {
-      facebook?: string;
-      instagram?: string;
-      twitterX?: string;
-      tiktok?: string;
-    },
-    userId: string
-  ) {
-    // Buscar la organización donde el usuario es owner
-    const membership = await prismaClient.member.findFirst({
+
+  async getOrganizationSettings(userId: string) {
+    const organization = await prismaClient.organization.findFirst({
       where: {
-        userId,
-        role: "owner",
-      },
-      include: {
-        organization: true,
-      },
-    });
-
-    if (!membership) {
-      throw new Error("No tienes permisos para actualizar esta organización");
-    }
-
-    const organization = await prismaClient.organization.update({
-      where: { id: membership.organizationId },
-      data: {
-        facebook: body.facebook ?? null,
-        instagram: body.instagram ?? null,
-        twitterX: body.twitterX ?? null,
-        tiktok: body.tiktok ?? null,
-      },
-    });
-
-    return {
-      status: 200,
-      message: "Redes sociales actualizadas con éxito",
-      data: organization,
-    };
-  }
-
-  async getOrganizationByUserId(userId: string) {
-    const membership = await prismaClient.member.findFirst({
-      where: {
-        userId,
-        role: "owner",
-      },
-      include: {
-        organization: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
-    });
-
-    if (!membership) {
-      return {
-        status: 404,
-        message: "Organización no encontrada",
-        data: null,
-      };
-    }
-
-    const formattedResponse = this.formatOrganizationResponse(
-      membership.organization,
-      membership.user
-    );
-
-    return {
-      status: 200,
-      message: "Organización encontrada",
-      data: formattedResponse,
-    };
-  }
-
-  private formatOrganizationResponse(organization: any, user: any) {
-    return {
-      id: organization.id,
-      name: organization.name,
-      imageUrl: organization.imageUrl || "",
-      slugName: organization.slug,
-      phoneNumber: organization.phoneNumber || "",
-      slogan: organization.slogan,
-      address: organization.address,
-      workDays: organization.workDays || [],
-      startHour: organization.startHour || "",
-      startMinute: organization.startMinute || "",
-      startAmPm: organization.startAmPm || "",
-      endHour: organization.endHour || "",
-      endMinute: organization.endMinute || "",
-      endAmPm: organization.endAmPm || "",
-      user: user,
-      socials: {
-        facebook: organization.facebook ?? null,
-        instagram: organization.instagram ?? null,
-        twitterX: organization.twitterX ?? null,
-        tiktok: organization.tiktok ?? null,
-      },
-    };
-  }
-
-  async getOrganizationById(organizationId: string) {
-    const organization = await prismaClient.organization.findUnique({
-      where: { id: organizationId },
-      include: {
         members: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
-            },
-          },
-        },
+          some: {
+            userId,
+            role: "owner",
+          }
+        }
       },
+      select: {
+        id: true,
+        name: true,
+        timezone: true,
+        currency: true,
+      }
     });
 
     if (!organization) {
@@ -216,6 +112,76 @@ export class OrganizationService {
     return {
       status: 200,
       message: "Organización encontrada",
+      data: organization,
+    };
+  }
+
+  async getOrganizationImage(userId: string) {
+    const organization = await prismaClient.organization.findFirst({
+      where: {
+        members: {
+          some: {
+            userId,
+            role: "owner",
+          }
+        }
+      },
+      select: {
+        imageUrl: true,
+        slug: true,
+        slogan: true,
+      }
+    });
+
+    if (!organization) {
+      return {
+        status: 404,
+        message: "Organización no encontrada",
+        data: null,
+      };
+    }
+
+    return {
+      status: 200,
+      message: "Imagen de la organización encontrada",
+      data: organization.imageUrl,
+    };
+  }
+
+  async getOrganizationContact(userId: string) {
+    const organization = await prismaClient.organization.findFirst({
+      where: {
+        members: {
+          some: {
+            userId,
+            role: "owner",
+          }
+        }
+      },
+      select: {
+        phoneNumber: true,
+        address: true,
+        startAmPm: true,
+        endAmPm: true,
+        endHour: true,
+        endMinute: true,
+        startHour: true,
+        startMinute: true,
+        workDays: true,
+      }
+    });
+
+    if (!organization) {
+      return {
+        status: 404,
+        message: "Organización no encontrada",
+        data: null,
+      };
+    }
+
+    return {
+      status: 200,
+      message: "Contacto de la organización encontrada",
       data: organization,
     };
   }

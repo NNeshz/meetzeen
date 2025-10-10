@@ -22,30 +22,24 @@ export const organizationRoute = new Elysia({
       authenticated: true,
     }
   )
-  .post(
-    "/socials", 
-    async ({ organizationService, user, body }) => {
-      return organizationService.updateSocials(body, user.id);
-    },
-    {
-      body: t.Object({
-        facebook: t.Optional(t.String()),
-        instagram: t.Optional(t.String()),
-        twitterX: t.Optional(t.String()),
-        tiktok: t.Optional(t.String()),
-      }),
-      authenticated: true,
-    }
-  )
-  .get(
-    "/myOrganization",
-    async ({ organizationService, user }) => {
-      return organizationService.getOrganizationByUserId(user.id);
-    },
-    {
-      authenticated: true,
-    }
-  )
+  // PANTALLAS INDIVIDUALES
+  .get("/settings", async ({ organizationService, user }) => {
+    return organizationService.getOrganizationSettings(user.id)
+  }, {
+    authenticated: true,
+  })
+  .get("/image", async ({ organizationService, user }) => {
+    return organizationService.getOrganizationImage(user.id);
+  }, {
+    authenticated: true,
+  })
+  .get("/contact", async ({ organizationService, user }) => {
+    return organizationService.getOrganizationContact(user.id);
+  }, {
+    authenticated: true,
+  })
+
+
   .get(
     "/org/:slugName",
     async ({ params, organizationService }) => {
@@ -60,23 +54,3 @@ export const organizationRoute = new Elysia({
   .get("/services/:slugName", async ({ params, organizationService }) => {
     return organizationService.getServicesBySlugName(params.slugName);
   })
-  .get(
-    "/id/:id",
-    async ({ params, organizationService }) => {
-      return organizationService.getOrganizationById(params.id);
-    },
-    {
-      params: t.Object({
-        id: t.String(),
-      }),
-    }
-  )
-  .delete(
-    "/delete",
-    async ({ organizationService, user }) => {
-      return organizationService.deleteOrganization(user.id);
-    },
-    {
-      authenticated: true,
-    }
-  );

@@ -6,16 +6,25 @@ export function useActiveRoute() {
   const pathname = usePathname();
 
   const isActive = (href: string) => {
-    // Exact match for root dashboard
+    // Caso especial para dashboard
     if (href === "/dashboard" && pathname === "/dashboard") {
       return true;
     }
-    
-    // For other routes, check if pathname starts with href (but not for root dashboard)
-    if (href !== "/dashboard" && pathname.startsWith(href)) {
+
+    if (href === pathname) {
       return true;
     }
-    
+
+    if (pathname.startsWith(href) && href !== "/dashboard") {
+      const nextChar = pathname[href.length];
+      if (nextChar !== "/" && nextChar !== undefined) {
+        return false;
+      }
+
+      const remainingPath = pathname.slice(href.length);
+      return remainingPath === "" || remainingPath === "/";
+    }
+
     return false;
   };
 
