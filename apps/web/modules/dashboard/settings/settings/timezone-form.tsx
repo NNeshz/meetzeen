@@ -28,6 +28,8 @@ import {
   CardTitle,
 } from "@meetzeen/ui/src/components/card";
 import { Button } from "@meetzeen/ui/src/components/button";
+import { Spinner } from "@meetzeen/ui/src/components/spinner";
+import { useUpdateCompanyTimezone } from "@/modules/dashboard/settings/hooks/useNegocio";
 
 const TIMEZONES = [
   { value: "UTC", label: "UTC — Tiempo Universal Coordinado" },
@@ -78,12 +80,12 @@ export function TimezoneForm({ timezone }: { timezone: string }) {
       timezone: getDefaultTimezone(timezone),
     },
   });
+  const { mutateAsync, isPending } = useUpdateCompanyTimezone();
+  const initialTimezone = getDefaultTimezone(timezone);
+  const isUnchanged = form.watch("timezone") === initialTimezone;
 
-  // 2. Define your form submission handler.
-  const onSubmit = (values: z.infer<typeof timezoneSchema>) => {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
-    console.log(values);
+  const onSubmit = async (values: z.infer<typeof timezoneSchema>) => {
+    await mutateAsync(values.timezone);
   };
 
   return (
@@ -103,25 +105,40 @@ export function TimezoneForm({ timezone }: { timezone: string }) {
               name="timezone"
               render={({ field }) => (
                 <FormItem>
-                  <Select {...field}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Selecciona una zona horaria" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {TIMEZONES.map((tz) => (
-                        <SelectItem key={tz.value} value={tz.value}>
-                          {tz.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FormControl>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      disabled={isPending}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Selecciona una zona horaria" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {TIMEZONES.map((tz) => (
+                          <SelectItem key={tz.value} value={tz.value}>
+                            {tz.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
           </CardContent>
           <CardFooter className="justify-end">
-            <Button type="submit">Guardar</Button>
+            <Button type="submit" disabled={isPending || isUnchanged}>
+              {isPending ? (
+                <>
+                  <Spinner className="h-4 w-4" />
+                  Guardando...
+                </>
+              ) : (
+                "Guardar"
+              )}
+            </Button>
           </CardFooter>
         </form>
       </Form>

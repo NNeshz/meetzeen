@@ -27,26 +27,8 @@ import {
   CardTitle,
 } from "@meetzeen/ui/src/components/card";
 import { Button } from "@meetzeen/ui/src/components/button";
-
-const CURRENCY_CODES = [
-  "USD",
-  "EUR",
-  "MXN",
-  "ARS",
-  "CLP",
-  "COP",
-  "PEN",
-  "UYU",
-  "DOP",
-  "PYG",
-  "BOB",
-  "GTQ",
-  "HNL",
-  "NIO",
-  "CRC",
-  "PAB",
-  "VES",
-] as const;
+import { Spinner } from "@meetzeen/ui/src/components/spinner";
+import { useUpdateCompanyCurrency } from "@/modules/dashboard/settings/hooks/useNegocio";
 
 const CURRENCIES = [
   { value: "USD", label: "USD — Dólar estadounidense" },
@@ -86,12 +68,12 @@ export function CurrencyForm({ currency }: { currency: string }) {
       currency: getDefaultCurrency(currency),
     },
   });
+  const { mutateAsync, isPending } = useUpdateCompanyCurrency();
+  const initialCurrency = getDefaultCurrency(currency);
+  const isUnchanged = form.watch("currency") === initialCurrency;
 
-  // 2. Define your form submission handler.
-  const onSubmit = (values: z.infer<typeof currencySchema>) => {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
-    console.log(values);
+  const onSubmit = async (values: z.infer<typeof currencySchema>) => {
+    await mutateAsync(values.currency);
   };
 
   return (
@@ -131,7 +113,16 @@ export function CurrencyForm({ currency }: { currency: string }) {
             />
           </CardContent>
           <CardFooter className="justify-end">
-            <Button type="submit">Guardar</Button>
+            <Button type="submit" disabled={isPending || isUnchanged}>
+              {isPending ? (
+                <>
+                  <Spinner className="h-4 w-4" />
+                  Guardando...
+                </>
+              ) : (
+                "Guardar"
+              )}
+            </Button>
           </CardFooter>
         </form>
       </Form>

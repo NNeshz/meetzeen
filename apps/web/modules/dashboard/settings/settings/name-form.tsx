@@ -19,10 +19,12 @@ import {
   FormDescription,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@meetzeen/ui/src/components/form";
 import { Input } from "@meetzeen/ui/src/components/input";
+import { Spinner } from "@meetzeen/ui/src/components/spinner";
+
+import { useUpdateCompanyName } from "@/modules/dashboard/settings/hooks/useNegocio";
 
 const formSchema = z.object({
   name: z
@@ -43,12 +45,12 @@ export function NameForm({ name }: { name: string }) {
       name,
     },
   });
+  const { mutateAsync, isPending } = useUpdateCompanyName();
+  const isUnchanged = form.watch("name") === name;
 
   // 2. Define a submit handler.
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
-    console.log(values);
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    await mutateAsync(values.name);
   }
 
   return (
@@ -80,7 +82,16 @@ export function NameForm({ name }: { name: string }) {
           </CardContent>
           
           <CardFooter className="justify-end">
-            <Button type="submit">Guardar</Button>
+            <Button type="submit" disabled={isPending || isUnchanged}>
+              {isPending ? (
+                <>
+                  <Spinner className="h-4 w-4" />
+                  Guardando...
+                </>
+              ) : (
+                "Guardar"
+              )}
+            </Button>
           </CardFooter>
         </form>
       </Form>

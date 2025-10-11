@@ -186,6 +186,124 @@ export class OrganizationService {
     };
   }
 
+  // PATCH DE SETTINGS
+  async updateOrganizationName(userId: string, name: string) {
+    const membership = await prismaClient.member.findFirst({
+      where: {
+        userId,
+        role: "owner",
+      },
+      select: {
+        organizationId: true,
+      },
+    });
+
+    if (!membership) {
+      return {
+        status: 404,
+        message: "Organización no encontrada",
+        data: null,
+      };
+    }
+
+    const organization = await prismaClient.organization.update({
+      where: {
+        id: membership.organizationId,
+      },
+      data: {
+        name,
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+
+    return {
+      status: 200,
+      message: "Nombre de la organización actualizado",
+      data: organization,
+    };
+  }
+
+  async updateOrganizationTimezone(userId: string, timezone: string) {
+    const membership = await prismaClient.member.findFirst({
+      where: {
+        userId,
+        role: "owner",
+      },
+      select: {
+        organizationId: true,
+      },
+    });
+
+    if (!membership) {
+      return {
+        status: 404,
+        message: "Organización no encontrada",
+        data: null,
+      };
+    }
+
+    const organization = await prismaClient.organization.update({
+      where: {
+        id: membership.organizationId,
+      },
+      data: {
+        timezone,
+      },
+      select: {
+        id: true,
+        timezone: true,
+      },
+    });
+
+    return {
+      status: 200,
+      message: "Timezone de la organización actualizado",
+      data: organization,
+    };
+  }
+
+  async updateOrganizationCurrency(userId: string, currency: string) {
+    const membership = await prismaClient.member.findFirst({
+      where: {
+        userId,
+        role: "owner",
+      },
+      select: {
+        organizationId: true,
+      },
+    });
+
+    if (!membership) {
+      return {
+        status: 404,
+        message: "Organización no encontrada",
+        data: null,
+      };
+    }
+
+    const organization = await prismaClient.organization.update({
+      where: {
+        id: membership.organizationId,
+      },
+      data: {
+        currency,
+      },
+      select: {
+        id: true,
+        currency: true,
+      },
+    });
+
+    return {
+      status: 200,
+      message: "Currency de la organización actualizado",
+      data: organization,
+    };
+  }
+
   async getOrganizationBySlugName(slugName: string) {
     const organization = await prismaClient.organization.findFirst({
       where: {

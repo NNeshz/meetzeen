@@ -52,6 +52,58 @@ export class NegocioService {
       throw error;
     }
   }
+
+  // PATCH DE SETTINGS
+  async updateName(name: string) {
+    try {
+      const response = await apiClient.organization.name.patch({ name }, {
+        fetch: { credentials: "include" },
+      });
+
+      if (response.error) {
+        throw new Error("Error al actualizar el nombre de la empresa");
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error("NegocioService.updateName error:", error);
+      throw error;
+    }
+  }
+
+  async updateTimezone(timezone: string) {
+    try {
+      const response = await apiClient.organization.timezone.patch({ timezone }, {
+        fetch: { credentials: "include" },
+      });
+
+      if (response.error) {
+        throw new Error("Error al actualizar el timezone de la empresa");
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error("NegocioService.updateTimezone error:", error);
+      throw error;
+    }
+  }
+
+  async updateCurrency(currency: string) {
+    try {
+      const response = await apiClient.organization.currency.patch({ currency }, {
+        fetch: { credentials: "include" },
+      });
+
+      if (response.error) {
+        throw new Error("Error al actualizar la currency de la empresa");
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error("NegocioService.updateCurrency error:", error);
+      throw error;
+    }
+  }
 }
 
 export const negocioService = new NegocioService();

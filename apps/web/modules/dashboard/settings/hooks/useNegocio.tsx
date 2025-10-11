@@ -40,4 +40,52 @@ export const useCompanyImage = () => {
   });
 };
 
+// PATCH DE SETTINGS
+
+export const useUpdateCompanyName = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (name: string) => negocioService.updateName(name),
+    onSuccess: () => {
+      toast.success("Nombre de la empresa actualizado con éxito.");
+      queryClient.invalidateQueries({ queryKey: ["companySettings"] });
+    },
+    onError: (error: Error) => {
+      toast.error(error?.message || "Error al actualizar el nombre de la empresa");
+    },
+  });
+};
+
+export const useUpdateCompanyTimezone = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (timezone: string) => negocioService.updateTimezone(timezone),
+    onSuccess: () => {
+      toast.success("Timezone de la empresa actualizado con éxito.");
+      queryClient.invalidateQueries({ queryKey: ["companySettings"] });
+    },
+    onError: (error: Error) => {
+      toast.error(error?.message || "Error al actualizar el timezone de la empresa");
+    },
+  });
+};
+
+export const useUpdateCompanyCurrency = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (currency: string) => negocioService.updateCurrency(currency),
+    onSuccess: () => {
+      toast.success("Currency de la empresa actualizado con éxito.");
+      queryClient.invalidateQueries({ queryKey: ["companySettings"] });
+    },
+    onError: (error: Error) => {
+      toast.error(error?.message || "Error al actualizar la currency de la empresa");
+    },
+  });
+};
+
+
 

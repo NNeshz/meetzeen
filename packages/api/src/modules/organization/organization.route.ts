@@ -40,7 +40,30 @@ export const organizationRoute = new Elysia({
   })
 
   // PATCH DE SETTINGS
-
+  .patch("/name", async ({ organizationService, user, body }) => {
+    return organizationService.updateOrganizationName(user.id, body.name);
+  }, {
+    body: t.Object({
+      name: t.String({ minLength: 3, maxLength: 100 }),
+    }),
+    authenticated: true,
+  })
+  .patch("/timezone", async ({ organizationService, user, body }) => {
+    return organizationService.updateOrganizationTimezone(user.id, body.timezone);
+  }, {
+    body: t.Object({
+      timezone: t.String({ minLength: 1 }),
+    }),
+    authenticated: true,
+  })
+  .patch("/currency", async ({ organizationService, user, body }) => {
+    return organizationService.updateOrganizationCurrency(user.id, body.currency);
+  }, {
+    body: t.Object({
+      currency: t.String({ minLength: 3, maxLength: 3 }),
+    }),
+    authenticated: true,
+  })
 
   .get(
     "/org/:slugName",
