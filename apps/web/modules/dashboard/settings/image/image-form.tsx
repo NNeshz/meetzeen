@@ -24,6 +24,8 @@ import {
   FormItem,
   FormMessage,
 } from "@meetzeen/ui/src/components/form";
+import { useUpdateCompanyImage } from "@/modules/dashboard/settings/hooks/useNegocio";
+import { Spinner } from "@meetzeen/ui/src/components/spinner";
 
 const formSchema = z.object({
   image: z
@@ -43,6 +45,8 @@ export function ImageForm({ imageUrl }: { imageUrl?: string }) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(imageUrl ?? null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  const { mutateAsync, isPending } = useUpdateCompanyImage();
+
   // 1. Define your form.
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -51,11 +55,14 @@ export function ImageForm({ imageUrl }: { imageUrl?: string }) {
     },
   });
 
+  const initialImageUrl = imageUrl ?? null;
+  const watchedFile = form.watch("image");
+  const isUnchanged = previewUrl === initialImageUrl && !watchedFile;
+
   // 2. Define a submit handler.
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
-    console.log(values);
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!values.image) return;
+    await mutateAsync(values.image);
   }
 
   useEffect(() => {
@@ -133,21 +140,9 @@ export function ImageForm({ imageUrl }: { imageUrl?: string }) {
                                     e.stopPropagation();
                                     handleImageClick();
                                   }}
-                                  className="bg-white/90 hover:bg-white text-foreground text-xs px-2 py-1"
                                 >
                                   <Upload className="w-3 h-3" />
-                                </Button>
-                                <Button
-                                  type="button"
-                                  variant="destructive"
-                                  size="sm"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    removeImage();
-                                  }}
-                                  className="bg-red-500/90 hover:bg-red-600 text-xs px-2 py-1"
-                                >
-                                  <X className="w-3 h-3" />
+                                  Cambiar
                                 </Button>
                               </div>
                             </div>
@@ -185,7 +180,16 @@ export function ImageForm({ imageUrl }: { imageUrl?: string }) {
           </CardContent>
           
           <CardFooter className="justify-end">
-            <Button type="submit">Guardar</Button>
+            <Button type="submit" disabled={isPending || isUnchanged}>
+              {isPending ? (
+                <>
+                  <Spinner className="h-4 w-4" />
+                  Guardando...
+                </>
+              ) : (
+                "Guardar"
+              )}
+            </Button>
           </CardFooter>
         </form>
       </Form>

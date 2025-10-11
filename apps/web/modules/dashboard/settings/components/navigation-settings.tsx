@@ -8,7 +8,8 @@ export function NavigationSettings() {
 
   const navigationItems = [
     { href: "/dashboard/settings", label: "Configuración" },
-    { href: "/dashboard/settings/image", label: "Imagen" }
+    { href: "/dashboard/settings/image", label: "Imagen" },
+    { href: "/dashboard/settings/contact", label: "Contacto" },
   ];
 
   return (

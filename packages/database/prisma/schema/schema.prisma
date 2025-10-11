@@ -84,12 +84,12 @@ model Organization {
   phoneNumber String?
   slogan      String?
   address     String?
-  workDays    String[]
-  startHour   String?
-  startMinute String?
+  workDays    Int[]
+  startHour   Int?
+  startMinute Int?
   startAmPm   String?
-  endHour     String?
-  endMinute   String?
+  endHour     Int?
+  endMinute   Int?
   endAmPm     String?
   
   onboardingCompleted Boolean @default(false)

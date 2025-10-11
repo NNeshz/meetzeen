@@ -94,7 +94,11 @@ export function Header({ slugName }: { slugName: string }) {
     },
   ].filter((link) => link.url);
 
-  function isGoogleMapsUrl(url: string): boolean {
+  function isGoogleMapsUrl(url: string | undefined): boolean {
+    if (!url) {
+      return false;
+    }
+
     return url.includes('maps.google.com') || url.includes('www.google.com/maps') || url.includes("maps.app.goo.gl");
   }
 
@@ -165,7 +169,7 @@ export function Header({ slugName }: { slugName: string }) {
                   </div>
                   <div className="space-y-2">
                     <p className="text-lg font-semibold">Horarios:</p>
-                    {organization.workDays.length > 0 ? (
+                    {organization?.workDays?.length > 0 ? (
                       <>
                         <div className="space-y-2">
                           <p className="text-sm text-muted-foreground flex items-center">
@@ -173,7 +177,7 @@ export function Header({ slugName }: { slugName: string }) {
                             Días Laborales
                           </p>
                           <div className="flex flex-wrap gap-2">
-                            {organization.workDays.map((day) => {
+                            {organization?.workDays.map((day) => {
                               const spanishDays: { [key: string]: string } = {
                                 monday: "Lunes",
                                 tuesday: "Martes",

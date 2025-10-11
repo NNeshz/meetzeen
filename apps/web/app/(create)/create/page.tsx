@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@meetzeen/ui/src/components/select";
-import { useCreateCompany } from "@/modules/dashboard/negocio/hooks/useNegocio";
+import { useCreateCompany } from "@/modules/dashboard/settings/hooks/useNegocio";
 
 // 🌎 Timezones relevantes (LatAm + USA)
 const TIMEZONES = [

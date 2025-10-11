@@ -34,6 +34,11 @@ import {
 } from "@meetzeen/ui/src/components/form";
 import { useCopyToClipboard } from "@/utils/use-copy-to-clipboard";
 import { IconCheck, IconCopy } from "@tabler/icons-react";
+import {
+  useUpdateCompanySlug,
+  useValidateCompanySlug,
+} from "../hooks/useNegocio";
+import { useDebounce } from "@/utils/use-debounce";
 
 const slugSchema = z.object({
   slug: z.string().min(1, "El slug es requerido"),
@@ -49,10 +54,49 @@ export function SlugForm({ slug }: { slug: string }) {
     },
   });
 
-  function onSubmit(values: z.infer<typeof slugSchema>) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
-    console.log(values);
+  const { mutateAsync: updateSlug, isPending: isUpdating } =
+    useUpdateCompanySlug();
+  const { mutateAsync: validateSlug, isPending: isValidating } =
+    useValidateCompanySlug();
+
+  const initialSlug = slug || "";
+  const watchedSlug = form.watch("slug") || "";
+  const debouncedSlug = useDebounce(watchedSlug, 400);
+
+  const [isAvailable, setIsAvailable] = React.useState<boolean>(false);
+
+  const hasChanged = debouncedSlug !== initialSlug;
+
+  // Valida con debounce solo si el usuario cambió el valor y el formato es válido
+  React.useEffect(() => {
+    if (!hasChanged) {
+      setIsAvailable(false);
+      return;
+    }
+
+    const formatOk = /^[a-z0-9ñ]{3,100}$/.test(debouncedSlug);
+    if (!formatOk) {
+      setIsAvailable(false);
+      return;
+    }
+
+    validateSlug(debouncedSlug)
+      .then((res: any) => {
+        const available =
+          (res?.data && res?.data?.available === true) ||
+          res?.available === true;
+        setIsAvailable(!!available);
+      })
+      .catch(() => setIsAvailable(false));
+  }, [debouncedSlug, validateSlug, hasChanged]);
+
+  const isUnchanged = watchedSlug === initialSlug;
+  const isValidFormat = /^[a-z0-9ñ]{3,100}$/.test(watchedSlug);
+  const isValid = isValidFormat && isAvailable;
+
+  async function onSubmit(values: z.infer<typeof slugSchema>) {
+    if (!isValid) return;
+    await updateSlug(values.slug);
   }
 
   return (
@@ -76,7 +120,24 @@ export function SlugForm({ slug }: { slug: string }) {
                     <InputGroupAddon>
                       <InputGroupText>https://meetzeen.com/</InputGroupText>
                     </InputGroupAddon>
-                    <InputGroupInput {...field} className="!pl-0.5" />
+                    <InputGroupInput
+                      {...field}
+                      // Restringe entrada: solo letras (incluye ñ) y números, sin espacios ni signos
+                      onChange={(e) => {
+                        const raw = e.target.value;
+                        const sanitized = raw
+                          .replace(/[^a-zA-Z0-9ñÑ]/g, "") // quita todo lo que no sea letra/numero/ñ
+                          .toLowerCase();
+                        field.onChange(sanitized);
+                      }}
+                      value={field.value}
+                      className={[
+                        "!pl-0.5",
+                        isValid
+                          ? "border-green-500 focus-visible:ring-green-500"
+                          : "",
+                      ].join(" ")}
+                    />
                     <InputGroupAddon align="inline-end">
                       <InputGroupButton
                         aria-label="Copy"
@@ -94,7 +155,11 @@ export function SlugForm({ slug }: { slug: string }) {
                   </InputGroup>
                   <FormMessage />
                   <FormDescription className="text-xs">
-                    Este link lo puedes compartir por redes sociales para que agenden citas contigo.
+                    {isValidating
+                      ? "Validando slug…"
+                      : isValid
+                        ? "Slug válido y disponible."
+                        : "Usa solo letras minúsculas (incluye ñ) y números, mínimo 3 caracteres."}
                   </FormDescription>
                 </FormItem>
               )}
@@ -102,7 +167,12 @@ export function SlugForm({ slug }: { slug: string }) {
           </CardContent>
 
           <CardFooter className="justify-end">
-            <Button type="submit">Guardar</Button>
+            <Button
+              type="submit"
+              disabled={!isValid || isUnchanged || isUpdating}
+            >
+              {isUpdating ? "Guardando…" : "Guardar"}
+            </Button>
           </CardFooter>
         </form>
       </Form>

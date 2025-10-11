@@ -40,6 +40,16 @@ export const useCompanyImage = () => {
   });
 };
 
+export const useCompanyContact = () => {
+  return useQuery({
+    queryKey: ["companyContact"],
+    queryFn: () => negocioService.getContact(),
+    staleTime: 1000 * 60 * 5,
+  });
+};
+
+
+
 // PATCH DE SETTINGS
 
 export const useUpdateCompanyName = () => {
@@ -87,5 +97,142 @@ export const useUpdateCompanyCurrency = () => {
   });
 };
 
+// PATCH DE IMAGE
 
+export const useUpdateCompanyImage = () => {
+  const queryClient = useQueryClient();
 
+  return useMutation({
+    mutationFn: (imageUrl: File) => negocioService.updateImage(imageUrl),
+    onSuccess: () => {
+      toast.success("Imagen de la empresa actualizada con éxito.");
+      queryClient.invalidateQueries({ queryKey: ["companyImage"] });
+    },
+    onError: (error: Error) => {
+      toast.error(error?.message || "Error al actualizar la imagen de la empresa");
+    },
+  });
+};
+
+export const useUpdateCompanySlogan = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (slogan: string) => negocioService.updateSlogan(slogan),
+    onSuccess: () => {
+      toast.success("Slogan de la empresa actualizado con éxito.");
+      queryClient.invalidateQueries({ queryKey: ["companyImage"] });
+    },
+    onError: (error: Error) => {
+      toast.error(error?.message || "Error al actualizar el slogan de la empresa");
+    },
+  });
+};
+
+export const useUpdateCompanySlug = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (slug: string) => negocioService.updateSlug(slug),
+    onSuccess: () => {
+      toast.success("Slug de la empresa actualizado con éxito.");
+      queryClient.invalidateQueries({ queryKey: ["companyImage"] });
+    },
+    onError: (error: Error) => {
+      toast.error(error?.message || "Error al actualizar el slug de la empresa");
+    },
+  });
+};
+
+export const useValidateCompanySlug = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (slug: string) => negocioService.validateOrganizationSlug(slug),
+    onSuccess: () => {
+      toast.success("Slug de la empresa válido.");
+      queryClient.invalidateQueries({ queryKey: ["companyImage"] });
+    },
+    onError: (error: Error) => {
+      toast.error(error?.message || "Error al validar el slug de la empresa");
+    },
+  });
+};
+
+// PATCH DE CONTACT
+export const useUpdateCompanyPhoneNumber = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (phoneNumber: string) => negocioService.updatePhoneNumber(phoneNumber),
+    onSuccess: () => {
+      toast.success("Teléfono de la empresa actualizado con éxito.");
+      queryClient.invalidateQueries({ queryKey: ["companyContact"] });
+    },
+    onError: (error: Error) => {
+      toast.error(error?.message || "Error al actualizar el teléfono de la empresa");
+    },
+  });
+};
+
+export const useUpdateCompanyAddress = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (address: string) => negocioService.updateAddress(address),
+    onSuccess: () => {
+      toast.success("Dirección de la empresa actualizada con éxito.");
+      queryClient.invalidateQueries({ queryKey: ["companyContact"] });
+    },
+    onError: (error: Error) => {
+      toast.error(error?.message || "Error al actualizar la dirección de la empresa");
+    },
+  });
+};
+
+export const useUpdateCompanyStart = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: { startHour: number; startMinute: number; startAmPm: string }) =>
+      negocioService.updateStart(data),
+    onSuccess: () => {
+      toast.success("Horario de inicio actualizado con éxito.");
+      queryClient.invalidateQueries({ queryKey: ["companyContact"] });
+    },
+    onError: (error: Error) => {
+      toast.error(error?.message || "Error al actualizar el horario de inicio");
+    },
+  });
+};
+
+export const useUpdateCompanyEnd = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: { endHour: number; endMinute: number; endAmPm: string }) =>
+      negocioService.updateEnd(data),
+    onSuccess: () => {
+      toast.success("Horario de cierre actualizado con éxito.");
+      queryClient.invalidateQueries({ queryKey: ["companyContact"] });
+    },
+    onError: (error: Error) => {
+      toast.error(error?.message || "Error al actualizar el horario de cierre");
+    },
+  });
+};
+
+export const useUpdateCompanyWorkdays = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (workdays: number[]) => negocioService.updateWorkdays(workdays),
+    onSuccess: () => {
+      toast.success("Días de trabajo actualizados con éxito.");
+      queryClient.invalidateQueries({ queryKey: ["companyContact"] });
+    },
+    onError: (error: Error) => {
+      toast.error(error?.message || "Error al actualizar los días de trabajo");
+    },
+  });
+}
