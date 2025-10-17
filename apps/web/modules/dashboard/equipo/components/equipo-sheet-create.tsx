@@ -1,6 +1,6 @@
 "use client"
 
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@meetzeen/ui/src/components/sheet";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@meetzeen/ui/src/components/sheet";
 import { Button } from "@meetzeen/ui/src/components/button";
 import { IconLoader, IconPlus } from "@tabler/icons-react";
 
@@ -23,6 +23,9 @@ export function EquipoSheetCreate() {
       <SheetContent className="w-full sm:max-w-xl">
         <SheetHeader>
           <SheetTitle>Agregar miembro</SheetTitle>
+          <SheetDescription>
+            Completa la información del miembro para agregarlo al equipo.
+          </SheetDescription>
         </SheetHeader>
         <div className="px-4 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
           {isLoadingCategories && <Loading />}

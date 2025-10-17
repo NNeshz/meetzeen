@@ -1,4 +1,11 @@
-import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle } from "@meetzeen/ui/src/components/sheet";
+import {
+  Sheet,
+  SheetTrigger,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@meetzeen/ui/src/components/sheet";
 import { DropdownMenuItem } from "@meetzeen/ui/src/components/dropdown-menu";
 import { IconEdit, IconLoader } from "@tabler/icons-react";
 
@@ -19,8 +26,11 @@ interface Employee {
 }
 
 export function EquipoSheetUpdate({ employee }: { employee: Employee }) {
-
-  const { data: categoriesData, isLoading: isLoadingCategories, isError: isErrorCategories } = useCategoriasQuery();
+  const {
+    data: categoriesData,
+    isLoading: isLoadingCategories,
+    isError: isErrorCategories,
+  } = useCategoriasQuery();
 
   return (
     <Sheet>
@@ -35,12 +45,18 @@ export function EquipoSheetUpdate({ employee }: { employee: Employee }) {
       </SheetTrigger>
       <SheetContent className="w-full sm:max-w-xl">
         <SheetHeader>
-          <SheetTitle>Actualizar categoria</SheetTitle>
+          <SheetTitle>Actualizar miembro</SheetTitle>
+          <SheetDescription>
+            Completa la información del miembro para actualizarlo.
+          </SheetDescription>
         </SheetHeader>
         <div className="px-4 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
           {isLoadingCategories && <Loading />}
           {!isLoadingCategories && !isErrorCategories && (
-            <EquipoUpdate categories={categoriesData?.data || []} employee={employee} />
+            <EquipoUpdate
+              categories={categoriesData?.data || []}
+              employee={employee}
+            />
           )}
         </div>
       </SheetContent>
@@ -54,4 +70,4 @@ const Loading = () => {
       <IconLoader className="h-5 w-5 animate-spin text-brand" />
     </div>
   );
-}
+};

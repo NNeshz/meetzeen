@@ -28,6 +28,7 @@ import { useCreateEmployeeMutation } from "@/modules/dashboard/equipo/hooks/useE
 
 import { validateNumeric } from "@/utils/validate-numeric";
 import { compressImage } from "@/utils/compress-image";
+import { ButtonGroup } from "@meetzeen/ui/src/components/button-group";
 
 interface Categoria {
   name: string;
@@ -57,9 +58,7 @@ const schema = z.object({
   image: z
     .instanceof(File, { message: "Debe ser un archivo válido" })
     .optional(),
-  categoryIds: z
-    .array(z.string())
-    .min(1, "Selecciona al menos una categoría"),
+  categoryIds: z.array(z.string()).min(1, "Selecciona al menos una categoría"),
 });
 
 type EmployeeFormValues = z.infer<typeof schema>;
@@ -70,7 +69,8 @@ interface EquipoCreateProps {
 }
 
 export function EquipoCreate({ categories, onSuccess }: EquipoCreateProps) {
-  const { mutateAsync: createEmployee, isPending } = useCreateEmployeeMutation();
+  const { mutateAsync: createEmployee, isPending } =
+    useCreateEmployeeMutation();
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -86,7 +86,6 @@ export function EquipoCreate({ categories, onSuccess }: EquipoCreateProps) {
 
   async function onSubmit(values: EmployeeFormValues) {
     try {
-
       console.log(values);
 
       let imageToSubmit = values.image;
@@ -104,13 +103,13 @@ export function EquipoCreate({ categories, onSuccess }: EquipoCreateProps) {
       };
 
       await createEmployee(data);
-      
+
       form.reset();
       setPreviewImage(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
-      
+
       onSuccess?.();
     } catch (error) {
       console.error(error);
@@ -165,218 +164,193 @@ export function EquipoCreate({ categories, onSuccess }: EquipoCreateProps) {
     <div className="max-w-2xl mx-auto pb-4">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          {/* Sección: Foto del empleado (opcional) */}
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-lg font-semibold text-foreground">
-                Foto del empleado
-              </h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                Sube una foto del empleado (opcional)
-              </p>
-            </div>
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Nombre completo *</FormLabel>
+                <FormControl>
+                  <Input placeholder="Ej: Juan Pérez García" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-            <FormField
-              control={form.control}
-              name="image"
-              render={() => (
-                <FormItem>
-                  <FormControl>
-                    <div className="space-y-4">
-                      <div
-                        className="relative w-full aspect-square border-2 border-dashed border-muted rounded-lg overflow-hidden cursor-pointer transition-colors hover:border-gray-400 group"
-                        onClick={handleImageClick}
-                      >
-                        {previewImage ? (
-                          <>
-                            <Image
-                              src={previewImage}
-                              alt="Vista previa del empleado"
-                              fill
-                              className="object-cover"
-                            />
-                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                              <div className="flex gap-1">
-                                <Button
-                                  type="button"
-                                  variant="secondary"
-                                  size="sm"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleImageClick();
-                                  }}
-                                  className="bg-white/90 hover:bg-white text-foreground text-xs px-2 py-1"
-                                >
-                                  <IconUpload className="w-3 h-3" />
-                                </Button>
-                                <Button
-                                  type="button"
-                                  variant="destructive"
-                                  size="sm"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    removeImage();
-                                  }}
-                                  className="bg-red-500/90 hover:bg-red-600 text-xs px-2 py-1"
-                                >
-                                  <IconX className="w-3 h-3" />
-                                </Button>
-                              </div>
+          <FormField
+            control={form.control}
+            name="phoneNumber"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Teléfono *</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="1234567890"
+                    {...field}
+                    onChange={(e) => handlePhoneChange(e, field.onChange)}
+                    maxLength={10}
+                  />
+                </FormControl>
+                <FormDescription>
+                  Ingresa 10 dígitos sin espacios ni guiones
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Correo electrónico *</FormLabel>
+                <FormControl>
+                  <Input
+                    type="email"
+                    placeholder="juan.perez@ejemplo.com"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="categoryIds"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Categorías de servicio *</FormLabel>
+                <FormControl>
+                  <div
+                    className="overflow-x-auto scrollbar-hide"
+                    style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+                  >
+                    <style jsx>{`
+                      div::-webkit-scrollbar {
+                        display: none;
+                      }
+                    `}</style>
+                    <div className="min-w-max">
+                      <ButtonGroup>
+                        <ButtonGroup>
+                          {categories.map((category) => {
+                            const isSelected = field.value.includes(
+                              category.id
+                            );
+                            return (
+                              <Button
+                                key={category.id}
+                                type="button"
+                                className={`flex-none whitespace-nowrap ${
+                                  isSelected
+                                    ? "bg-brand text-black hover:bg-brand/90 border-brand"
+                                    : ""
+                                }`}
+                                variant={isSelected ? "default" : "outline"}
+                                onClick={() => {
+                                  const newValue = isSelected
+                                    ? field.value.filter(
+                                        (id) => id !== category.id
+                                      )
+                                    : [...field.value, category.id];
+                                  field.onChange(newValue);
+                                }}
+                              >
+                                {category.name}
+                              </Button>
+                            );
+                          })}
+                        </ButtonGroup>
+                      </ButtonGroup>
+                    </div>
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="image"
+            render={() => (
+              <FormItem>
+                <FormControl>
+                  <div className="space-y-4">
+                    <div
+                      className="relative w-full aspect-square border-2 border-dashed border-muted rounded-lg overflow-hidden cursor-pointer transition-colors hover:border-gray-400 group"
+                      onClick={handleImageClick}
+                    >
+                      {previewImage ? (
+                        <>
+                          <Image
+                            src={previewImage}
+                            alt="Vista previa del empleado"
+                            fill
+                            className="object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <div className="flex gap-1">
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleImageClick();
+                                }}
+                                className="bg-white/90 hover:bg-white text-foreground text-xs px-2 py-1"
+                              >
+                                <IconUpload className="w-3 h-3" />
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  removeImage();
+                                }}
+                                className="bg-red-500/90 hover:bg-red-600 text-xs px-2 py-1"
+                              >
+                                <IconX className="w-3 h-3" />
+                              </Button>
                             </div>
-                          </>
-                        ) : (
-                          <div className="flex flex-col items-center justify-center h-full text-gray-500 group-hover:text-gray-600 transition-colors">
-                            <IconCamera className="w-8 h-8 mb-2" />
-                            <p className="text-xs font-medium text-center px-2">
-                              Subir foto
-                            </p>
-                            <p className="text-xs text-gray-400 text-center px-1">
-                              Opcional
-                            </p>
                           </div>
-                        )}
-                        <input
-                          ref={fileInputRef}
-                          type="file"
-                          accept="image/jpeg,image/jpg,image/png,image/webp"
-                          onChange={handleImageChange}
-                          className="hidden"
-                        />
-                      </div>
+                        </>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center h-full text-gray-500 group-hover:text-gray-600 transition-colors">
+                          <IconCamera className="w-8 h-8 mb-2" />
+                          <p className="text-xs font-medium text-center px-2">
+                            Subir foto
+                          </p>
+                          <p className="text-xs text-gray-400 text-center px-1">
+                            Opcional
+                          </p>
+                        </div>
+                      )}
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/jpeg,image/jpg,image/png,image/webp"
+                        onChange={handleImageChange}
+                        className="hidden"
+                      />
                     </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          {/* Sección: Información del empleado */}
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-semibold text-foreground">
-                Información del empleado
-              </h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                Datos básicos del empleado
-              </p>
-            </div>
-
-            <div className="space-y-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nombre completo *</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Ej: Juan Pérez García"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="phoneNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Teléfono *</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="1234567890"
-                        {...field}
-                        onChange={(e) => handlePhoneChange(e, field.onChange)}
-                        maxLength={10}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Ingresa 10 dígitos sin espacios ni guiones
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Correo electrónico *</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="email"
-                        placeholder="juan.perez@ejemplo.com"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div>
-
-          {/* Sección: Categorías */}
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-semibold text-foreground">
-                Categorías de servicio
-              </h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                Selecciona las categorías en las que trabajará este empleado
-              </p>
-            </div>
-
-            <FormField
-              control={form.control}
-              name="categoryIds"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <div className="flex flex-wrap gap-2">
-                      {categories.map((category) => {
-                        const isSelected = field.value.includes(category.id);
-                        return (
-                          <Badge
-                            key={category.id}
-                            variant="outline"
-                            className={`cursor-pointer ${
-                              isSelected
-                                ? "border-brand text-brand bg-brand/5"
-                                : ""
-                            }`}
-                            onClick={() => {
-                              const newValue = isSelected
-                                ? field.value.filter((id) => id !== category.id)
-                                : [...field.value, category.id];
-                              field.onChange(newValue);
-                            }}
-                          >
-                            {category.name}
-                          </Badge>
-                        );
-                      })}
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           {/* Botón de envío */}
           <div className="flex justify-end pt-6">
-            <Button
-              type="submit"
-              disabled={isPending}
-              className="w-full"
-            >
+            <Button type="submit" disabled={isPending} className="w-full">
               {isPending ? "Creando..." : "Crear empleado"}
             </Button>
           </div>
