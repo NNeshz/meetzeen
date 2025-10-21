@@ -7,6 +7,74 @@ export interface EmployeesFilters {
   search?: string;
   categoryId?: string;
 }
+const TIME_24H_PATTERN = "^(?:[01]\\d|2[0-3]):[0-5]\\d$";
+
+const ScheduleByDaySchema = t.Object({
+  lunes: t.Optional(
+    t.Array(
+      t.Object({
+        start: t.String({ pattern: TIME_24H_PATTERN }),
+        end: t.String({ pattern: TIME_24H_PATTERN }),
+      })
+    )
+  ),
+  martes: t.Optional(
+    t.Array(
+      t.Object({
+        start: t.String({ pattern: TIME_24H_PATTERN }),
+        end: t.String({ pattern: TIME_24H_PATTERN }),
+      })
+    )
+  ),
+  miercoles: t.Optional(
+    t.Array(
+      t.Object({
+        start: t.String({ pattern: TIME_24H_PATTERN }),
+        end: t.String({ pattern: TIME_24H_PATTERN }),
+      })
+    )
+  ),
+  jueves: t.Optional(
+    t.Array(
+      t.Object({
+        start: t.String({ pattern: TIME_24H_PATTERN }),
+        end: t.String({ pattern: TIME_24H_PATTERN }),
+      })
+    )
+  ),
+  viernes: t.Optional(
+    t.Array(
+      t.Object({
+        start: t.String({ pattern: TIME_24H_PATTERN }),
+        end: t.String({ pattern: TIME_24H_PATTERN }),
+      })
+    )
+  ),
+  sabado: t.Optional(
+    t.Array(
+      t.Object({
+        start: t.String({ pattern: TIME_24H_PATTERN }),
+        end: t.String({ pattern: TIME_24H_PATTERN }),
+      })
+    )
+  ),
+  domingo: t.Optional(
+    t.Array(
+      t.Object({
+        start: t.String({ pattern: TIME_24H_PATTERN }),
+        end: t.String({ pattern: TIME_24H_PATTERN }),
+      })
+    )
+  ),
+});
+
+const ScheduleArraySchema = t.Array(
+  t.Object({
+    dayOfWeek: t.Number({ minimum: 1, maximum: 7 }),
+    startTime: t.String({ pattern: TIME_24H_PATTERN }),
+    endTime: t.String({ pattern: TIME_24H_PATTERN }),
+  })
+);
 
 export const employeesRoute = new Elysia({
   name: "employeesRoute",
@@ -25,9 +93,9 @@ export const employeesRoute = new Elysia({
 
       // Convertir categoryIds de string a array
       const categoryIdsArray = body.categoryIds
-        .split(',')
-        .map(id => id.trim())
-        .filter(id => id.length > 0);
+        .split(",")
+        .map((id) => id.trim())
+        .filter((id) => id.length > 0);
 
       return employeesService.createEmployee(
         {
@@ -36,6 +104,7 @@ export const employeesRoute = new Elysia({
           email: body.email,
           image: imageToProcess,
           categoryIds: categoryIdsArray,
+          schedules: body.schedules, // pasa los horarios al servicio
         },
         user.id
       );
@@ -46,7 +115,10 @@ export const employeesRoute = new Elysia({
         phoneNumber: t.String({ minLength: 10, maxLength: 15 }),
         email: t.String({ format: "email" }),
         image: t.Optional(t.File()),
-        categoryIds: t.String({ minLength: 1 }), // Cambiado de Array a String
+        categoryIds: t.String({ minLength: 1 }), // string separado por comas
+        schedules: t.Optional(
+          t.Union([ScheduleByDaySchema, ScheduleArraySchema])
+        ),
       }),
       authenticated: true,
     }
@@ -158,12 +230,41 @@ export const employeesRoute = new Elysia({
       body: t.Object({
         schedules: t.Array(
           t.Object({
-            dayOfWeek: t.Number({ minimum: 0, maximum: 6 }),
-            startTime: t.String(),
-            endTime: t.String(),
+            // Ajuste: usar índice 1–7 para alinear con todo el sistema
+            dayOfWeek: t.Number({ minimum: 1, maximum: 7 }),
+            // Valida formato 24h HH:mm de forma consistente
+            startTime: t.String({ pattern: TIME_24H_PATTERN }),
+            endTime: t.String({ pattern: TIME_24H_PATTERN }),
           })
         ),
       }),
       authenticated: true,
     }
-  );
+  )
+  .get(
+    "/:id/availability",
+    async ({ employeesService, user, params, query }) => {
+      const monthsAhead = query.months ? parseInt(query.months, 10) : 6;
+
+      return employeesService.getEmployeeAvailability(
+        params.id,
+        user.id,
+        {
+          monthsAhead,
+          startDate: query.startDate,
+          endDate: query.endDate,
+        }
+      );
+    },
+    {
+      params: t.Object({
+        id: t.String(),
+      }),
+      query: t.Object({
+        months: t.Optional(t.String()),
+        startDate: t.Optional(t.String()),
+        endDate: t.Optional(t.String()),
+      }),
+      authenticated: true,
+    }
+  )

@@ -32,6 +32,7 @@ import { EquipoSheetUpdate } from "@/modules/dashboard/equipo/components/equipo-
 import { EquipoDelete } from "@/modules/dashboard/equipo/components/equipo-delete";
 import { useEffect } from "react";
 import { useEquipoFilters } from "@/modules/dashboard/equipo/store/useEquipoStore";
+import { EquipoSheetHorary } from "./components/equipo-sheet-horary";
 
 interface Employee {
   name: string;
@@ -155,6 +156,7 @@ export function EquipoTable() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <EquipoSheetUpdate employee={item} />
+                      <EquipoSheetHorary employeeId={item.id} employeeName={item.name} />
                       <EquipoDelete id={item.id} name={item.name} />
                     </DropdownMenuContent>
                   </DropdownMenu>

@@ -1,3 +1,9 @@
+-- CreateEnum
+CREATE TYPE "public"."ExceptionType" AS ENUM ('DAY_OFF', 'UNAVAILABLE', 'EXTRA_SHIFT');
+
+-- CreateEnum
+CREATE TYPE "public"."ExceptionRecurrence" AS ENUM ('NONE', 'WEEKLY');
+
 -- CreateTable
 CREATE TABLE "public"."Category" (
     "id" TEXT NOT NULL,
@@ -30,6 +36,8 @@ CREATE TABLE "public"."EmployeeSchedule" (
     "dayOfWeek" INTEGER NOT NULL,
     "startTime" TEXT NOT NULL,
     "endTime" TEXT NOT NULL,
+    "order" INTEGER NOT NULL DEFAULT 1,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -40,10 +48,16 @@ CREATE TABLE "public"."EmployeeSchedule" (
 CREATE TABLE "public"."EmployeeException" (
     "id" TEXT NOT NULL,
     "employeeId" TEXT NOT NULL,
-    "date" TIMESTAMP(3) NOT NULL,
+    "type" "public"."ExceptionType" NOT NULL,
+    "date" TIMESTAMP(3),
+    "recurrence" "public"."ExceptionRecurrence" NOT NULL DEFAULT 'NONE',
+    "dayOfWeek" INTEGER,
+    "repeatUntil" TIMESTAMP(3),
     "startTime" TEXT,
     "endTime" TEXT,
     "isAvailable" BOOLEAN NOT NULL,
+    "reason" TEXT,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -173,12 +187,12 @@ CREATE TABLE "public"."Organization" (
     "phoneNumber" TEXT,
     "slogan" TEXT,
     "address" TEXT,
-    "workDays" TEXT[],
-    "startHour" TEXT,
-    "startMinute" TEXT,
+    "workDays" INTEGER[],
+    "startHour" INTEGER,
+    "startMinute" INTEGER,
     "startAmPm" TEXT,
-    "endHour" TEXT,
-    "endMinute" TEXT,
+    "endHour" INTEGER,
+    "endMinute" INTEGER,
     "endAmPm" TEXT,
     "onboardingCompleted" BOOLEAN NOT NULL DEFAULT false,
     "facebook" TEXT,
@@ -226,6 +240,18 @@ CREATE INDEX "Category_name_idx" ON "public"."Category"("name");
 
 -- CreateIndex
 CREATE INDEX "Employee_name_idx" ON "public"."Employee"("name");
+
+-- CreateIndex
+CREATE INDEX "EmployeeSchedule_employeeId_dayOfWeek_idx" ON "public"."EmployeeSchedule"("employeeId", "dayOfWeek");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "EmployeeSchedule_employeeId_dayOfWeek_startTime_endTime_key" ON "public"."EmployeeSchedule"("employeeId", "dayOfWeek", "startTime", "endTime");
+
+-- CreateIndex
+CREATE INDEX "EmployeeException_employeeId_date_idx" ON "public"."EmployeeException"("employeeId", "date");
+
+-- CreateIndex
+CREATE INDEX "EmployeeException_employeeId_dayOfWeek_idx" ON "public"."EmployeeException"("employeeId", "dayOfWeek");
 
 -- CreateIndex
 CREATE INDEX "Service_name_idx" ON "public"."Service"("name");

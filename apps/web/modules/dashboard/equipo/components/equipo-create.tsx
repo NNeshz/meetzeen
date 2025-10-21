@@ -3,7 +3,13 @@
 import type React from "react";
 
 import Image from "next/image";
-import { IconCamera, IconUpload, IconX } from "@tabler/icons-react";
+import {
+  IconCamera,
+  IconPlus,
+  IconTrash,
+  IconUpload,
+  IconX,
+} from "@tabler/icons-react";
 
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -29,6 +35,12 @@ import { useCreateEmployeeMutation } from "@/modules/dashboard/equipo/hooks/useE
 import { validateNumeric } from "@/utils/validate-numeric";
 import { compressImage } from "@/utils/compress-image";
 import { ButtonGroup } from "@meetzeen/ui/src/components/button-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from "@meetzeen/ui/src/components/select";
 
 interface Categoria {
   name: string;
@@ -36,6 +48,38 @@ interface Categoria {
   createdAt: Date;
   updatedAt: Date;
 }
+
+// Días y utilidades de horario (24h)
+const DAYS = [
+  { key: "lunes", label: "Lunes" },
+  { key: "martes", label: "Martes" },
+  { key: "miercoles", label: "Miércoles" },
+  { key: "jueves", label: "Jueves" },
+  { key: "viernes", label: "Viernes" },
+  { key: "sabado", label: "Sábado" },
+  { key: "domingo", label: "Domingo" },
+] as const;
+type DayKey = (typeof DAYS)[number]["key"];
+
+const HOURS_24 = Array.from({ length: 24 }, (_, i) => i);
+const MINUTES = Array.from({ length: 60 }, (_, i) => i);
+const pad = (n: number) => String(n).padStart(2, "0");
+const formatTime = (h: number, m: number) => `${pad(h)}:${pad(m)}`;
+const parseTime = (t?: string) => {
+  const [h, m] = (t ?? "00:00").split(":");
+  return { hour: Number(h) || 0, minute: Number(m) || 0 };
+};
+const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
+
+const turnoSchema = z
+  .object({
+    start: z.string().regex(timeRegex, "Usa formato 24h HH:mm"),
+    end: z.string().regex(timeRegex, "Usa formato 24h HH:mm"),
+  })
+  .refine((t) => t.start < t.end, {
+    message: "La hora de fin debe ser mayor que la de inicio",
+    path: ["end"],
+  });
 
 const schema = z.object({
   name: z
@@ -59,6 +103,15 @@ const schema = z.object({
     .instanceof(File, { message: "Debe ser un archivo válido" })
     .optional(),
   categoryIds: z.array(z.string()).min(1, "Selecciona al menos una categoría"),
+  schedules: z.object({
+    lunes: z.array(turnoSchema),
+    martes: z.array(turnoSchema),
+    miercoles: z.array(turnoSchema),
+    jueves: z.array(turnoSchema),
+    viernes: z.array(turnoSchema),
+    sabado: z.array(turnoSchema),
+    domingo: z.array(turnoSchema),
+  }),
 });
 
 type EmployeeFormValues = z.infer<typeof schema>;
@@ -81,12 +134,78 @@ export function EquipoCreate({ categories, onSuccess }: EquipoCreateProps) {
       phoneNumber: "",
       email: "",
       categoryIds: [],
+      schedules: {
+        lunes: [],
+        martes: [],
+        miercoles: [],
+        jueves: [],
+        viernes: [],
+        sabado: [],
+        domingo: [],
+      },
     },
   });
 
+  function addShift(day: DayKey) {
+    const s = form.getValues("schedules");
+    const updated = {
+      ...s,
+      [day]: [...s[day], { start: "08:00", end: "17:00" }],
+    };
+    form.setValue("schedules", updated, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  }
+
+  function updateShiftPart(
+    day: DayKey,
+    index: number,
+    part: "start" | "end",
+    next: { hour?: number; minute?: number }
+  ) {
+    const s = form.getValues("schedules");
+    const dayShifts = s[day];
+
+    // Garantiza que el índice exista para evitar 'undefined'
+    const current = dayShifts[index];
+    if (!current) return;
+
+    const { hour, minute } = parseTime(current[part]);
+    const newHour = next.hour ?? hour;
+    const newMinute = next.minute ?? minute;
+
+    const updatedDay = dayShifts.map((t, i) =>
+      i === index ? { ...t, [part]: formatTime(newHour, newMinute) } : t
+    );
+
+    form.setValue(
+      "schedules",
+      { ...s, [day]: updatedDay },
+      { shouldDirty: true, shouldValidate: true }
+    );
+  }
+
+  function removeShift(day: DayKey, index: number) {
+    const s = form.getValues("schedules");
+    const updatedDay = s[day].filter((_, i) => i !== index);
+    form.setValue(
+      "schedules",
+      { ...s, [day]: updatedDay },
+      { shouldDirty: true, shouldValidate: true }
+    );
+  }
+
   async function onSubmit(values: EmployeeFormValues) {
     try {
-      console.log(values);
+      const totalShifts = Object.values(values.schedules).reduce(
+        (acc, arr) => acc + arr.length,
+        0
+      );
+      if (totalShifts === 0) {
+        toast.error("Debes añadir al menos un turno.");
+        return;
+      }
 
       let imageToSubmit = values.image;
 
@@ -100,6 +219,7 @@ export function EquipoCreate({ categories, onSuccess }: EquipoCreateProps) {
         email: values.email.trim(),
         image: imageToSubmit,
         categoryIds: values.categoryIds,
+        schedules: values.schedules, // se envía la estructura del formulario
       };
 
       await createEmployee(data);
@@ -109,8 +229,6 @@ export function EquipoCreate({ categories, onSuccess }: EquipoCreateProps) {
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
-
-      onSuccess?.();
     } catch (error) {
       console.error(error);
     }
@@ -267,6 +385,166 @@ export function EquipoCreate({ categories, onSuccess }: EquipoCreateProps) {
                         </ButtonGroup>
                       </ButtonGroup>
                     </div>
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="schedules"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Horarios (formato 24h)</FormLabel>
+                <FormControl>
+                  <div className="space-y-4">
+                    {DAYS.map((day) => {
+                      const shifts = field.value?.[day.key] ?? [];
+                      return (
+                        <div key={day.key} className="border rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-medium">{day.label}</span>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              onClick={() => addShift(day.key)}
+                            >
+                              <IconPlus className="h-4 w-4 mr-1" />
+                              Añadir Turno
+                            </Button>
+                          </div>
+
+                          {shifts.length === 0 && (
+                            <p className="text-sm text-muted-foreground">
+                              Sin turnos. Añade uno para este día.
+                            </p>
+                          )}
+
+                          {shifts.map((turno, idx) => {
+                            const s = parseTime(turno.start);
+                            const e = parseTime(turno.end);
+                            return (
+                              <div
+                                key={idx}
+                                className="flex items-center gap-3 py-2 w-full"
+                              >
+                                <ButtonGroup className="w-full flex-1">
+                                  <Select
+                                    value={String(s.hour)}
+                                    onValueChange={(v) =>
+                                      updateShiftPart(day.key, idx, "start", {
+                                        hour: parseInt(v, 10),
+                                      })
+                                    }
+                                  >
+                                    <SelectTrigger
+                                      className="w-full"
+                                      data-slot="select-trigger"
+                                    >
+                                      {pad(s.hour)} h
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {HOURS_24.map((h) => (
+                                        <SelectItem key={h} value={String(h)}>
+                                          {pad(h)} h
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+
+                                  <Select
+                                    value={String(s.minute)}
+                                    onValueChange={(v) =>
+                                      updateShiftPart(day.key, idx, "start", {
+                                        minute: parseInt(v, 10),
+                                      })
+                                    }
+                                  >
+                                    <SelectTrigger
+                                      className="w-full"
+                                      data-slot="select-trigger"
+                                    >
+                                      {pad(s.minute)} m
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {MINUTES.map((m) => (
+                                        <SelectItem key={m} value={String(m)}>
+                                          {pad(m)} m
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </ButtonGroup>
+
+                                <span className="text-muted-foreground">a</span>
+
+                                <ButtonGroup className="w-full flex-1">
+                                  <Select
+                                    value={String(e.hour)}
+                                    onValueChange={(v) =>
+                                      updateShiftPart(day.key, idx, "end", {
+                                        hour: parseInt(v, 10),
+                                      })
+                                    }
+                                  >
+                                    <SelectTrigger
+                                      className="w-full"
+                                      data-slot="select-trigger"
+                                    >
+                                      {pad(e.hour)} h
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {HOURS_24.map((h) => (
+                                        <SelectItem key={h} value={String(h)}>
+                                          {pad(h)} h
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+
+                                  <Select
+                                    value={String(e.minute)}
+                                    onValueChange={(v) =>
+                                      updateShiftPart(day.key, idx, "end", {
+                                        minute: parseInt(v, 10),
+                                      })
+                                    }
+                                  >
+                                    <SelectTrigger
+                                      className="w-full"
+                                      data-slot="select-trigger"
+                                    >
+                                      {pad(e.minute)} m
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {MINUTES.map((m) => (
+                                        <SelectItem key={m} value={String(m)}>
+                                          {pad(m)} m
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </ButtonGroup>
+
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() => removeShift(day.key, idx)}
+                                  className="ml-auto"
+                                  aria-label="Eliminar turno"
+                                >
+                                  <IconTrash className="h-4 w-4 text-red-500" />
+                                </Button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })}
                   </div>
                 </FormControl>
                 <FormMessage />

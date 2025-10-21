@@ -60,6 +60,47 @@ export const useEquipoQuery = () => {
   return { data, isLoading, isError, refetch };
 };
 
+// Mapea los días del formulario a índices 1-7
+const DAY_KEY_TO_INDEX = {
+  lunes: 1,
+  martes: 2,
+  miercoles: 3,
+  jueves: 4,
+  viernes: 5,
+  sabado: 6,
+  domingo: 7,
+} as const;
+
+type UISchedulesByDay = {
+  lunes: Array<{ start: string; end: string }>;
+  martes: Array<{ start: string; end: string }>;
+  miercoles: Array<{ start: string; end: string }>;
+  jueves: Array<{ start: string; end: string }>;
+  viernes: Array<{ start: string; end: string }>;
+  sabado: Array<{ start: string; end: string }>;
+  domingo: Array<{ start: string; end: string }>;
+};
+
+function flattenSchedules(schedules: UISchedulesByDay) {
+  const result: { dayOfWeek: number; startTime: string; endTime: string }[] = [];
+  
+  
+  (Object.keys(DAY_KEY_TO_INDEX) as Array<keyof typeof DAY_KEY_TO_INDEX>).forEach((key) => {
+    const dayIndex = DAY_KEY_TO_INDEX[key];
+    
+    schedules[key].forEach((t) => {
+      const entry = {
+        dayOfWeek: dayIndex,
+        startTime: t.start,
+        endTime: t.end,
+      };
+      result.push(entry);
+    });
+  });
+  
+  return result;
+}
+
 export const useCreateEmployeeMutation = () => {
   const queryClient = useQueryClient();
   const { currentPage, search, categoryId } = useEquipoFilters();
@@ -70,12 +111,13 @@ export const useCreateEmployeeMutation = () => {
       phoneNumber: string;
       email: string;
       image?: File;
-      categoryIds: string[]; // Mantener como array en el hook
+      categoryIds: string[]; // array en el hook
+      schedules: UISchedulesByDay; // estructura del formulario
     }) => {
-      // Convertir array a string antes de enviar
       const dataToSend = {
         ...employeeData,
-        categoryIds: employeeData.categoryIds.join(','),
+        categoryIds: employeeData.categoryIds.join(","),
+        schedules: flattenSchedules(employeeData.schedules),
       };
       return equipoService.createEmployee(dataToSend);
     },
@@ -87,18 +129,17 @@ export const useCreateEmployeeMutation = () => {
         page: currentPage,
         ...(debouncedSearch &&
           debouncedSearch.trim() !== "" && { search: debouncedSearch.trim() }),
-        ...(categoryId && categoryId.trim() !== "" && { categoryId: categoryId.trim() }),
+        ...(categoryId && categoryId.trim() !== "" && {
+          categoryId: categoryId.trim(),
+        }),
       };
-      
+
       const queryKey = ["equipo", filters];
-      
-      // Cancelar queries en progreso
+
       await queryClient.cancelQueries({ queryKey });
-      
-      // Obtener datos previos
+
       const previousData = queryClient.getQueryData<EmployeesResponse>(queryKey);
-      
-      // Crear empleado temporal
+
       const tempEmployee: Employee = {
         id: `temp-${Date.now()}`,
         name: employeeData.name,
@@ -109,8 +150,7 @@ export const useCreateEmployeeMutation = () => {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
-      
-      // Actualizar cache optimísticamente
+
       if (previousData) {
         queryClient.setQueryData<EmployeesResponse>(queryKey, {
           ...previousData,
@@ -122,7 +162,7 @@ export const useCreateEmployeeMutation = () => {
           },
         });
       }
-      
+
       return { previousData, queryKey };
     },
     
@@ -296,4 +336,23 @@ export const useUpdateEmployeeScheduleMutation = () => {
       toast.error(error?.message || "Error al actualizar el horario del empleado");
     },
   });
+};
+
+export const useEmployeeAvailabilityQuery = (
+  id: string,
+  options?: { months?: number; startDate?: string; endDate?: string; enabled?: boolean }
+) => {
+  const months = options?.months ?? 6;
+  const startDate = options?.startDate;
+  const endDate = options?.endDate;
+  const enabled = options?.enabled ?? true;
+
+  const { data, isLoading, isError, refetch } = useQuery({
+    queryKey: ["employee-availability", id, months, startDate, endDate],
+    queryFn: () => equipoService.getEmployeeAvailability(id, { months, startDate, endDate }),
+    enabled: Boolean(id) && enabled,
+    refetchOnWindowFocus: false,
+  });
+
+  return { data, isLoading, isError, refetch };
 };

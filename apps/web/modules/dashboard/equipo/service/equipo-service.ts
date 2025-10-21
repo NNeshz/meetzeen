@@ -1,5 +1,6 @@
 import { apiClient } from "@/utils/api-connection";
 import { EmployeesFilters } from "@meetzeen/api/src/modules/employees/employees.route";
+import { Temporal } from "temporal-polyfill";
 
 export class EquipoService {
   async createEmployee(data: {
@@ -7,7 +8,12 @@ export class EquipoService {
     name: string;
     email: string;
     phoneNumber: string;
-    categoryIds: string; // Cambiado de string[] a string
+    categoryIds: string; 
+    schedules?: {
+      dayOfWeek: number; 
+      startTime: string; 
+      endTime: string;   
+    }[];
   }) {
     const response = await apiClient.employees.create.post(data, {
       fetch: {
@@ -100,6 +106,29 @@ export class EquipoService {
       }
     );
 
+    if (response.error) {
+      throw response.error.value;
+    }
+
+    return response.data;
+  }
+
+  async getEmployeeAvailability(
+    id: string,
+    params?: { months?: number; startDate?: string; endDate?: string }
+  ) {
+    const query: Record<string, string> = {};
+    if (params?.months !== undefined) query.months = String(params.months);
+    if (params?.startDate) query.startDate = params.startDate;
+    if (params?.endDate) query.endDate = params.endDate;
+  
+    const response = await apiClient.employees({ id }).availability.get({
+      query,
+      fetch: {
+        credentials: "include",
+      },
+    });
+  
     if (response.error) {
       throw response.error.value;
     }

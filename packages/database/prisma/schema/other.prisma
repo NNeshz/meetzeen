@@ -1,8 +1,18 @@
+enum ExceptionType {
+  DAY_OFF
+  UNAVAILABLE
+  EXTRA_SHIFT
+}
+
+enum ExceptionRecurrence {
+  NONE
+  WEEKLY
+}
+
 model Category {
   id   String @id @default(uuid())
   name String
 
-  // Relaciones actualizadas
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
@@ -22,7 +32,6 @@ model Employee {
   phoneNumber String
   email       String
 
-  // Relaciones actualizadas
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
@@ -42,12 +51,18 @@ model EmployeeSchedule {
   employeeId String
   employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
-  dayOfWeek Int // 0 = domingo, 1 = lunes ... 6 = sábado
-  startTime String // Ej: "08:00"
-  endTime   String // Ej: "12:00"
+  dayOfWeek Int
+  startTime String
+  endTime   String
+
+  order    Int     @default(1)
+  isActive Boolean @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@unique([employeeId, dayOfWeek, startTime, endTime])
+  @@index([employeeId, dayOfWeek])
 }
 
 model EmployeeException {
@@ -55,13 +70,27 @@ model EmployeeException {
   employeeId String
   employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
-  date        DateTime 
-  startTime   String? 
-  endTime     String? 
-  isAvailable Boolean 
+  type ExceptionType
+
+  date DateTime?
+
+  recurrence  ExceptionRecurrence @default(NONE)
+  dayOfWeek   Int?
+  repeatUntil DateTime?
+
+  startTime String?
+  endTime   String?
+
+  isAvailable Boolean
+  reason      String?
+
+  isActive Boolean @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([employeeId, date])
+  @@index([employeeId, dayOfWeek])
 }
 
 model Service {
@@ -70,7 +99,6 @@ model Service {
   duration String
   price    Float
 
-  // Relaciones actualizadas
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
@@ -94,11 +122,10 @@ model Appointment {
   customerPhone String?
   customerEmail String?
 
-  date     DateTime // día + hora de inicio (UTC)
-  duration Int // minutos totales de la cita
-  status   String // pending, confirmed, cancelled, etc.
+  date     DateTime
+  duration Int
+  status   String
 
-  // Relación con subcitas (cada servicio dentro de la cita)
   slots AppointmentSlot[]
 
   createdAt DateTime @default(now())
@@ -116,8 +143,8 @@ model AppointmentSlot {
   serviceId String
   service   Service @relation(fields: [serviceId], references: [id])
 
-  startTime DateTime // hora exacta inicio (UTC)
-  endTime   DateTime // hora exacta fin (UTC)
+  startTime DateTime
+  endTime   DateTime
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
