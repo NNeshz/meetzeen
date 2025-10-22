@@ -70,15 +70,15 @@ model Verification {
 }
 
 model Organization {
-  id          String   @id
-  name        String
-  timezone    String
-  currency    String
-  slug        String?  @unique
-  logo        String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  id        String   @id
+  name      String
+  timezone  String
+  currency  String
+  slug      String?  @unique
+  logo      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // Campos específicos de Company migrados directamente
   imageUrl    String?
   phoneNumber String?
@@ -91,23 +91,23 @@ model Organization {
   endHour     Int?
   endMinute   Int?
   endAmPm     String?
-  
+
   onboardingCompleted Boolean @default(false)
-  
+
   // Redes sociales
-  facebook    String?
-  instagram   String?
-  tiktok      String?
-  twitterX    String?
-  
+  facebook  String?
+  instagram String?
+  tiktok    String?
+  twitterX  String?
+
   invitations Invitation[]
   members     Member[]
-  
-  categories  Category[]
-  employees   Employee[]
-  services    Service[]
+
+  categories   Category[]
+  employees    Employee[]
+  services     Service[]
   appointments Appointment[]
-  
+
   @@index([name])
   @@index([phoneNumber])
 }
@@ -120,7 +120,7 @@ model Member {
   createdAt      DateTime     @default(now())
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@unique([organizationId, userId])
 }
 
