@@ -37,6 +37,7 @@ model Employee {
 
   schedules    EmployeeSchedule[]
   exceptions   EmployeeException[]
+  overrides    EmployeeScheduleOverride[]
   categories   Category[]          @relation("EmployeeCategories")
   appointments AppointmentSlot[]
 
@@ -91,6 +92,26 @@ model EmployeeException {
 
   @@index([employeeId, date])
   @@index([employeeId, dayOfWeek])
+}
+
+model EmployeeScheduleOverride {
+  id         String   @id @default(uuid())
+  employeeId String
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  // Fecha específica del override (almacenada como fecha con hora 00:00:00Z)
+  date      DateTime
+  startTime String
+  endTime   String
+
+  order    Int     @default(1)
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([employeeId, date])
+  @@unique([employeeId, date, startTime, endTime])
 }
 
 model Service {

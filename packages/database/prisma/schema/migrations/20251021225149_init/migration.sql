@@ -65,6 +65,21 @@ CREATE TABLE "public"."EmployeeException" (
 );
 
 -- CreateTable
+CREATE TABLE "public"."EmployeeScheduleOverride" (
+    "id" TEXT NOT NULL,
+    "employeeId" TEXT NOT NULL,
+    "date" TIMESTAMP(3) NOT NULL,
+    "startTime" TEXT NOT NULL,
+    "endTime" TEXT NOT NULL,
+    "order" INTEGER NOT NULL DEFAULT 1,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "EmployeeScheduleOverride_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "public"."Service" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
@@ -254,6 +269,12 @@ CREATE INDEX "EmployeeException_employeeId_date_idx" ON "public"."EmployeeExcept
 CREATE INDEX "EmployeeException_employeeId_dayOfWeek_idx" ON "public"."EmployeeException"("employeeId", "dayOfWeek");
 
 -- CreateIndex
+CREATE INDEX "EmployeeScheduleOverride_employeeId_date_idx" ON "public"."EmployeeScheduleOverride"("employeeId", "date");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "EmployeeScheduleOverride_employeeId_date_startTime_endTime_key" ON "public"."EmployeeScheduleOverride"("employeeId", "date", "startTime", "endTime");
+
+-- CreateIndex
 CREATE INDEX "Service_name_idx" ON "public"."Service"("name");
 
 -- CreateIndex
@@ -291,6 +312,9 @@ ALTER TABLE "public"."EmployeeSchedule" ADD CONSTRAINT "EmployeeSchedule_employe
 
 -- AddForeignKey
 ALTER TABLE "public"."EmployeeException" ADD CONSTRAINT "EmployeeException_employeeId_fkey" FOREIGN KEY ("employeeId") REFERENCES "public"."Employee"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."EmployeeScheduleOverride" ADD CONSTRAINT "EmployeeScheduleOverride_employeeId_fkey" FOREIGN KEY ("employeeId") REFERENCES "public"."Employee"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."Service" ADD CONSTRAINT "Service_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "public"."Organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;

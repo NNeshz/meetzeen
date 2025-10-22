@@ -224,15 +224,11 @@ export const employeesRoute = new Elysia({
       );
     },
     {
-      params: t.Object({
-        id: t.String(),
-      }),
+      params: t.Object({ id: t.String() }),
       body: t.Object({
         schedules: t.Array(
           t.Object({
-            // Ajuste: usar índice 1–7 para alinear con todo el sistema
             dayOfWeek: t.Number({ minimum: 1, maximum: 7 }),
-            // Valida formato 24h HH:mm de forma consistente
             startTime: t.String({ pattern: TIME_24H_PATTERN }),
             endTime: t.String({ pattern: TIME_24H_PATTERN }),
           })
@@ -241,11 +237,135 @@ export const employeesRoute = new Elysia({
       authenticated: true,
     }
   )
+  // LISTAR horarios del empleado
+  .get(
+    "/:id/schedule",
+    async ({ employeesService, user, params }) => {
+      return employeesService.listEmployeeSchedules(params.id, user.id);
+    },
+    {
+      params: t.Object({ id: t.String() }),
+      authenticated: true,
+    }
+  )
+  // CREAR entrada individual
+  .post(
+    "/:id/schedule",
+    async ({ employeesService, user, params, body }) => {
+      return employeesService.createEmployeeScheduleEntry(params.id, user.id, body);
+    },
+    {
+      params: t.Object({ id: t.String() }),
+      body: t.Object({
+        dayOfWeek: t.Number({ minimum: 1, maximum: 7 }),
+        startTime: t.String({ pattern: TIME_24H_PATTERN }),
+        endTime: t.String({ pattern: TIME_24H_PATTERN }),
+        order: t.Optional(t.Number()),
+        isActive: t.Optional(t.Boolean()),
+      }),
+      authenticated: true,
+    }
+  )
+  // ACTUALIZAR entrada individual
+  .patch(
+    "/:id/schedule/:scheduleId",
+    async ({ employeesService, user, params, body }) => {
+      return employeesService.updateEmployeeScheduleEntry(
+        params.id,
+        params.scheduleId,
+        user.id,
+        body
+      );
+    },
+    {
+      params: t.Object({ id: t.String(), scheduleId: t.String() }),
+      body: t.Object({
+        dayOfWeek: t.Optional(t.Number({ minimum: 1, maximum: 7 })),
+        startTime: t.Optional(t.String({ pattern: TIME_24H_PATTERN })),
+        endTime: t.Optional(t.String({ pattern: TIME_24H_PATTERN })),
+        order: t.Optional(t.Number()),
+        isActive: t.Optional(t.Boolean()),
+      }),
+      authenticated: true,
+    }
+  )
+  // ELIMINAR entrada individual
+  .delete(
+    "/:id/schedule/:scheduleId",
+    async ({ employeesService, user, params }) => {
+      return employeesService.deleteEmployeeScheduleEntry(
+        params.id,
+        params.scheduleId,
+        user.id
+      );
+    },
+    {
+      params: t.Object({ id: t.String(), scheduleId: t.String() }),
+      authenticated: true,
+    }
+  )
+  // REEMPLAZAR horarios por día específico
+  .put(
+    "/:id/schedule/day/:dayOfWeek",
+    async ({ employeesService, user, params, body }) => {
+      const day = parseInt(params.dayOfWeek, 10);
+      return employeesService.replaceEmployeeDaySchedules(
+        params.id,
+        day,
+        body,
+        user.id
+      );
+    },
+    {
+      params: t.Object({ id: t.String(), dayOfWeek: t.String() }),
+      body: t.Array(
+        t.Object({
+          startTime: t.String({ pattern: TIME_24H_PATTERN }),
+          endTime: t.String({ pattern: TIME_24H_PATTERN }),
+          order: t.Optional(t.Number()),
+          isActive: t.Optional(t.Boolean()),
+        })
+      ),
+      authenticated: true,
+    }
+  )
+  // ACTUALIZACIÓN CONDICIONAL: solo ese día, repetir N semanas, o todos los días
+  .put(
+    "/:id/schedule/conditional",
+    async ({ employeesService, user, params, body }) => {
+      return employeesService.conditionalUpdateEmployeeSchedules(
+        params.id,
+        {
+          selectedDate: body.selectedDate,
+          schedules: body.schedules,
+          onlyThisDay: body.onlyThisDay === true,
+          repeatWeeks: body.repeatWeeks,
+        },
+        user.id
+      );
+    },
+    {
+      params: t.Object({ id: t.String() }),
+      body: t.Object({
+        selectedDate: t.Optional(t.String()), // "YYYY-MM-DD"
+        schedules: t.Array(
+          t.Object({
+            startTime: t.String({ pattern: TIME_24H_PATTERN }),
+            endTime: t.String({ pattern: TIME_24H_PATTERN }),
+            order: t.Optional(t.Number()),
+            isActive: t.Optional(t.Boolean()),
+          })
+        ),
+        onlyThisDay: t.Optional(t.Boolean()),
+        repeatWeeks: t.Optional(t.Number({ minimum: 1, maximum: 52 })),
+      }),
+      authenticated: true,
+    }
+  )
   .get(
     "/:id/availability",
     async ({ employeesService, user, params, query }) => {
       const monthsAhead = query.months ? parseInt(query.months, 10) : 6;
-
       return employeesService.getEmployeeAvailability(
         params.id,
         user.id,

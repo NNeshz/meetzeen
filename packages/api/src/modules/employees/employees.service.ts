@@ -591,6 +591,202 @@ export class EmployeesService {
     }
   }
 
+  async listEmployeeSchedules(employeeId: string, userId: string) {
+    try {
+      const membership = await prismaClient.member.findFirst({
+        where: { userId, role: { in: ["owner", "member"] } },
+        include: { organization: { select: { id: true } } },
+      });
+      if (!membership) throw new Error("El usuario no pertenece a ninguna organización");
+
+      const employee = await prismaClient.employee.findFirst({
+        where: { id: employeeId, organizationId: membership.organization.id },
+      });
+      if (!employee) throw new Error("Empleado no encontrado o no tienes permisos para verlo");
+
+      const schedules = await prismaClient.employeeSchedule.findMany({
+        where: { employeeId },
+        orderBy: [{ dayOfWeek: "asc" }, { startTime: "asc" }],
+      });
+
+      return { status: 200, message: "Horarios del empleado", data: schedules };
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : "Error desconocido";
+      return { status: 500, message: msg, data: null };
+    }
+  }
+
+  async createEmployeeScheduleEntry(
+    employeeId: string,
+    userId: string,
+    entry: { dayOfWeek: number; startTime: string; endTime: string; order?: number; isActive?: boolean }
+  ) {
+    try {
+      const membership = await prismaClient.member.findFirst({
+        where: { userId, role: { in: ["owner", "member"] } },
+        include: { organization: { select: { id: true } } },
+      });
+      if (!membership) throw new Error("El usuario no pertenece a ninguna organización");
+
+      const employee = await prismaClient.employee.findFirst({
+        where: { id: employeeId, organizationId: membership.organization.id },
+      });
+      if (!employee) throw new Error("Empleado no encontrado o no tienes permisos para editarlo");
+
+      const normalized = {
+        dayOfWeek: entry.dayOfWeek === 0 ? 7 : entry.dayOfWeek,
+        startTime: entry.startTime,
+        endTime: entry.endTime,
+      };
+      if (!this.isValidScheduleEntry(normalized)) {
+        throw new Error("Horario inválido: formato HH:mm y start < end.");
+      }
+
+      const created = await prismaClient.employeeSchedule.create({
+        data: {
+          employeeId,
+          dayOfWeek: normalized.dayOfWeek,
+          startTime: normalized.startTime,
+          endTime: normalized.endTime,
+          order: entry.order ?? 1,
+          isActive: entry.isActive ?? true,
+        },
+      });
+
+      return { status: 201, message: "Horario creado", data: created };
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : "Error desconocido";
+      return { status: 500, message: msg, data: null };
+    }
+  }
+
+  async updateEmployeeScheduleEntry(
+    employeeId: string,
+    scheduleId: string,
+    userId: string,
+    update: { dayOfWeek?: number; startTime?: string; endTime?: string; order?: number; isActive?: boolean }
+  ) {
+    try {
+      const membership = await prismaClient.member.findFirst({
+        where: { userId, role: { in: ["owner", "member"] } },
+        include: { organization: { select: { id: true } } },
+      });
+      if (!membership) throw new Error("El usuario no pertenece a ninguna organización");
+
+      const employee = await prismaClient.employee.findFirst({
+        where: { id: employeeId, organizationId: membership.organization.id },
+      });
+      if (!employee) throw new Error("Empleado no encontrado o no tienes permisos para editarlo");
+
+      const existing = await prismaClient.employeeSchedule.findFirst({
+        where: { id: scheduleId, employeeId },
+      });
+      if (!existing) throw new Error("Horario no encontrado para este empleado");
+
+      const candidate = {
+        dayOfWeek: update.dayOfWeek !== undefined
+          ? (update.dayOfWeek === 0 ? 7 : update.dayOfWeek)
+          : existing.dayOfWeek,
+        startTime: update.startTime ?? existing.startTime,
+        endTime: update.endTime ?? existing.endTime,
+      };
+      if (!this.isValidScheduleEntry(candidate)) {
+        throw new Error("Horario inválido: formato HH:mm y start < end.");
+      }
+
+      const updated = await prismaClient.employeeSchedule.update({
+        where: { id: scheduleId },
+        data: {
+          dayOfWeek: candidate.dayOfWeek,
+          startTime: candidate.startTime,
+          endTime: candidate.endTime,
+          ...(update.order !== undefined && { order: update.order }),
+          ...(update.isActive !== undefined && { isActive: update.isActive }),
+        },
+      });
+
+      return { status: 200, message: "Horario actualizado", data: updated };
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : "Error desconocido";
+      return { status: 500, message: msg, data: null };
+    }
+  }
+
+  async deleteEmployeeScheduleEntry(employeeId: string, scheduleId: string, userId: string) {
+    try {
+      const membership = await prismaClient.member.findFirst({
+        where: { userId, role: { in: ["owner", "member"] } },
+        include: { organization: { select: { id: true } } },
+      });
+      if (!membership) throw new Error("El usuario no pertenece a ninguna organización");
+
+      const employee = await prismaClient.employee.findFirst({
+        where: { id: employeeId, organizationId: membership.organization.id },
+      });
+      if (!employee) throw new Error("Empleado no encontrado o no tienes permisos para editarlo");
+
+      await prismaClient.employeeSchedule.delete({
+        where: { id: scheduleId },
+      });
+
+      return { status: 200, message: "Horario eliminado", data: null };
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : "Error desconocido";
+      return { status: 500, message: msg, data: null };
+    }
+  }
+
+  async replaceEmployeeDaySchedules(
+    employeeId: string,
+    dayOfWeek: number,
+    entries: Array<{ startTime: string; endTime: string; order?: number; isActive?: boolean }>,
+    userId: string
+  ) {
+    try {
+      const membership = await prismaClient.member.findFirst({
+        where: { userId, role: { in: ["owner", "member"] } },
+        include: { organization: { select: { id: true } } },
+      });
+      if (!membership) throw new Error("El usuario no pertenece a ninguna organización");
+
+      const employee = await prismaClient.employee.findFirst({
+        where: { id: employeeId, organizationId: membership.organization.id },
+      });
+      if (!employee) throw new Error("Empleado no encontrado o no tienes permisos para editarlo");
+
+      const normalizedDay = dayOfWeek === 0 ? 7 : dayOfWeek;
+
+      const validEntries = entries
+        .map((e) => ({ dayOfWeek: normalizedDay, startTime: e.startTime, endTime: e.endTime }))
+        .filter((e) => this.isValidScheduleEntry(e));
+
+      if (validEntries.length !== entries.length) {
+        throw new Error("Una o más entradas son inválidas: formato HH:mm y start < end.");
+      }
+
+      await prismaClient.$transaction(async (tx) => {
+        await tx.employeeSchedule.deleteMany({ where: { employeeId, dayOfWeek: normalizedDay } });
+        if (entries.length > 0) {
+          await tx.employeeSchedule.createMany({
+            data: entries.map((e) => ({
+              employeeId,
+              dayOfWeek: normalizedDay,
+              startTime: e.startTime,
+              endTime: e.endTime,
+              order: e.order ?? 1,
+              isActive: e.isActive ?? true,
+            })),
+          });
+        }
+      });
+
+      return { status: 200, message: "Horarios del día reemplazados", data: null };
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : "Error desconocido";
+      return { status: 500, message: msg, data: null };
+    }
+  }
+
   async getEmployeeAvailability(
     employeeId: string,
     userId: string,
@@ -663,7 +859,6 @@ export class EmployeesService {
         const inst = Temporal.Instant.from(input);
         return inst.toZonedDateTimeISO(tz).toPlainDate();
       }
-
       const startPD = toPlainDate(options?.startDate);
       const endPD = options?.endDate
         ? toPlainDate(options.endDate)
@@ -673,6 +868,24 @@ export class EmployeesService {
       const rangeStart = startCmp <= 0 ? startPD : endPD;
       const rangeEnd = startCmp <= 0 ? endPD : startPD;
 
+      // Cargar overrides por fecha en el rango y priorizarlos sobre horarios base
+      const startDateISO = new Date(`${rangeStart.toString()}T00:00:00.000Z`);
+      const endDateISO = new Date(`${rangeEnd.toString()}T00:00:00.000Z`);
+      const overrides = await prismaClient.employeeScheduleOverride.findMany({
+        where: {
+          employeeId,
+          date: { gte: startDateISO, lte: endDateISO },
+          isActive: true,
+        },
+        orderBy: [{ date: "asc" }, { startTime: "asc" }],
+      });
+
+      const overrideMap: Record<string, { startTime: string; endTime: string }[]> = {};
+      for (const o of overrides) {
+        const ymd = o.date.toISOString().split("T")[0]!;
+        (overrideMap[ymd] ??= []).push({ startTime: o.startTime, endTime: o.endTime });
+      }
+
       const availability: {
         date: string;
         dayOfWeek: number;
@@ -681,14 +894,16 @@ export class EmployeesService {
 
       let pd = rangeStart;
       while (Temporal.PlainDate.compare(pd, rangeEnd) <= 0) {
-        const dow = pd.dayOfWeek; // 1=lunes ... 7=domingo
-        const slots = map[dow];
-        if (slots && slots.length > 0) {
-          availability.push({
-            date: pd.toString(), // YYYY-MM-DD ISO 8601
-            dayOfWeek: dow,
-            slots,
-          });
+        const ymd = pd.toString(); // YYYY-MM-DD
+        const dow = pd.dayOfWeek; // 1..7 (lunes..domingo)
+
+        const overrideSlots = overrideMap[ymd];
+        const baseSlots = map[dow];
+
+        if (overrideSlots && overrideSlots.length > 0) {
+          availability.push({ date: ymd, dayOfWeek: dow, slots: overrideSlots });
+        } else if (baseSlots && baseSlots.length > 0) {
+          availability.push({ date: ymd, dayOfWeek: dow, slots: baseSlots });
         }
         pd = pd.add({ days: 1 });
       }
@@ -714,6 +929,109 @@ export class EmployeesService {
         message: errorMessage,
         data: null,
       };
+    }
+  }
+
+  async conditionalUpdateEmployeeSchedules(
+    employeeId: string,
+    payload: {
+      selectedDate?: string; // YYYY-MM-DD
+      schedules: Array<{ startTime: string; endTime: string; order?: number; isActive?: boolean }>;
+      onlyThisDay?: boolean;
+      repeatWeeks?: number;
+    },
+    userId: string
+  ) {
+    try {
+      const membership = await prismaClient.member.findFirst({
+        where: { userId, role: { in: ["owner", "member"] } },
+        include: { organization: { select: { id: true } } },
+      });
+      if (!membership) throw new Error("El usuario no pertenece a ninguna organización");
+
+      const employee = await prismaClient.employee.findFirst({
+        where: { id: employeeId, organizationId: membership.organization.id },
+      });
+      if (!employee) throw new Error("Empleado no encontrado o no tienes permisos para editarlo");
+
+      // Validar horarios
+      for (const s of payload.schedules) {
+        if (!this.isValidTime(s.startTime) || !this.isValidTime(s.endTime) || s.startTime >= s.endTime) {
+          throw new Error("Horario inválido: formato HH:mm y start < end.");
+        }
+      }
+
+      const onlyThisDay = payload.onlyThisDay === true;
+      const repeatCount = typeof payload.repeatWeeks === "number" ? Math.max(1, payload.repeatWeeks) : 0;
+
+      if (onlyThisDay || repeatCount > 0) {
+        if (!payload.selectedDate) {
+          throw new Error("selectedDate es requerido para actualizar solo ese día o repetir.");
+        }
+
+        // Construir fechas objetivo: solo la fecha seleccionada o repetir semanalmente N semanas
+        const basePD = Temporal.PlainDate.from(payload.selectedDate);
+        const targetDates: Date[] = [];
+
+        if (onlyThisDay) {
+          targetDates.push(new Date(`${basePD.toString()}T00:00:00.000Z`));
+        }
+        if (repeatCount > 0) {
+          for (let i = 0; i < repeatCount; i++) {
+            const pd = basePD.add({ weeks: i });
+            targetDates.push(new Date(`${pd.toString()}T00:00:00.000Z`));
+          }
+        }
+
+        await prismaClient.$transaction(async (tx) => {
+          // Eliminar overrides existentes para esas fechas
+          await tx.employeeScheduleOverride.deleteMany({
+            where: { employeeId, date: { in: targetDates } },
+          });
+
+          // Crear overrides por cada fecha indicada
+          if (payload.schedules.length > 0) {
+            await tx.employeeScheduleOverride.createMany({
+              data: targetDates.flatMap((d) =>
+                payload.schedules.map((s) => ({
+                  employeeId,
+                  date: d,
+                  startTime: s.startTime,
+                  endTime: s.endTime,
+                  order: s.order ?? 1,
+                  isActive: s.isActive ?? true,
+                }))
+              ),
+            });
+          }
+        });
+
+        return {
+          status: 200,
+          message:
+            repeatCount > 0
+              ? "Horarios aplicados como overrides en las fechas seleccionadas por las próximas semanas."
+              : "Horarios aplicados como override solo para la fecha seleccionada.",
+          data: null,
+        };
+      }
+
+      // Sin opciones -> aplicar a TODOS los días (1–7)
+      const allDaysEntries: { dayOfWeek: number; startTime: string; endTime: string }[] = [];
+      for (let d = 1; d <= 7; d++) {
+        for (const s of payload.schedules) {
+          allDaysEntries.push({
+            dayOfWeek: d,
+            startTime: s.startTime,
+            endTime: s.endTime,
+          });
+        }
+      }
+
+      return this.updateEmployeeSchedule(employeeId, allDaysEntries, userId);
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : "Error desconocido";
+      return { status: 500, message: msg, data: null };
     }
   }
 }
