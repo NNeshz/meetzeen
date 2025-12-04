@@ -1,28 +1,16 @@
 import type { Metadata } from "next";
-import { Instrument_Sans, Geist } from "next/font/google";
+import { Geist } from "next/font/google";
 import "./global.css";
 import { AppProviders } from "./app-providers";
-
-const instrumentSans = Instrument_Sans({
-  subsets: ["latin"],
-  variable: "--font-instrument-sans",
-  weight: ["400", "500", "600", "700"]
-})
 
 const geist = Geist({
   subsets: ["latin"],
   variable: "--font-geist",
-  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"]
 })
 
 export const metadata: Metadata = {
-  title: "Meetzeen — Organiza tus citas de manera sencilla",
-  description: "Ahorra tiempo, no pierdas clientes y conoce tu negocio.",
-  icons: {
-    icon: "/logo.svg",
-    shortcut: "/logo.svg",
-    apple: "/logo.svg",
-  },
+  title: "Template — La manera más sencilla de iniciar un proyecto",
+  description: "Haz que tu proyecto sea muy fácil de iniciar.",
 };
 
 export default function RootLayout({
@@ -32,7 +20,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body className={`${instrumentSans.variable} ${geist.variable} ${instrumentSans.className} antialiased`}>
+      <body className={`${geist.variable} ${geist.className} antialiased`}>
         <AppProviders>{children}</AppProviders>
       </body>
     </html>

@@ -2,7 +2,7 @@
 
 ![Screenshot del proyecto](./Screenshot.png)
 
-This is a meetzeen for a NextJS + Elysia + Better Auth + Supabase project. It uses the following technologies:
+This is a template for a NextJS + Elysia + Better Auth + Supabase project. It uses the following technologies:
 
 - [NextJS](https://nextjs.org/) for the frontend
 - [Elysia](https://elysiajs.com/) for the backend
@@ -29,9 +29,9 @@ This project includes the following packages/apps:
 - `auth`: a custom authentication module using [Better Auth](https://better-auth.com/)
 - `database`: a custom database module using [Supabase](https://supabase.com/) with Prisma
 
-- `@meetzeen/ui`: a stub React component library shared by both `web` and `backend_worker` applications
-- `@meetzeen/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@meetzeen/typescript-config`: `tsconfig.json`s used throughout the monorepo
+- `@template/ui`: a stub React component library shared by both `web` and `backend_worker` applications
+- `@template/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
+- `@template/typescript-config`: `tsconfig.json`s used throughout the monorepo
 
 Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
 
@@ -48,7 +48,7 @@ This Turborepo has some additional tools already setup for you:
 To develop all apps and packages, run the following command:
 
 ```
-cd meetzeen
+cd template
 
 # Install dependencies
 bun install

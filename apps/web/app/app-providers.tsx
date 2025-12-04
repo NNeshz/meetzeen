@@ -2,33 +2,22 @@
 
 import type React from "react";
 import type { ReactNode } from "react";
-import { ThemeProvider } from "@meetzeen/ui/src/providers/theme-provider";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@meetzeen/ui/src/components/sonner";
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 60 * 1000,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+import { ThemeProvider } from "@template/ui/src/providers/theme-provider";
+import { Toaster } from "@template/ui/src/components/sonner";
 
 export const AppProviders = ({ children }: { children?: ReactNode }) => {
   return (
     <>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-          <Toaster />
-        </ThemeProvider>
-      </QueryClientProvider>
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="light"
+        themes={["light", "dark", "system"]}
+        enableSystem
+        disableTransitionOnChange
+      >
+        {children}
+        <Toaster />
+      </ThemeProvider>
     </>
   );
 };

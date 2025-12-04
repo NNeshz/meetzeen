@@ -1,5 +1,5 @@
 {
-  "extends": "@meetzeen/typescript-config/base.json",
+  "extends": "@template/typescript-config/base.json",
   "compilerOptions": {
     // Enable latest features
     "lib": ["ESNext", "DOM"],
@@ -26,7 +26,7 @@
     "noPropertyAccessFromIndexSignature": false,
     "baseUrl": ".",
     "paths": {
-      "@meetzeen/database/*": ["../../packages/database/*"]
+      "@template/database/*": ["../../packages/database/*"]
     }
   }
 }

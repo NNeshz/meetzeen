@@ -1,5 +1,5 @@
 {
-  "extends": "@meetzeen/typescript-config/react-library.json",
+  "extends": "@template/typescript-config/react-library.json",
   "compilerOptions": {
     /* Visit https://aka.ms/tsconfig to read more about this file */
 
@@ -104,7 +104,7 @@
     "skipLibCheck": true /* Skip type checking all .d.ts files. */,
     "jsx": "preserve",
     "paths": {
-      "@meetzeen/ui/*": ["./*"]
+      "@template/ui/*": ["./*"]
     }
   }
 }

@@ -11,10 +11,10 @@
     "prefix": ""
   },
   "aliases": {
-    "components": "@meetzeen/ui/src/components",
-    "utils": "@meetzeen/ui/src/lib/utils",
-    "hooks": "@meetzeen/ui/src/hooks",
-    "lib": "@meetzeen/ui/src/lib",
-    "ui": "@meetzeen/ui/src/components"
+    "components": "@template/ui/src/components",
+    "utils": "@template/ui/src/lib/utils",
+    "hooks": "@template/ui/src/hooks",
+    "lib": "@template/ui/src/lib",
+    "ui": "@template/ui/src/components"
   }
 }

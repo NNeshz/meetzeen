@@ -1,10 +1,9 @@
 {
-  "name": "@meetzeen/database",
+  "name": "@template/database",
   "module": "index.ts",
   "type": "module",
   "scripts": {
-    "prisma-command": "bun --env-file=../../.env.local --stdio prisma",
-    "postinstall": "bun prisma generate"
+    "prisma-command": "bun --env-file=../../.env --stdio prisma"
   },
   "devDependencies": {
     "@types/bun": "latest"

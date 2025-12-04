@@ -1,4 +1,4 @@
-import { api } from "@meetzeen/api/src";
+import { api } from "@template/api/src";
 import { swagger } from "@elysiajs/swagger";
 import { Elysia } from "elysia";
 

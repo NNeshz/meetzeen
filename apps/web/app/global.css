@@ -1,4 +1,4 @@
-@import "@meetzeen/ui/global.css";
+@import "@template/ui/global.css";
 
 @source "../../src/**/*.{js,ts,jsx,tsx}";
 
@@ -8,5 +8,4 @@ html {
 
 body::-webkit-scrollbar {
     width: 0px;
-    overflow-x: hidden;
 }
