@@ -18,8 +18,7 @@ export function HowTo() {
         <div className="grid grid-cols-1 lg:grid-cols-3">
           <div className="p-16 space-y-4 border-r border-b border-border flex flex-col items-center text-center">
             <IconBrandGoogleFilled
-              className="w-16 h
-            -16 text-brand mb-4"
+              className="w-16 h-16 text-brand mb-4"
             />
             <p className="font-semibold tracking-tight">Inicias sesión</p>
             <p className="text-sm text-muted-foreground">
