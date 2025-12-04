@@ -10,11 +10,15 @@
     "cssVariables": true,
     "prefix": ""
   },
+  "iconLibrary": "radix",
   "aliases": {
     "components": "@meetzeen/ui/src/components",
     "utils": "@meetzeen/ui/src/lib/utils",
-    "hooks": "@meetzeen/ui/src/hooks",
+    "ui": "@meetzeen/ui/src/components",
     "lib": "@meetzeen/ui/src/lib",
-    "ui": "@meetzeen/ui/src/components"
+    "hooks": "@meetzeen/ui/src/hooks"
+  },
+  "registries": {
+    "@react-bits": "https://reactbits.dev/r/{name}.json"
   }
 }

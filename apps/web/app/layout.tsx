@@ -1,26 +1,27 @@
-import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { Geist_Mono, Geist } from "next/font/google";
 import "./global.css";
 import { AppProviders } from "./app-providers";
+
+const geistMono = Geist_Mono({
+  subsets: ["latin"],
+  variable: "--font-geist-mono",
+});
 
 const geist = Geist({
   subsets: ["latin"],
   variable: "--font-geist",
-})
+});
 
-export const metadata: Metadata = {
-  title: "meetzeen — La manera más sencilla de iniciar un proyecto",
-  description: "Haz que tu proyecto sea muy fácil de iniciar.",
-};
-
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body className={`${geist.variable} ${geist.className} antialiased`}>
+      <body
+        className={`${geist.variable} ${geistMono.variable} ${geistMono.className} antialiased`}
+      >
         <AppProviders>{children}</AppProviders>
       </body>
     </html>
