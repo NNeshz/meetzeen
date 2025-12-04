@@ -1,4 +1,4 @@
-@import "@template/ui/global.css";
+@import "@meetzeen/ui/global.css";
 
 @source "../../src/**/*.{js,ts,jsx,tsx}";
 

@@ -1,5 +1,5 @@
 {
-  "name": "@template/backend_worker",
+  "name": "@meetzeen/backend_worker",
   "version": "1.0.50",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

@@ -1,5 +1,5 @@
 {
-  "name": "@template/auth",
+  "name": "@meetzeen/auth",
   "module": "index.ts",
   "type": "module",
   "scripts": {

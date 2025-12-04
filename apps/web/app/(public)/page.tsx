@@ -1,5 +1,5 @@
-import { buttonVariants } from "@template/ui/src/components/button";
-import { cn } from "@template/ui/src/lib/utils";
+import { buttonVariants } from "@meetzeen/ui/src/components/button";
+import { cn } from "@meetzeen/ui/src/lib/utils";
 import Link from "next/link";
 import { IconBrandGithub, IconArrowRight } from "@tabler/icons-react"
 
@@ -10,7 +10,7 @@ export default function Page() {
         NextJS + Elysia + Better Auth + Supabase
       </h1>
       <p className="text-lg text-muted-foreground max-w-2xl text-center leading-relaxed">
-        Un template que combina todo lo moderno de{" "}
+        Un meetzeen que combina todo lo moderno de{" "}
         <span className="text-primary font-semibold">
           NextJS, Elysia, Better Auth y Supabase
         </span>{" "}
@@ -18,7 +18,7 @@ export default function Page() {
       </p>
       <span className="flex space-x-2">
         <Link
-          href={"https://github.com/NNeshz/template"}
+          href={"https://github.com/NNeshz/meetzeen"}
           target="_blank"
           className={cn(
             buttonVariants({

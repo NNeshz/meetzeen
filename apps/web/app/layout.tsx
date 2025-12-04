@@ -9,7 +9,7 @@ const geist = Geist({
 })
 
 export const metadata: Metadata = {
-  title: "Template — La manera más sencilla de iniciar un proyecto",
+  title: "meetzeen — La manera más sencilla de iniciar un proyecto",
   description: "Haz que tu proyecto sea muy fácil de iniciar.",
 };
 

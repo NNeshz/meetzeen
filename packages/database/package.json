@@ -1,5 +1,5 @@
 {
-  "name": "@template/database",
+  "name": "@meetzeen/database",
   "module": "index.ts",
   "type": "module",
   "scripts": {
