@@ -16,7 +16,7 @@ model User {
   emailVerified       Boolean
   phoneNumberVerified Boolean?
   isAnonymous         Boolean?
-  role                String
+  role                String?
   banned              Boolean?
   banReason           String?
   banExpires          DateTime?

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Button } from "@meetzeen/ui/components/button";
+import { Button, buttonVariants } from "@meetzeen/ui/components/button";
 import { ThemeSwitcher } from "@meetzeen/ui/components/global/theme-switcher";
 import {
   Sheet,
@@ -12,8 +12,29 @@ import {
   SheetTrigger,
 } from "@meetzeen/ui/src/components/sheet";
 import { IconMenu } from "@tabler/icons-react";
+import { authClient } from "@meetzeen/auth/client";
+
+const buttonConfigs = {
+  authenticated: {
+    variant: "default" as const,
+    text: "Dashboard",
+    href: "/dashboard",
+  },
+  unauthenticated: {
+    variant: "default" as const,
+    text: "Iniciar sesión",
+    href: "/auth",
+  },
+};
 
 export function Navbar() {
+  const { data: session } = authClient.useSession();
+  const isAuthenticated = !!session?.user;
+  
+  const currentButtonConfig = isAuthenticated
+    ? buttonConfigs.authenticated
+    : buttonConfigs.unauthenticated;
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background h-16">
       <div className="max-w-7xl mx-auto flex justify-between items-center px-4 h-16">
@@ -25,7 +46,7 @@ export function Navbar() {
             Meetzeen
           </h1>
         </div>
-        
+
         {/* Desktop Navigation - Centered */}
         <ul className="hidden lg:flex items-center gap-8 h-full absolute left-1/2 -translate-x-1/2">
           <li className="flex items-center h-full">
@@ -61,17 +82,18 @@ export function Navbar() {
             </Link>
           </li>
         </ul>
-        
+
         {/* Desktop Button */}
         <div className="hidden lg:flex items-center gap-4 h-full">
-          <Button variant="default" className="h-10 flex items-center">
-            <Link
-              href="/"
-              className="w-full h-full flex items-center justify-center"
-            >
-              Iniciar sesión
-            </Link>
-          </Button>
+          <Link
+            href={currentButtonConfig.href}
+            className={buttonVariants({
+              variant: currentButtonConfig.variant,
+              className: "h-10 flex items-center",
+            })}
+          >
+            {currentButtonConfig.text}
+          </Link>
         </div>
 
         {/* Mobile Menu Button */}
@@ -86,10 +108,11 @@ export function Navbar() {
               <IconMenu className="h-6 w-6" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-full sm:max-w-xl flex flex-col px-4">
-            <SheetTitle className="sr-only">
-              Menú de navegación
-            </SheetTitle>
+          <SheetContent
+            side="right"
+            className="w-full sm:max-w-xl flex flex-col px-4"
+          >
+            <SheetTitle className="sr-only">Menú de navegación</SheetTitle>
             <SheetDescription className="sr-only">
               Navegación principal de Meetzeen
             </SheetDescription>
@@ -121,17 +144,18 @@ export function Navbar() {
                 </Link>
               </div>
             </div>
-            
+
             <SheetFooter className="flex-row items-center gap-4 border-t border-border pt-4 px-0">
               <ThemeSwitcher />
-              <Button variant="default" className="flex-1">
-                <Link
-                  href="/"
-                  className="w-full h-full flex items-center justify-center"
-                >
-                  Iniciar sesión
-                </Link>
-              </Button>
+              <Link
+                href={currentButtonConfig.href}
+                className={buttonVariants({
+                  variant: currentButtonConfig.variant,
+                  className: "flex-1",
+                })}
+              >
+                {currentButtonConfig.text}
+              </Link>
             </SheetFooter>
           </SheetContent>
         </Sheet>
