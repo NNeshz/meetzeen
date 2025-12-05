@@ -8,8 +8,9 @@ export function AuthPage() {
         <Dither />
         <div className="absolute bottom-6 left-6 right-6 space-y-2">
           <p className="text-white text-sm md:text-base lg:text-lg max-w-2xl text-pretty">
-            Yango es una empresa de tecnología que transforma las tecnologías
-            globales en servicios cotidianos para el enriquecimiento local.
+            Meetzeen es una plataforma de reuniones virtuales y presenciales que
+            permite a los usuarios tener una experiencia de organización y citas
+            más eficientes.
           </p>
         </div>
       </section>
