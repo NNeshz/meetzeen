@@ -1,1 +1,1 @@
-export * from "./generated/database";
+export * from "./generated/database/client";
