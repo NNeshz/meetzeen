@@ -7,6 +7,7 @@
     "clean-workspace": "rm -rf node_modules"
   },
   "dependencies": {
+    "@meetzeen/database": "*",
     "elysia": "latest",
     "@sinclair/typebox": "^0.34.14"
   },

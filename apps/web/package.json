@@ -11,6 +11,8 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
+    "@meetzeen/auth": "*",
+    "@meetzeen/database": "*",
     "@meetzeen/ui": "*",
     "next": "^16.0.7",
     "react": "^19.1.2",

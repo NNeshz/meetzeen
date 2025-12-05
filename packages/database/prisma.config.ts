@@ -7,7 +7,8 @@ function getDirectUrl(): string {
   if (directUrl) return directUrl
 
   const dbUrl = env('DATABASE_URL')
-  if (!dbUrl) throw new Error('DATABASE_URL is required')
+  // Return a dummy URL if DATABASE_URL is not set (e.g., during prisma generate)
+  if (!dbUrl) return 'postgresql://dummy:dummy@localhost:5432/dummy'
 
   // If using pgbouncer (port 6543), convert to direct connection (port 5432)
   if (dbUrl.includes(':6543')) {

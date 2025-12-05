@@ -3,7 +3,7 @@
   "module": "index.ts",
   "type": "module",
   "scripts": {
-    "build": "bunx prisma generate --schema=prisma/schema/schema.prisma",
+    "build": "DATABASE_URL=postgresql://dummy:dummy@localhost:5432/dummy DIRECT_URL=postgresql://dummy:dummy@localhost:5432/dummy bunx prisma generate --schema=prisma/schema/schema.prisma",
     "prisma-command": "bun --env-file=../../.env --stdio prisma"
   },
   "devDependencies": {
