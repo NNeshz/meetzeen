@@ -38,7 +38,6 @@ validateEnv();
 declare global {
   namespace NodeJS {
     interface ProcessEnv {
-      [key: string]: string | undefined;
       NODE_ENV: "development" | "production";
       AUTH_SECRET: string;
       DATABASE_URL: string;
