@@ -4,13 +4,14 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Service } from "@/modules/services/types/service.types";
 import { Badge } from "@meetzeen/ui/components/badge";
 import { Button } from "@meetzeen/ui/src/components/button";
-import { IconDots, IconEdit, IconTrash } from "@tabler/icons-react";
+import { IconDots } from "@tabler/icons-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@meetzeen/ui/src/components/dropdown-menu";
+import { ServiceUpdateSheet } from "@/modules/services/components/service-update";
+import { ServiceDeleteDialog } from "@/modules/services/components/service-delete";
 
 export const columns: ColumnDef<Service>[] = [
   {
@@ -109,17 +110,9 @@ export const columns: ColumnDef<Service>[] = [
                 <IconDots className="size-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={() => {
-                  console.log(service);
-                }}
-              >
-                Editar
-              </DropdownMenuItem>
-              <DropdownMenuItem variant="destructive">
-                Eliminar
-              </DropdownMenuItem>
+            <DropdownMenuContent align="end" className="max-w-[150px]">
+              <ServiceUpdateSheet service={service} />
+              <ServiceDeleteDialog service={service} />
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

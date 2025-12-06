@@ -7,6 +7,16 @@ export interface CreateServiceDto {
   discount: number;
 }
 
+export interface UpdateServiceDto {
+  id: string;
+  name: string;
+  serviceCategoryId: string;
+  description: string;
+  price: number;
+  duration: number;
+  discount: number;
+}
+
 export interface Service {
   id: string;
   name: string;
