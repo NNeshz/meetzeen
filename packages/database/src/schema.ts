@@ -22,8 +22,12 @@ export const user = pgTable(
     banned: boolean(),
     banReason: text(),
     banExpires: timestamp({ precision: 3, mode: "string" }),
-    createdAt: timestamp({ precision: 3, mode: "string" }).notNull(),
-    updatedAt: timestamp({ precision: 3, mode: "string" }).notNull(),
+    createdAt: timestamp({ precision: 3, mode: "string", withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp({ precision: 3, mode: "string", withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [
     uniqueIndex("User_email_key").using("btree", table.email.asc().nullsLast()),
@@ -47,8 +51,12 @@ export const session = pgTable(
     id: text().primaryKey().notNull(),
     expiresAt: timestamp({ precision: 3, mode: "string" }).notNull(),
     token: text().notNull(),
-    createdAt: timestamp({ precision: 3, mode: "string" }).notNull(),
-    updatedAt: timestamp({ precision: 3, mode: "string" }).notNull(),
+    createdAt: timestamp({ precision: 3, mode: "string", withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp({ precision: 3, mode: "string", withTimezone: true })
+      .notNull()
+      .defaultNow(),
     ipAddress: text(),
     userAgent: text(),
     userId: text().notNull(),
@@ -91,8 +99,12 @@ export const account = pgTable(
     refreshTokenExpiresAt: timestamp({ precision: 3, mode: "string" }),
     scope: text(),
     password: text(),
-    createdAt: timestamp({ precision: 3, mode: "string" }).notNull(),
-    updatedAt: timestamp({ precision: 3, mode: "string" }).notNull(),
+    createdAt: timestamp({ precision: 3, mode: "string", withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp({ precision: 3, mode: "string", withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [
     foreignKey({
@@ -117,13 +129,10 @@ export const verification = pgTable("Verification", {
   identifier: text().notNull(),
   value: text().notNull(),
   expiresAt: timestamp({ precision: 3, mode: "string" }).notNull(),
-  createdAt: timestamp({ precision: 3, mode: "string" }),
-  updatedAt: timestamp({ precision: 3, mode: "string" }),
+  createdAt: timestamp({ precision: 3, mode: "string", withTimezone: true }),
+  updatedAt: timestamp({ precision: 3, mode: "string", withTimezone: true }),
 });
 
-// ============================================
-// Organization Table
-// ============================================
 export const organization = pgTable(
   "Organization",
   {
@@ -133,7 +142,12 @@ export const organization = pgTable(
     currency: text(),
     slug: text(),
     logo: text(),
-    createdAt: timestamp({ precision: 3, mode: "string" }).notNull(),
+    createdAt: timestamp({ precision: 3, mode: "string", withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp({ precision: 3, mode: "string", withTimezone: true })
+      .notNull()
+      .defaultNow(),
     metadata: text(),
   },
   (table) => [
@@ -149,9 +163,6 @@ export const organizationRelations = relations(organization, ({ many }) => ({
   members: many(member),
 }));
 
-// ============================================
-// Member Table
-// ============================================
 export const member = pgTable(
   "Member",
   {
@@ -159,7 +170,12 @@ export const member = pgTable(
     organizationId: text().notNull(),
     userId: text().notNull(),
     role: text().notNull(),
-    createdAt: timestamp({ precision: 3, mode: "string" }).notNull(),
+    createdAt: timestamp({ precision: 3, mode: "string", withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp({ precision: 3, mode: "string", withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [
     foreignKey({
@@ -190,9 +206,6 @@ export const memberRelations = relations(member, ({ one }) => ({
   }),
 }));
 
-// ============================================
-// Invitation Table
-// ============================================
 export const invitation = pgTable(
   "Invitation",
   {
@@ -203,6 +216,12 @@ export const invitation = pgTable(
     status: text().notNull(),
     expiresAt: timestamp({ precision: 3, mode: "string" }).notNull(),
     inviterId: text().notNull(),
+    createdAt: timestamp({ precision: 3, mode: "string", withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp({ precision: 3, mode: "string", withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [
     foreignKey({

@@ -17,6 +17,18 @@ export function proxy(request: NextRequest) {
 		pathname === route || pathname.startsWith(route + "/")
 	);
 
+	if (sessionCookie && pathname === "/auth") {
+		return NextResponse.redirect(new URL("/dashboard", request.url));
+	}
+
+	if (!sessionCookie && pathname === "/dashboard") {
+		return NextResponse.redirect(new URL("/", request.url));
+	}
+
+	if (!sessionCookie && pathname === "/create") {
+		return NextResponse.redirect(new URL("/", request.url));
+	}
+
 	if (isProtectedRoute && !sessionCookie) {
 		return NextResponse.redirect(new URL("/", request.url));
 	}

@@ -29,15 +29,13 @@ export class CompanyService {
     userId: string,
     headers: Headers
   ) {
-    // Crear slug único basado en el nombre
+    
     const slug = companyName
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)/g, "")
       + "-" + Date.now().toString(36);
 
-    // Usar Better Auth API para crear la organización
-    // Esto asegura que listOrganizations funcione correctamente
     const org = await auth.api.createOrganization({
       headers,
       body: {

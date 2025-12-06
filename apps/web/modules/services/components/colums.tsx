@@ -3,15 +3,21 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Service } from "@/modules/services/types/service.types";
 import { Badge } from "@meetzeen/ui/components/badge";
+import { Button } from "@meetzeen/ui/src/components/button";
+import { IconDots, IconEdit, IconTrash } from "@tabler/icons-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@meetzeen/ui/src/components/dropdown-menu";
 
 export const columns: ColumnDef<Service>[] = [
   {
     accessorKey: "name",
     header: "Nombre",
     cell: ({ row }) => {
-      return (
-        <div className="font-medium">{row.getValue("name")}</div>
-      );
+      return <div className="font-medium">{row.getValue("name")}</div>;
     },
   },
   {
@@ -33,7 +39,8 @@ export const columns: ColumnDef<Service>[] = [
       const price = parseFloat(row.getValue("price") as string);
       return (
         <div className="font-medium">
-          ${price.toLocaleString("es-ES", {
+          $
+          {price.toLocaleString("es-ES", {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           })}
@@ -48,9 +55,13 @@ export const columns: ColumnDef<Service>[] = [
       const duration = row.getValue("duration") as number;
       const hours = Math.floor(duration / 60);
       const minutes = duration % 60;
-      
+
       if (hours > 0 && minutes > 0) {
-        return <div>{hours}h {minutes}m</div>;
+        return (
+          <div>
+            {hours}h {minutes}m
+          </div>
+        );
       } else if (hours > 0) {
         return <div>{hours}h</div>;
       } else {
@@ -66,11 +77,7 @@ export const columns: ColumnDef<Service>[] = [
       if (discount === null || discount === 0) {
         return <div className="text-muted-foreground">-</div>;
       }
-      return (
-        <Badge variant="secondary">
-          {discount}%
-        </Badge>
-      );
+      return <Badge variant="secondary">{discount}%</Badge>;
     },
   },
   {
@@ -89,5 +96,34 @@ export const columns: ColumnDef<Service>[] = [
       );
     },
   },
+  {
+    accessorKey: "actions",
+    header: "",
+    cell: ({ row }) => {
+      const service = row.original;
+      return (
+        <div className="flex items-center justify-end gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                <IconDots className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => {
+                  console.log(service);
+                }}
+              >
+                Editar
+              </DropdownMenuItem>
+              <DropdownMenuItem variant="destructive">
+                Eliminar
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      );
+    },
+  },
 ];
-

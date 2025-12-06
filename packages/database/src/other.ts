@@ -14,8 +14,12 @@ export const serviceCategory = pgTable(
     id: text().primaryKey().notNull(),
     name: text().notNull(),
     organizationId: text().notNull(),
-    createdAt: timestamp({ precision: 3, mode: "string" }).notNull(),
-    updatedAt: timestamp({ precision: 3, mode: "string" }).notNull(),
+    createdAt: timestamp({ precision: 3, mode: "string", withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp({ precision: 3, mode: "string", withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [
     foreignKey({
@@ -39,8 +43,12 @@ export const service = pgTable(
     duration: integer().notNull(),
     discount: integer(),
     organizationId: text().notNull(),
-    createdAt: timestamp({ precision: 3, mode: "string" }).notNull(),
-    updatedAt: timestamp({ precision: 3, mode: "string" }).notNull(),
+    createdAt: timestamp({ precision: 3, mode: "string", withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp({ precision: 3, mode: "string", withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [
     foreignKey({
