@@ -1,4 +1,4 @@
-import { CreateForm } from "@/modules/create/create-form";
+import { CreateForm } from "@/modules/company/components/create-form";
 import { Button } from "@meetzeen/ui/src/components/button";
 import { IconArrowLeft } from "@tabler/icons-react";
 import Link from "next/link";

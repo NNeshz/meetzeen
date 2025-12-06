@@ -11,10 +11,10 @@ import {
   IconUsers,
 } from "@tabler/icons-react";
 
-import { NavMain } from "@/modules/dashboard/common/nav-main";
-import { NavUser } from "@/modules/dashboard/common/nav-user";
-import { NavSecondary } from "@/modules/dashboard/common/nav-secondary";
-import { TeamSwitcher } from "@/modules/dashboard/common/team-switcher";
+import { NavMain } from "@/modules/dashboard/components/common/nav-main";
+import { NavUser } from "@/modules/dashboard/components/common/nav-user";
+import { NavSecondary } from "@/modules/dashboard/components/common/nav-secondary";
+import { TeamSwitcher } from "@/modules/dashboard/components/common/team-switcher";
 import {
   Sidebar,
   SidebarContent,

@@ -1,22 +1,21 @@
 generator client {
-  provider        = "prisma-client"
-  output          = "../../generated/database"
+  provider = "prisma-client"
+  output   = "../../generated/database"
 }
 
 datasource db {
-  provider  = "postgresql"
+  provider = "postgresql"
 }
 
 model User {
-  id                  String        @id
+  id                  String       @id
   name                String
   image               String
-  phoneNumber         String?       @unique
-  email               String        @unique
+  phoneNumber         String?      @unique
+  email               String       @unique
   emailVerified       Boolean
   phoneNumberVerified Boolean?
   isAnonymous         Boolean?
-  role                String?
   banned              Boolean?
   banReason           String?
   banExpires          DateTime?
@@ -69,8 +68,10 @@ model Verification {
 }
 
 model Organization {
-  id          String       @id
+  id          String       @id @default(uuid())
   name        String
+  timezone    String
+  currency    String
   slug        String?      @unique
   logo        String?
   createdAt   DateTime
@@ -80,7 +81,7 @@ model Organization {
 }
 
 model Member {
-  id             String       @id
+  id             String       @id @default(uuid())
   organizationId String
   userId         String
   role           String

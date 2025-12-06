@@ -8,7 +8,6 @@ CREATE TABLE "User" (
     "emailVerified" BOOLEAN NOT NULL,
     "phoneNumberVerified" BOOLEAN,
     "isAnonymous" BOOLEAN,
-    "role" TEXT,
     "banned" BOOLEAN,
     "banReason" TEXT,
     "banExpires" TIMESTAMP(3),
@@ -69,6 +68,8 @@ CREATE TABLE "Verification" (
 CREATE TABLE "Organization" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
+    "timezone" TEXT NOT NULL,
+    "currency" TEXT NOT NULL,
     "slug" TEXT,
     "logo" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL,

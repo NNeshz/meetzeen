@@ -1,6 +1,6 @@
 "use client";
 
-import { signInWithGoogle } from "@/utils/auth-connection";
+import { signInWithGoogle } from "@/lib/auth/auth-connection";
 import { Button } from "@meetzeen/ui/components/button";
 import { IconBrandGoogleFilled } from "@tabler/icons-react";
 import { toast } from "sonner";

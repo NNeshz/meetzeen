@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 
-import { AppSidebar } from "@/modules/dashboard/common/dashboard-sidebar";
+import { AppSidebar } from "@/modules/dashboard/components/common/dashboard-sidebar";
 import {
   SidebarProvider,
   SidebarInset,
