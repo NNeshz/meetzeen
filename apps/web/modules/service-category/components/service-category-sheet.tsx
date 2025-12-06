@@ -26,6 +26,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { useServiceCategory } from "@/modules/service-category/hooks/use-service-category";
+import { useAllServiceCategories } from "@/modules/service-category/hooks/use-service-category";
+import { Skeleton } from "@meetzeen/ui/src/components/skeleton";
+import { ServiceCategoryUpdateSheet } from "@/modules/service-category/components/service-category-update-sheet";
+import { ServiceCategoryDeleteDialog } from "@/modules/service-category/components/service-category-delete-dialog";
 
 const formSchema = z.object({
   name: z.string().min(1, { message: "El nombre es requerido" }),
@@ -34,6 +38,11 @@ const formSchema = z.object({
 export function ServiceCategorySheet() {
   const [open, setOpen] = useState(false);
   const { createServiceCategory, isCreating } = useServiceCategory();
+  const {
+    data: serviceCategories,
+    isLoading: isLoadingServiceCategories,
+    error: errorServiceCategories,
+  } = useAllServiceCategories();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -57,7 +66,8 @@ export function ServiceCategorySheet() {
       },
       onError: (error) => {
         toast.error("Error al crear la categoría", {
-          description: error instanceof Error ? error.message : "Intenta de nuevo",
+          description:
+            error instanceof Error ? error.message : "Intenta de nuevo",
         });
       },
     });
@@ -109,6 +119,42 @@ export function ServiceCategorySheet() {
               </Button>
             </form>
           </Form>
+        </div>
+
+        <div className="px-4">
+          {isLoadingServiceCategories ? (
+            <div className="flex gap-2">
+              <Skeleton className="h-9 flex-1" />
+              <Skeleton className="h-9 w-9" />
+            </div>
+          ) : errorServiceCategories ? (
+            <div className="space-y-2">
+              <p className="text-sm text-destructive">
+                Error al cargar las categorías. Por favor, intenta de nuevo.
+              </p>
+            </div>
+          ) : !serviceCategories || serviceCategories.length === 0 ? (
+            <div className="flex gap-2">
+              <p className="text-sm text-destructive">
+                No hay categorías disponibles. Por favor, crea una.
+              </p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2 w-full">
+              {serviceCategories.map((category) => (
+                <div
+                  key={category.id}
+                  className="w-full flex items-center justify-between border rounded-md px-4 py-2"
+                >
+                  <span className="text-base">{category.name}</span>
+                  <div className="flex gap-2">
+                    <ServiceCategoryUpdateSheet serviceCategory={category} />
+                    <ServiceCategoryDeleteDialog serviceCategory={category} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </SheetContent>
     </Sheet>

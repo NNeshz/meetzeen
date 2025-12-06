@@ -1,6 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { serviceService } from "@/modules/services/service/service-service";
-import type { CreateServiceDto } from "@/modules/services/types/service.types";
+import type {
+  CreateServiceDto,
+  UpdateServiceDto,
+} from "@/modules/services/types/service.types";
 import { useDashboardStore } from "@/modules/dashboard/store/dashboard-store";
 
 export const useAllServices = () => {
@@ -39,8 +42,45 @@ export const useService = () => {
     },
   });
 
+  const { mutate: updateService, isPending: isUpdating } = useMutation({
+    mutationFn: (data: UpdateServiceDto) => {
+      if (!organizationId) {
+        throw new Error("Organization ID is required");
+      }
+      return serviceService.updateService(
+        data.id,
+        data.name,
+        data.serviceCategoryId,
+        data.description,
+        data.price,
+        data.duration,
+        data.discount,
+        organizationId
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["services", organizationId] });
+    },
+  });
+
+  const { mutate: deleteService, isPending: isDeleting } = useMutation({
+    mutationFn: (id: string) => {
+      if (!organizationId) {
+        throw new Error("Organization ID is required");
+      }
+      return serviceService.deleteService(id, organizationId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["services", organizationId] });
+    },
+  });
+
   return {
     createService,
     isCreating,
+    updateService,
+    isUpdating,
+    deleteService,
+    isDeleting,
   };
 };

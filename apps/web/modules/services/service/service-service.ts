@@ -13,7 +13,7 @@ export class ServiceService {
     price: number,
     duration: number,
     discount: number,
-    organizationId?: string,
+    organizationId?: string
   ) {
     const orgId = organizationId || this.getOrganizationId();
 
@@ -48,6 +48,67 @@ export class ServiceService {
     const response = await apiClient.services.get({
       query: { organizationId: orgId },
     });
+
+    if (response.error) {
+      throw new Error(response.error.value.message);
+    }
+
+    return response.data;
+  }
+
+  async updateService(
+    id: string,
+    name: string,
+    serviceCategoryId: string,
+    description: string,
+    price: number,
+    duration: number,
+    discount: number,
+    organizationId?: string
+  ) {
+    const orgId = organizationId || this.getOrganizationId();
+
+    if (!orgId) {
+      throw new Error("Organization ID is required");
+    }
+
+    const response = await apiClient.services({ id }).put(
+      {
+        name,
+        serviceCategoryId,
+        description,
+        price,
+        duration,
+        discount,
+        organizationId: orgId,
+      },
+      {
+        query: { organizationId: orgId },
+      }
+    );
+
+    if (response.error) {
+      throw new Error(response.error.value.message);
+    }
+
+    return response.data;
+  }
+
+  async deleteService(id: string, organizationId?: string) {
+    const orgId = organizationId || this.getOrganizationId();
+
+    if (!orgId) {
+      throw new Error("Organization ID is required");
+    }
+
+    const response = await apiClient.services({ id }).delete(
+      {
+        organizationId: orgId,
+      },
+      {
+        query: { organizationId: orgId },
+      }
+    );
 
     if (response.error) {
       throw new Error(response.error.value.message);
