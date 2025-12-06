@@ -1,4 +1,7 @@
 import { Metadata } from "next";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { auth } from "@meetzeen/auth";
 
 import { AppSidebar } from "@/modules/dashboard/components/common/dashboard-sidebar";
 import {
@@ -13,11 +16,29 @@ export const metadata: Metadata = {
   description: "Dashboard de Meetzeen",
 };
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const headersList = await headers();
+  
+  const session = await auth.api.getSession({
+    headers: headersList,
+  });
+
+  if (!session) {
+    redirect("/");
+  }
+
+  const organizations = await auth.api.listOrganizations({
+    headers: headersList,
+  });
+
+  if (!organizations || organizations.length === 0) {
+    redirect("/create");
+  }
+
   return (
     <div className="font-geist">
       <SidebarProvider>

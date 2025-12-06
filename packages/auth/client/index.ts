@@ -1,12 +1,15 @@
 import { createAuthClient } from "better-auth/react";
 import { getSessionCookie } from "better-auth/cookies";
-import { inferAdditionalFields } from "better-auth/client/plugins";
+import { inferAdditionalFields, organizationClient } from "better-auth/client/plugins";
 import { NextRequest } from "next/server";
 import type { auth } from "@meetzeen/auth";
 
 export const authClient = createAuthClient({
   baseURL: process.env.NEXT_PUBLIC_BACKEND_URL,
-  plugins: [inferAdditionalFields<typeof auth>()],
+  plugins: [
+    inferAdditionalFields<typeof auth>(),
+    organizationClient()
+  ],
 });
 
 export const getSession = async (request: NextRequest) => {

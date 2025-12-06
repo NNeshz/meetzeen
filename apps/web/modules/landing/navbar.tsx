@@ -20,6 +20,11 @@ const buttonConfigs = {
     text: "Dashboard",
     href: "/dashboard",
   },
+  authenticatedNoOrg: {
+    variant: "default" as const,
+    text: "Dashboard",
+    href: "/create",
+  },
   unauthenticated: {
     variant: "default" as const,
     text: "Iniciar sesión",
@@ -29,10 +34,13 @@ const buttonConfigs = {
 
 export function Navbar() {
   const { data: session } = authClient.useSession();
+  const { data: organizations } = authClient.useListOrganizations();
   const isAuthenticated = !!session?.user;
   
   const currentButtonConfig = isAuthenticated
-    ? buttonConfigs.authenticated
+    ? organizations && organizations.length > 0
+      ? buttonConfigs.authenticated
+      : buttonConfigs.authenticatedNoOrg
     : buttonConfigs.unauthenticated;
 
   return (
