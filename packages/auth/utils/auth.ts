@@ -1,12 +1,21 @@
 import { betterAuth } from "better-auth";
-import { prismaAdapter } from "better-auth/adapters/prisma";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { openAPI, organization } from "better-auth/plugins";
-import { _prisma } from "@meetzeen/api/src/modules/prisma";
+import { db, user, session, account, verification, organization as org, member, invitation } from "@meetzeen/database";
 
 export const auth = betterAuth({
   appName: "meetzeen",
-  database: prismaAdapter(_prisma, {
-    provider: "postgresql"
+  database: drizzleAdapter(db, {
+    provider: "pg",
+    schema: {
+      user,
+      session,
+      account,
+      verification,
+      organization: org,
+      member,
+      invitation,
+    },
   }),
   secret: process.env.AUTH_SECRET,
   baseURL: process.env.NEXT_PUBLIC_BACKEND_URL,
@@ -35,4 +44,4 @@ export const auth = betterAuth({
       allowUserToCreateOrganization: true,
     })
   ]
-})
+});

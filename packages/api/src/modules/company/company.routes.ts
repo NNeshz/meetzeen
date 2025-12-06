@@ -2,13 +2,23 @@ import Elysia, { t } from "elysia";
 import { companyModule } from "@meetzeen/api/src/modules/company/company.module";
 import { betterAuthPlugin } from "@meetzeen/api/src/utils/better-auth-plugin";
 
-export const companyRoute = new Elysia({
+export const companyRoutes = new Elysia({
   name: "companyRoute",
+  prefix: "/company",
 })
   .use(betterAuthPlugin)
   .use(companyModule)
+  .get(
+    "/allCompanies",
+    ({ companyService, user, request }) => {
+      return companyService.getAllCompanies(user.id);
+    },
+    {
+      auth: true,
+    }
+  )
   .post(
-    "/company",
+    "/",
     ({ companyService, body, user, request }) => {
       return companyService.createCompany(
         body.companyName,
