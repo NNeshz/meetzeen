@@ -68,8 +68,8 @@ CREATE TABLE "Verification" (
 CREATE TABLE "Organization" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
-    "timezone" TEXT NOT NULL,
-    "currency" TEXT NOT NULL,
+    "timezone" TEXT,
+    "currency" TEXT,
     "slug" TEXT,
     "logo" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL,

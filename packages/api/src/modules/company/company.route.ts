@@ -9,12 +9,13 @@ export const companyRoute = new Elysia({
   .use(companyModule)
   .post(
     "/company",
-    ({ companyService, body, user }) => {
+    ({ companyService, body, user, request }) => {
       return companyService.createCompany(
         body.companyName,
         body.timezone,
         body.currency,
-        user.id
+        user.id,
+        request.headers
       );
     },
     {

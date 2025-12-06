@@ -1,7 +1,6 @@
 import { Metadata } from "next";
-import { headers } from "next/headers";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { auth } from "@meetzeen/auth";
 
 import { AppSidebar } from "@/modules/dashboard/components/common/dashboard-sidebar";
 import {
@@ -10,32 +9,30 @@ import {
   SidebarTrigger,
 } from "@meetzeen/ui/components/sidebar";
 import { Separator } from "@meetzeen/ui/src/components/separator";
+import {
+  getSessionFromBackend,
+  getOrganizationsFromBackend,
+} from "@/modules/dashboard/utils/verification";
 
 export const metadata: Metadata = {
   title: "Dashboard | Meetzeen",
   description: "Dashboard de Meetzeen",
 };
 
-export default async function AdminLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const headersList = await headers();
-  
-  const session = await auth.api.getSession({
-    headers: headersList,
-  });
+  const session = await getSessionFromBackend();
 
-  if (!session) {
+  if (!session || !session.user) {
     redirect("/");
   }
 
-  const organizations = await auth.api.listOrganizations({
-    headers: headersList,
-  });
+  const organizations = await getOrganizationsFromBackend();
 
-  if (!organizations || organizations.length === 0) {
+  if (organizations.length === 0) {
     redirect("/create");
   }
 
