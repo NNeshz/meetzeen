@@ -1,5 +1,5 @@
+import { auth } from "@meetzeen/auth";
 import { _prisma } from "@meetzeen/api/src/modules/prisma";
-import { MEMBER_ROLE } from "@meetzeen/api/src/modules/company/constants/company.constants";
 
 export class CompanyService {
   constructor() {}
@@ -8,24 +8,37 @@ export class CompanyService {
     companyName: string,
     timezone: string,
     currency: string,
-    userId: string
+    userId: string,
+    headers: Headers
   ) {
-    const now = new Date();
+    // Crear slug único basado en el nombre
+    const slug = companyName
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "")
+      + "-" + Date.now().toString(36);
 
-    // Create organization and member in a transaction
-    const organization = await _prisma.organization.create({
-      data: {
+    // Usar Better Auth API para crear la organización
+    // Esto asegura que listOrganizations funcione correctamente
+    const organization = await auth.api.createOrganization({
+      headers,
+      body: {
         name: companyName,
+        slug,
+        userId,
+      },
+    });
+
+    if (!organization) {
+      throw new Error("Failed to create organization");
+    }
+
+    // Actualizar la organización con los campos adicionales (timezone, currency)
+    const updatedOrganization = await _prisma.organization.update({
+      where: { id: organization.id },
+      data: {
         timezone,
         currency,
-        createdAt: now,
-        members: {
-          create: {
-            userId,
-            role: MEMBER_ROLE.OWNER,
-            createdAt: now,
-          },
-        },
       },
       include: {
         members: {
@@ -36,6 +49,6 @@ export class CompanyService {
       },
     });
 
-    return organization;
+    return updatedOrganization;
   }
 }

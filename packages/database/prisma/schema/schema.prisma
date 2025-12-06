@@ -70,8 +70,8 @@ model Verification {
 model Organization {
   id          String       @id @default(uuid())
   name        String
-  timezone    String
-  currency    String
+  timezone    String?
+  currency    String?
   slug        String?      @unique
   logo        String?
   createdAt   DateTime
