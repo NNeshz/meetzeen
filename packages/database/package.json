@@ -3,16 +3,18 @@
   "module": "index.ts",
   "type": "module",
   "scripts": {
-    "build": "DATABASE_URL=postgresql://dummy:dummy@localhost:5432/dummy DIRECT_URL=postgresql://dummy:dummy@localhost:5432/dummy bunx prisma generate --schema=prisma/schema/schema.prisma",
-    "prisma-command": "bun --env-file=../../.env --stdio prisma"
+    "db:generate": "bun --env-file=../../.env drizzle-kit generate",
+    "db:migrate": "bun --env-file=../../.env drizzle-kit migrate",
+    "db:push": "bun --env-file=../../.env drizzle-kit push",
+    "db:studio": "bun --env-file=../../.env drizzle-kit studio",
+    "db:introspect": "bun --env-file=../../.env drizzle-kit introspect",
+    "db:reset": "bun --env-file=../../.env scripts/reset.ts",
+    "db:migrate:dev": "bun --env-file=../../.env drizzle-kit generate && bun --env-file=../../.env drizzle-kit migrate"
   },
   "devDependencies": {
     "@types/bun": "latest"
   },
   "peerDependencies": {
     "typescript": "5.5.4"
-  },
-  "prisma": {
-    "schema": "prisma/schema"
   }
 }

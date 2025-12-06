@@ -1,8 +1,26 @@
 import { auth } from "@meetzeen/auth";
-import { _prisma } from "@meetzeen/api/src/modules/prisma";
+import { db, organization, member, user } from "@meetzeen/database";
+import { eq } from "drizzle-orm";
 
 export class CompanyService {
   constructor() {}
+
+  async getAllCompanies(userId: string) {
+    const companies = await db
+      .select({
+        organization: {
+          id: organization.id,
+          name: organization.name,
+          logo: organization.logo,
+        },
+        role: member.role,
+      })
+      .from(member)
+      .innerJoin(organization, eq(member.organizationId, organization.id))
+      .where(eq(member.userId, userId));
+
+    return companies;
+  }
 
   async createCompany(
     companyName: string,
@@ -20,7 +38,7 @@ export class CompanyService {
 
     // Usar Better Auth API para crear la organización
     // Esto asegura que listOrganizations funcione correctamente
-    const organization = await auth.api.createOrganization({
+    const org = await auth.api.createOrganization({
       headers,
       body: {
         name: companyName,
@@ -29,26 +47,34 @@ export class CompanyService {
       },
     });
 
-    if (!organization) {
+    if (!org) {
       throw new Error("Failed to create organization");
     }
 
-    // Actualizar la organización con los campos adicionales (timezone, currency)
-    const updatedOrganization = await _prisma.organization.update({
-      where: { id: organization.id },
-      data: {
+    const [updatedOrganization] = await db
+      .update(organization)
+      .set({
         timezone,
         currency,
-      },
-      include: {
-        members: {
-          include: {
-            user: true,
-          },
-        },
-      },
-    });
+      })
+      .where(eq(organization.id, org.id))
+      .returning();
 
-    return updatedOrganization;
+    const membersWithUsers = await db
+      .select({
+        member: member,
+        user: user,
+      })
+      .from(member)
+      .innerJoin(user, eq(member.userId, user.id))
+      .where(eq(member.organizationId, org.id));
+
+    return {
+      ...updatedOrganization,
+      members: membersWithUsers.map(({ member: m, user: u }) => ({
+        ...m,
+        user: u,
+      })),
+    };
   }
 }
