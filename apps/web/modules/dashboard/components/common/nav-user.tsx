@@ -81,9 +81,9 @@ export function NavUser() {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground rounded-none"
             >
-              <Avatar className="h-8 w-8 rounded-lg">
+              <Avatar className="h-8 w-8 rounded-none">
                 <AvatarImage src={user?.image ?? ""} alt={user?.name ?? ""} />
                 <AvatarFallback className="bg-brand rounded-none text-black">
                   {user?.name ? user.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) : ''}

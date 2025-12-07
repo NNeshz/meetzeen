@@ -54,7 +54,7 @@ const data = {
     },
     {
       title: "Servicios",
-      url: "/dashboard/services",
+      url: "#",
       icon: IconHeartCog,
     },
     {

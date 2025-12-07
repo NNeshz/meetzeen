@@ -95,9 +95,9 @@ export function TeamSwitcher() {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground rounded-none"
             >
-              <Avatar className="size-8 rounded-lg">
+              <Avatar className="size-8 rounded-none">
                 {organization.logo ? (
                   <AvatarImage src={organization.logo} alt={organization.name} />
                 ) : null}
