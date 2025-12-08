@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useVerifyInvitation, useAcceptInvitation } from "@/modules/invitations/hooks/use-invitations";
 import { Button } from "@meetzeen/ui/components/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@meetzeen/ui/components/card";
@@ -9,10 +9,18 @@ import { Alert, AlertDescription, AlertTitle } from "@meetzeen/ui/components/ale
 import { Loader2, CheckCircle2, XCircle, Mail, Building2, User } from "lucide-react";
 
 export default function AcceptInvitationPage() {
-  const searchParams = useSearchParams();
   const router = useRouter();
-  const token = searchParams.get("token");
+  const [token, setToken] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Leer el token de la URL sin usar useSearchParams
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const tokenParam = params.get("token");
+      setToken(tokenParam);
+    }
+  }, []);
 
   const { data: invitationData, isLoading: isVerifying, error: verifyError } = useVerifyInvitation(token);
   const { acceptInvitation, isPending: isAccepting, isSuccess: isAccepted } = useAcceptInvitation();
@@ -155,7 +163,7 @@ export default function AcceptInvitationPage() {
   const { invitation, organization, inviter } = invitationData;
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background to-muted/20">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-linear-to-br from-background to-muted/20">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Invitación a unirte</CardTitle>
