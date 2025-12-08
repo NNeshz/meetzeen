@@ -40,7 +40,7 @@ const formSchema = z.object({
 
 export function CreateForm() {
   const router = useRouter();
-  const { createCompany, isCreating } = useCompany();
+  const { createCompany, isCreatingCompany } = useCompany();
   const form = useForm<CreateCompanyFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -154,9 +154,9 @@ export function CreateForm() {
           <Button
             type="submit"
             className="w-full bg-brand text-black"
-            disabled={isCreating}
+            disabled={isCreatingCompany}
           >
-            {isCreating ? "Creando..." : "Crear compañia"}
+            {isCreatingCompany ? "Creando..." : "Crear compañia"}
           </Button>
         </div>
       </form>
