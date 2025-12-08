@@ -5,8 +5,16 @@ import {
   timestamp,
   uniqueIndex,
   foreignKey,
+  integer,
+  index,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
+import {
+  baseSchedule,
+  employeeAvailability,
+  appointmentType,
+  appointment,
+} from "./other";
 
 export const user = pgTable(
   "User",
@@ -142,6 +150,15 @@ export const organization = pgTable(
     currency: text(),
     slug: text(),
     logo: text(),
+    // Array of integers (0-6) representing workdays: 0=Sunday, 1=Monday, ..., 6=Saturday
+    workdays: integer().array().notNull(),
+    startTime: text(),
+    endTime: text(),
+    location: text(),
+    facebookLink: text(),
+    instagramLink: text(),
+    twitterLink: text(),
+    tiktokLink: text(),
     createdAt: timestamp({ precision: 3, mode: "string", withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -155,12 +172,15 @@ export const organization = pgTable(
       "btree",
       table.slug.asc().nullsLast()
     ),
+    // Index for querying organizations by workdays (common filter in booking systems)
+    index("Organization_workdays_idx").using("gin", table.workdays),
   ]
 );
 
 export const organizationRelations = relations(organization, ({ many }) => ({
   invitations: many(invitation),
   members: many(member),
+  appointments: many(appointment),
 }));
 
 export const member = pgTable(
@@ -195,7 +215,7 @@ export const member = pgTable(
   ]
 );
 
-export const memberRelations = relations(member, ({ one }) => ({
+export const memberRelations = relations(member, ({ one, many }) => ({
   organization: one(organization, {
     fields: [member.organizationId],
     references: [organization.id],
@@ -204,6 +224,10 @@ export const memberRelations = relations(member, ({ one }) => ({
     fields: [member.userId],
     references: [user.id],
   }),
+  baseSchedules: many(baseSchedule),
+  employeeAvailabilities: many(employeeAvailability),
+  appointmentTypes: many(appointmentType),
+  appointments: many(appointment),
 }));
 
 export const invitation = pgTable(
@@ -214,6 +238,7 @@ export const invitation = pgTable(
     email: text().notNull(),
     role: text(),
     status: text().notNull(),
+    token: text().notNull(),
     expiresAt: timestamp({ precision: 3, mode: "string" }).notNull(),
     inviterId: text().notNull(),
     createdAt: timestamp({ precision: 3, mode: "string", withTimezone: true })
@@ -224,6 +249,7 @@ export const invitation = pgTable(
       .defaultNow(),
   },
   (table) => [
+    uniqueIndex("Invitation_token_key").using("btree", table.token.asc().nullsLast()),
     foreignKey({
       columns: [table.inviterId],
       foreignColumns: [user.id],

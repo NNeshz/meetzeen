@@ -29,6 +29,27 @@
       "when": 1765041712257,
       "tag": "0003_overconfident_iron_fist",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1765159029458,
+      "tag": "0004_smart_smiling_tiger",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1765159579761,
+      "tag": "0005_breezy_human_cannonball",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1765218176798,
+      "tag": "0006_clammy_quicksilver",
+      "breakpoints": true
     }
   ]
 }

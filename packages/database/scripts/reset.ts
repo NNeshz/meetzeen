@@ -19,7 +19,6 @@ async function reset() {
     
     if (tables.length === 0) {
       console.log("✅ No tables to drop");
-      await pool.end();
       return;
     }
     

@@ -1,7 +1,8 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { openAPI, organization } from "better-auth/plugins";
+import { openAPI, organization, magicLink } from "better-auth/plugins";
 import { db, user, session, account, verification, organization as org, member, invitation } from "@meetzeen/database";
+import { sendVerificationEmail } from "@meetzeen/auth/email";
 
 export const auth = betterAuth({
   appName: "meetzeen",
@@ -42,6 +43,11 @@ export const auth = betterAuth({
     openAPI(),
     organization({
       allowUserToCreateOrganization: true,
-    })
+    }),
+    magicLink({
+      sendMagicLink: async ({ email, token }) => {
+        await sendVerificationEmail(email, token);
+      },
+    }),
   ]
 });

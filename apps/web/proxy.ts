@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionCookie } from "better-auth/cookies";
 
-const PUBLIC_ROUTES = ["/", "/auth"];
+const PUBLIC_ROUTES = ["/", "/auth", "/accept-invitation"];
 const PROTECTED_ROUTES = ["/create", "/dashboard"];
 
 export function proxy(request: NextRequest) {
