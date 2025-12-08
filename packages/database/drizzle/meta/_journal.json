@@ -43,6 +43,13 @@
       "when": 1765159579761,
       "tag": "0005_breezy_human_cannonball",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1765218176798,
+      "tag": "0006_clammy_quicksilver",
+      "breakpoints": true
     }
   ]
 }
