@@ -1,14 +1,10 @@
 import { api } from "@meetzeen/api/src";
-import { swagger } from "@elysiajs/swagger";
+import { openapi } from "@elysiajs/openapi";
 import { Elysia } from "elysia";
 
 const app = new Elysia()
   .use(api)
-  .use(
-    swagger({
-      path: "/api/swagger",
-    })
-  )
+  .use(openapi())
   .listen(8080);
 
 console.log(

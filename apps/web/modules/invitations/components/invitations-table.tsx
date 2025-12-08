@@ -8,10 +8,9 @@ import {
   flexRender,
   type ColumnDef,
 } from "@tanstack/react-table";
-import { useAllServices } from "@/modules/services/hooks/use-service";
+import { useSendedInvitations } from "@/modules/invitations/hooks/use-invitations";
 import { columns } from "./colums";
-import { Service } from "@/modules/services/types/service.types";
-import { ServicesSheet } from "@/modules/services/components/service-sheet";
+import { Invitation } from "@/modules/invitations/types/invitation.types";
 import { Input } from "@meetzeen/ui/components/input";
 import { IconSearch } from "@tabler/icons-react";
 import {
@@ -24,31 +23,34 @@ import {
 } from "@meetzeen/ui/components/dropdown-menu";
 import { Button } from "@meetzeen/ui/components/button";
 import { IconColumns, IconRefresh } from "@tabler/icons-react";
+import { InvitationsSheet } from "@/modules/invitations/components/invitations-sheet";
 
 const columnLabels: Record<string, string> = {
-  name: "Nombre",
-  description: "Descripción",
-  price: "Precio",
-  duration: "Duración",
-  discount: "Descuento",
+  email: "Email",
+  role: "Rol",
+  status: "Estado",
+  expiresAt: "Expira",
   createdAt: "Creado",
+  actions: "Acciones",
 };
 
-export function ServicesTable() {
-  const { data, isLoading, error, refetch } = useAllServices();
+export function InvitationsTable() {
+  const { data, isLoading, error, refetch } = useSendedInvitations();
   const [searchValue, setSearchValue] = React.useState("");
-  const [columnVisibility, setColumnVisibility] = React.useState<Record<string, boolean>>({
-    name: true,
-    description: true,
-    price: true,
-    duration: true,
-    discount: true,
+  const [columnVisibility, setColumnVisibility] = React.useState<
+    Record<string, boolean>
+  >({
+    email: true,
+    role: true,
+    status: true,
+    expiresAt: true,
     createdAt: true,
+    actions: true,
   });
 
   const table = useReactTable({
-    data: (data as Service[]) || [],
-    columns: columns as ColumnDef<Service>[],
+    data: (data as Invitation[]) || [],
+    columns: columns as ColumnDef<Invitation>[],
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     state: {
@@ -58,17 +60,20 @@ export function ServicesTable() {
     onColumnVisibilityChange: setColumnVisibility,
     globalFilterFn: (row, columnId, filterValue) => {
       const search = filterValue.toLowerCase();
-      const service = row.original;
-      
+      const invitation = row.original;
+
       return (
-        service.name.toLowerCase().includes(search) ||
-        (service.description?.toLowerCase().includes(search) ?? false) ||
-        service.price.toLowerCase().includes(search)
+        invitation.email.toLowerCase().includes(search) ||
+        invitation.role?.toLowerCase().includes(search) ||
+        invitation.status.toLowerCase().includes(search) ||
+        invitation.expiresAt.toLowerCase().includes(search) ||
+        invitation.createdAt.toLowerCase().includes(search) ||
+        invitation.updatedAt.toLowerCase().includes(search)
       );
     },
   });
 
-  const services = (data as Service[]) || [];
+  const invitations = (data as Invitation[]) || [];
   const filteredRows = table.getFilteredRowModel().rows;
 
   const toggleColumn = (columnId: string) => {
@@ -85,7 +90,7 @@ export function ServicesTable() {
         <div className="relative flex-1 max-w-sm">
           <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar servicios..."
+            placeholder="Buscar invitaciones..."
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
             className="pl-9"
@@ -118,7 +123,7 @@ export function ServicesTable() {
                 })}
             </DropdownMenuContent>
           </DropdownMenu>
-          <ServicesSheet variant="outline" />
+          <InvitationsSheet variant="outline" />
         </div>
       </div>
 
@@ -127,8 +132,10 @@ export function ServicesTable() {
         // Estado de carga
         <div className="py-32 flex items-center justify-center">
           <div className="flex flex-col items-center justify-center gap-2 animate-pulse">
-            <p className="text-base font-medium">Buscando servicios</p>
-            <p className="text-sm text-muted-foreground">Cargando información...</p>
+            <p className="text-base font-medium">Buscando invitaciones</p>
+            <p className="text-sm text-muted-foreground">
+              Cargando información...
+            </p>
           </div>
         </div>
       ) : error ? (
@@ -136,9 +143,13 @@ export function ServicesTable() {
         <div className="py-32 flex items-center justify-center">
           <div className="flex flex-col items-center justify-center gap-3">
             <div className="text-center">
-              <p className="text-base font-medium text-destructive">Error en los servicios</p>
+              <p className="text-base font-medium text-destructive">
+                Error en las invitaciones
+              </p>
               <p className="text-sm text-muted-foreground mt-1">
-                {error instanceof Error ? error.message : "Ocurrió un error al cargar los servicios"}
+                {error instanceof Error
+                  ? error.message
+                  : "Ocurrió un error al cargar las invitaciones"}
               </p>
             </div>
             <Button
@@ -151,17 +162,17 @@ export function ServicesTable() {
             </Button>
           </div>
         </div>
-      ) : services.length === 0 ? (
+      ) : invitations.length === 0 ? (
         // Estado vacío
         <div className="py-32 flex items-center justify-center">
           <div className="flex flex-col items-center justify-center gap-4">
             <div className="text-center">
-              <p className="text-base font-medium">No hay servicios</p>
+              <p className="text-base font-medium">No hay invitaciones</p>
               <p className="text-sm text-muted-foreground">
-                Comienza creando tu primer servicio
+                Comienza invitando a un nuevo colaborador
               </p>
             </div>
-            <ServicesSheet variant="default" text="Crear Servicio" />
+            <InvitationsSheet variant="default" text="Enviar invitación" />
           </div>
         </div>
       ) : (
@@ -171,10 +182,7 @@ export function ServicesTable() {
             <table className="w-full">
               <thead>
                 {table.getHeaderGroups().map((headerGroup) => (
-                  <tr
-                    key={headerGroup.id}
-                    className="border-b bg-muted/50"
-                  >
+                  <tr key={headerGroup.id} className="border-b bg-muted/50">
                     {headerGroup.headers.map((header) => (
                       <th
                         key={header.id}
@@ -200,9 +208,12 @@ export function ServicesTable() {
                       className="h-24 text-center text-muted-foreground"
                     >
                       <div className="flex flex-col items-center justify-center gap-2">
-                        <p className="text-sm font-medium">No se encontraron resultados</p>
+                        <p className="text-sm font-medium">
+                          No se encontraron resultados
+                        </p>
                         <p className="text-xs">
-                          No hay servicios que coincidan con &quot;{searchValue}&quot;
+                          No hay invitaciones que coincidan con &quot;
+                          {searchValue}&quot;
                         </p>
                       </div>
                     </td>
@@ -236,4 +247,3 @@ export function ServicesTable() {
     </div>
   );
 }
-

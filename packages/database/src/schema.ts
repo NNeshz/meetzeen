@@ -214,6 +214,7 @@ export const invitation = pgTable(
     email: text().notNull(),
     role: text(),
     status: text().notNull(),
+    token: text().notNull(),
     expiresAt: timestamp({ precision: 3, mode: "string" }).notNull(),
     inviterId: text().notNull(),
     createdAt: timestamp({ precision: 3, mode: "string", withTimezone: true })
@@ -224,6 +225,7 @@ export const invitation = pgTable(
       .defaultNow(),
   },
   (table) => [
+    uniqueIndex("Invitation_token_key").using("btree", table.token.asc().nullsLast()),
     foreignKey({
       columns: [table.inviterId],
       foreignColumns: [user.id],

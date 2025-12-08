@@ -18,7 +18,6 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarRail,
   useSidebar,
 } from "@meetzeen/ui/components/sidebar";
 
@@ -72,6 +71,10 @@ const data = {
         {
           title: "Información",
           url: "/dashboard/settings/about",
+        },
+        {
+          title: "Invitaciones",
+          url: "/dashboard/settings/invitations",
         },
         {
           title: "Plan",

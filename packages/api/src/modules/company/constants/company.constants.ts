@@ -2,9 +2,9 @@
  * Organization member roles
  */
 export const MEMBER_ROLE = {
-  OWNER: "Owner",
-  ADMIN: "Admin",
-  EMPLOYEE: "Employee",
+  OWNER: "owner",
+  ADMIN: "admin",
+  EMPLOYEE: "employee",
 } as const;
 
 export type MemberRole = (typeof MEMBER_ROLE)[keyof typeof MEMBER_ROLE];
