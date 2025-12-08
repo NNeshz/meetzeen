@@ -151,13 +151,13 @@ export const organization = pgTable(
     slug: text(),
     logo: text(),
     // Array of integers (0-6) representing workdays: 0=Sunday, 1=Monday, ..., 6=Saturday
-    workdays: integer().array().notNull(),
+    workdays: integer().array(),
     startTime: text(),
     endTime: text(),
     location: text(),
     facebookLink: text(),
     instagramLink: text(),
-    twitterLink: text(),
+    whatsappLink: text(),
     tiktokLink: text(),
     createdAt: timestamp({ precision: 3, mode: "string", withTimezone: true })
       .notNull()
