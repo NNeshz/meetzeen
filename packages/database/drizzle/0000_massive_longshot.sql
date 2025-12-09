@@ -1,0 +1,196 @@
+CREATE TABLE "Account" (
+	"id" text PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"accountId" text NOT NULL,
+	"providerId" text NOT NULL,
+	"userId" text NOT NULL,
+	"accessToken" text,
+	"refreshToken" text,
+	"idToken" text,
+	"accessTokenExpiresAt" timestamp(3),
+	"refreshTokenExpiresAt" timestamp(3),
+	"scope" text,
+	"password" text,
+	"createdAt" timestamp(3) with time zone DEFAULT now() NOT NULL,
+	"updatedAt" timestamp(3) with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "Invitation" (
+	"id" text PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"organizationId" text NOT NULL,
+	"email" text NOT NULL,
+	"role" text,
+	"status" text NOT NULL,
+	"token" text NOT NULL,
+	"expiresAt" timestamp(3) NOT NULL,
+	"inviterId" text NOT NULL,
+	"createdAt" timestamp(3) with time zone DEFAULT now() NOT NULL,
+	"updatedAt" timestamp(3) with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "Member" (
+	"id" text PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"organizationId" text NOT NULL,
+	"userId" text NOT NULL,
+	"role" text NOT NULL,
+	"createdAt" timestamp(3) with time zone DEFAULT now() NOT NULL,
+	"updatedAt" timestamp(3) with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "Organization" (
+	"id" text PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"name" text NOT NULL,
+	"timezone" text,
+	"currency" text,
+	"slug" text,
+	"logo" text,
+	"workdays" integer[],
+	"startTime" text,
+	"endTime" text,
+	"location" text,
+	"facebookLink" text,
+	"instagramLink" text,
+	"whatsappLink" text,
+	"tiktokLink" text,
+	"createdAt" timestamp(3) with time zone DEFAULT now() NOT NULL,
+	"updatedAt" timestamp(3) with time zone DEFAULT now() NOT NULL,
+	"metadata" text
+);
+--> statement-breakpoint
+CREATE TABLE "Session" (
+	"id" text PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"expiresAt" timestamp(3) NOT NULL,
+	"token" text NOT NULL,
+	"createdAt" timestamp(3) with time zone DEFAULT now() NOT NULL,
+	"updatedAt" timestamp(3) with time zone DEFAULT now() NOT NULL,
+	"ipAddress" text,
+	"userAgent" text,
+	"userId" text NOT NULL,
+	"activeOrganizationId" text,
+	"impersonatedBy" text
+);
+--> statement-breakpoint
+CREATE TABLE "User" (
+	"id" text PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"name" text NOT NULL,
+	"image" text NOT NULL,
+	"phoneNumber" text,
+	"email" text NOT NULL,
+	"emailVerified" boolean NOT NULL,
+	"phoneNumberVerified" boolean,
+	"isAnonymous" boolean,
+	"banned" boolean,
+	"banReason" text,
+	"banExpires" timestamp(3),
+	"createdAt" timestamp(3) with time zone DEFAULT now() NOT NULL,
+	"updatedAt" timestamp(3) with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "User_phoneNumber_unique" UNIQUE("phoneNumber")
+);
+--> statement-breakpoint
+CREATE TABLE "Verification" (
+	"id" text PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"identifier" text NOT NULL,
+	"value" text NOT NULL,
+	"expiresAt" timestamp(3) NOT NULL,
+	"createdAt" timestamp(3) with time zone,
+	"updatedAt" timestamp(3) with time zone
+);
+--> statement-breakpoint
+CREATE TABLE "Appointment" (
+	"id" text PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"appointmentTypeId" text NOT NULL,
+	"memberId" text NOT NULL,
+	"organizationId" text NOT NULL,
+	"customerName" text NOT NULL,
+	"customerEmail" text NOT NULL,
+	"customerPhone" text,
+	"date" text NOT NULL,
+	"startTime" text NOT NULL,
+	"endTime" text NOT NULL,
+	"status" text NOT NULL,
+	"createdAt" timestamp(3) with time zone DEFAULT now() NOT NULL,
+	"updatedAt" timestamp(3) with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "AppointmentType" (
+	"id" text PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"memberId" text NOT NULL,
+	"name" text NOT NULL,
+	"duration" integer NOT NULL,
+	"price" numeric,
+	"description" text,
+	"requiresApproval" boolean DEFAULT false NOT NULL,
+	"bufferBefore" integer DEFAULT 0 NOT NULL,
+	"bufferAfter" integer DEFAULT 0 NOT NULL,
+	"createdAt" timestamp(3) with time zone DEFAULT now() NOT NULL,
+	"updatedAt" timestamp(3) with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "BaseSchedule" (
+	"id" text PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"memberId" text NOT NULL,
+	"dayOfWeek" integer NOT NULL,
+	"startTime" text DEFAULT '09:00' NOT NULL,
+	"endTime" text DEFAULT '18:00' NOT NULL,
+	"createdAt" timestamp(3) with time zone DEFAULT now() NOT NULL,
+	"updatedAt" timestamp(3) with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "EmployeeAvailability" (
+	"id" text PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"memberId" text NOT NULL,
+	"date" text NOT NULL,
+	"startTime" text NOT NULL,
+	"endTime" text NOT NULL,
+	"isAvailable" boolean NOT NULL,
+	"createdAt" timestamp(3) with time zone DEFAULT now() NOT NULL,
+	"updatedAt" timestamp(3) with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "Service" (
+	"id" text PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"name" text NOT NULL,
+	"serviceCategoryId" text,
+	"description" text,
+	"price" numeric NOT NULL,
+	"duration" integer NOT NULL,
+	"discount" integer,
+	"organizationId" text NOT NULL,
+	"createdAt" timestamp(3) with time zone DEFAULT now() NOT NULL,
+	"updatedAt" timestamp(3) with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "ServiceCategory" (
+	"id" text PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"name" text NOT NULL,
+	"organizationId" text NOT NULL,
+	"createdAt" timestamp(3) with time zone DEFAULT now() NOT NULL,
+	"updatedAt" timestamp(3) with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+ALTER TABLE "Account" ADD CONSTRAINT "Account_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
+ALTER TABLE "Invitation" ADD CONSTRAINT "Invitation_inviterId_fkey" FOREIGN KEY ("inviterId") REFERENCES "public"."User"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
+ALTER TABLE "Invitation" ADD CONSTRAINT "Invitation_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "public"."Organization"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
+ALTER TABLE "Member" ADD CONSTRAINT "Member_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "public"."Organization"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
+ALTER TABLE "Member" ADD CONSTRAINT "Member_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
+ALTER TABLE "Session" ADD CONSTRAINT "Session_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
+ALTER TABLE "Appointment" ADD CONSTRAINT "Appointment_appointmentTypeId_fkey" FOREIGN KEY ("appointmentTypeId") REFERENCES "public"."AppointmentType"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
+ALTER TABLE "Appointment" ADD CONSTRAINT "Appointment_memberId_fkey" FOREIGN KEY ("memberId") REFERENCES "public"."Member"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
+ALTER TABLE "Appointment" ADD CONSTRAINT "Appointment_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "public"."Organization"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
+ALTER TABLE "AppointmentType" ADD CONSTRAINT "AppointmentType_memberId_fkey" FOREIGN KEY ("memberId") REFERENCES "public"."Member"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
+ALTER TABLE "BaseSchedule" ADD CONSTRAINT "BaseSchedule_memberId_fkey" FOREIGN KEY ("memberId") REFERENCES "public"."Member"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
+ALTER TABLE "EmployeeAvailability" ADD CONSTRAINT "EmployeeAvailability_memberId_fkey" FOREIGN KEY ("memberId") REFERENCES "public"."Member"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
+ALTER TABLE "Service" ADD CONSTRAINT "Service_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "public"."Organization"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
+ALTER TABLE "Service" ADD CONSTRAINT "Service_serviceCategoryId_fkey" FOREIGN KEY ("serviceCategoryId") REFERENCES "public"."ServiceCategory"("id") ON DELETE set null ON UPDATE cascade;--> statement-breakpoint
+ALTER TABLE "ServiceCategory" ADD CONSTRAINT "ServiceCategory_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "public"."Organization"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
+CREATE UNIQUE INDEX "Invitation_token_key" ON "Invitation" USING btree ("token");--> statement-breakpoint
+CREATE UNIQUE INDEX "Organization_slug_key" ON "Organization" USING btree ("slug");--> statement-breakpoint
+CREATE INDEX "Organization_workdays_idx" ON "Organization" USING gin ("workdays");--> statement-breakpoint
+CREATE UNIQUE INDEX "Session_token_key" ON "Session" USING btree ("token");--> statement-breakpoint
+CREATE UNIQUE INDEX "User_email_key" ON "User" USING btree ("email");--> statement-breakpoint
+CREATE UNIQUE INDEX "User_phoneNumber_key" ON "User" USING btree ("phoneNumber");--> statement-breakpoint
+CREATE INDEX "Appointment_memberId_date_idx" ON "Appointment" USING btree ("memberId","date");--> statement-breakpoint
+CREATE INDEX "Appointment_organizationId_date_idx" ON "Appointment" USING btree ("organizationId","date");--> statement-breakpoint
+CREATE INDEX "Appointment_status_idx" ON "Appointment" USING btree ("status");--> statement-breakpoint
+CREATE INDEX "AppointmentType_memberId_idx" ON "AppointmentType" USING btree ("memberId");--> statement-breakpoint
+CREATE INDEX "BaseSchedule_memberId_dayOfWeek_idx" ON "BaseSchedule" USING btree ("memberId","dayOfWeek");--> statement-breakpoint
+CREATE INDEX "EmployeeAvailability_memberId_date_idx" ON "EmployeeAvailability" USING btree ("memberId","date");

@@ -9,12 +9,12 @@ import {
   index,
 } from "drizzle-orm/pg-core";
 import { organization, member } from "./schema";
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 
 export const serviceCategory = pgTable(
   "ServiceCategory",
   {
-    id: text().primaryKey().notNull(),
+    id: text().primaryKey().notNull().default(sql`gen_random_uuid()`),
     name: text().notNull(),
     organizationId: text().notNull(),
     createdAt: timestamp({ precision: 3, mode: "string", withTimezone: true })
@@ -38,7 +38,7 @@ export const serviceCategory = pgTable(
 export const service = pgTable(
   "Service",
   {
-    id: text().primaryKey().notNull(),
+    id: text().primaryKey().notNull().default(sql`gen_random_uuid()`),
     name: text().notNull(),
     serviceCategoryId: text(),
     description: text(),
@@ -74,12 +74,12 @@ export const service = pgTable(
 export const baseSchedule = pgTable(
   "BaseSchedule",
   {
-    id: text().primaryKey().notNull(),
+    id: text().primaryKey().notNull().default(sql`gen_random_uuid()`),
     memberId: text().notNull(),
     // Day of week: 0=Sunday, 1=Monday, ..., 6=Saturday
     dayOfWeek: integer().notNull(),
-    startTime: text().notNull(),
-    endTime: text().notNull(),
+    startTime: text().notNull().default("09:00"),
+    endTime: text().notNull().default("18:00"),
     createdAt: timestamp({ precision: 3, mode: "string", withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -106,7 +106,7 @@ export const baseSchedule = pgTable(
 export const employeeAvailability = pgTable(
   "EmployeeAvailability",
   {
-    id: text().primaryKey().notNull(),
+    id: text().primaryKey().notNull().default(sql`gen_random_uuid()`),
     memberId: text().notNull(),
     date: text().notNull(),
     startTime: text().notNull(),
@@ -138,7 +138,7 @@ export const employeeAvailability = pgTable(
 export const appointmentType = pgTable(
   "AppointmentType",
   {
-    id: text().primaryKey().notNull(),
+    id: text().primaryKey().notNull().default(sql`gen_random_uuid()`),
     memberId: text().notNull(),
     name: text().notNull(),
     duration: integer().notNull(),
@@ -169,7 +169,7 @@ export const appointmentType = pgTable(
 export const appointment = pgTable(
   "Appointment",
   {
-    id: text().primaryKey().notNull(),
+    id: text().primaryKey().notNull().default(sql`gen_random_uuid()`),
     appointmentTypeId: text().notNull(),
     memberId: text().notNull(),
     organizationId: text().notNull(),

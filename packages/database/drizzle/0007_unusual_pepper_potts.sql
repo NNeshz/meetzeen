@@ -1,1 +1,0 @@
-ALTER TABLE "Organization" ALTER COLUMN "workdays" DROP NOT NULL;

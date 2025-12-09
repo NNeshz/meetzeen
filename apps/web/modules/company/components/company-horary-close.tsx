@@ -67,10 +67,14 @@ export function CompanyHoraryClose({
 
   function handleUpdate(values: z.infer<typeof formSchema>) {
     setMutationError(null);
+    // Formatear horas y minutos con dos dígitos
+    const formattedHour = String(values.endHour).padStart(2, "0");
+    const formattedMinute = String(values.endMinute).padStart(2, "0");
+    
     updateEndHour(
       {
-        endHour: values.endHour,
-        endMinute: values.endMinute,
+        endHour: Number(formattedHour),
+        endMinute: Number(formattedMinute),
       },
       {
         onSuccess: () => {
