@@ -9,12 +9,6 @@ import {
   index,
 } from "drizzle-orm/pg-core";
 import { relations, sql } from "drizzle-orm";
-import {
-  baseSchedule,
-  employeeAvailability,
-  appointmentType,
-  appointment,
-} from "./other";
 
 export const user = pgTable(
   "User",
@@ -177,12 +171,6 @@ export const organization = pgTable(
   ]
 );
 
-export const organizationRelations = relations(organization, ({ many }) => ({
-  invitations: many(invitation),
-  members: many(member),
-  appointments: many(appointment),
-}));
-
 export const member = pgTable(
   "Member",
   {
@@ -215,7 +203,7 @@ export const member = pgTable(
   ]
 );
 
-export const memberRelations = relations(member, ({ one, many }) => ({
+export const memberRelations = relations(member, ({ one }) => ({
   organization: one(organization, {
     fields: [member.organizationId],
     references: [organization.id],
@@ -224,10 +212,6 @@ export const memberRelations = relations(member, ({ one, many }) => ({
     fields: [member.userId],
     references: [user.id],
   }),
-  baseSchedules: many(baseSchedule),
-  employeeAvailabilities: many(employeeAvailability),
-  appointmentTypes: many(appointmentType),
-  appointments: many(appointment),
 }));
 
 export const invitation = pgTable(

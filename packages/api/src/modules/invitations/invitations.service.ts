@@ -1,8 +1,6 @@
-import { db, member, invitation, organization, user, baseSchedule } from "@meetzeen/database";
+import { db, member, invitation, organization, user } from "@meetzeen/database";
 import { and, eq } from "drizzle-orm";
-import {
-  hasAdminPermissions,
-} from "@meetzeen/api/src/modules/company/constants/company.constants";
+import { hasAdminPermissions } from "@meetzeen/api/src/modules/company/constants/company.constants";
 import { nanoid } from "nanoid";
 import { sendInvitationEmail } from "@meetzeen/auth/email";
 
@@ -74,7 +72,10 @@ export class InvitationsService {
       expiresAt: expiresAt.toISOString(),
     };
 
-    const [insertedInvitation] = await db.insert(invitation).values(newInvitation).returning();
+    const [insertedInvitation] = await db
+      .insert(invitation)
+      .values(newInvitation)
+      .returning();
 
     const company = await db
       .select()
@@ -204,36 +205,17 @@ export class InvitationsService {
       updatedAt: now,
     };
 
-    const [insertedMember] = await db.insert(member).values(newMember).returning();
+    const [insertedMember] = await db
+      .insert(member)
+      .values(newMember)
+      .returning();
 
-    // Obtener información de la organización para verificar horarios
+    // Obtener información de la organización
     const org = await db
       .select()
       .from(organization)
       .where(eq(organization.id, invitationRecord.organizationId))
       .then((res) => res[0]);
-
-    // Si la organización tiene días de trabajo y horarios configurados, crear horarios para el nuevo miembro
-    if (
-      org &&
-      org.workdays &&
-      org.workdays.length > 0 &&
-      org.startTime &&
-      org.endTime
-    ) {
-      const schedulesToInsert = org.workdays.map((dayOfWeek) => ({
-        memberId: insertedMember.id,
-        dayOfWeek: dayOfWeek,
-        startTime: org.startTime!,
-        endTime: org.endTime!,
-        createdAt: now,
-        updatedAt: now,
-      }));
-
-      if (schedulesToInsert.length > 0) {
-        await db.insert(baseSchedule).values(schedulesToInsert);
-      }
-    }
 
     // Marcar la invitación como aceptada
     await db
@@ -281,8 +263,8 @@ export class InvitationsService {
           invitationRecord.status === "accepted"
             ? "Esta invitación ya fue aceptada"
             : invitationRecord.status === "expired"
-            ? "Esta invitación ha expirado"
-            : "Esta invitación no está disponible",
+              ? "Esta invitación ha expirado"
+              : "Esta invitación no está disponible",
         status: invitationRecord.status,
       };
     }
