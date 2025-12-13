@@ -95,53 +95,22 @@ CREATE TABLE "Verification" (
 	"updatedAt" timestamp(3) with time zone
 );
 --> statement-breakpoint
-CREATE TABLE "Appointment" (
+CREATE TABLE "DailyAvailability" (
 	"id" text PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"appointmentTypeId" text NOT NULL,
 	"memberId" text NOT NULL,
-	"organizationId" text NOT NULL,
-	"customerName" text NOT NULL,
-	"customerEmail" text NOT NULL,
-	"customerPhone" text,
-	"date" text NOT NULL,
-	"startTime" text NOT NULL,
-	"endTime" text NOT NULL,
-	"status" text NOT NULL,
+	"date" date NOT NULL,
+	"timeBlocks" jsonb DEFAULT '[]'::jsonb NOT NULL,
+	"isWorkingDay" boolean DEFAULT true NOT NULL,
+	"source" text DEFAULT 'manual' NOT NULL,
+	"reason" text,
 	"createdAt" timestamp(3) with time zone DEFAULT now() NOT NULL,
 	"updatedAt" timestamp(3) with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "AppointmentType" (
+CREATE TABLE "ScheduleGenerationLog" (
 	"id" text PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"memberId" text NOT NULL,
-	"name" text NOT NULL,
-	"duration" integer NOT NULL,
-	"price" numeric,
-	"description" text,
-	"requiresApproval" boolean DEFAULT false NOT NULL,
-	"bufferBefore" integer DEFAULT 0 NOT NULL,
-	"bufferAfter" integer DEFAULT 0 NOT NULL,
-	"createdAt" timestamp(3) with time zone DEFAULT now() NOT NULL,
-	"updatedAt" timestamp(3) with time zone DEFAULT now() NOT NULL
-);
---> statement-breakpoint
-CREATE TABLE "BaseSchedule" (
-	"id" text PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"memberId" text NOT NULL,
-	"dayOfWeek" integer NOT NULL,
-	"startTime" text DEFAULT '09:00' NOT NULL,
-	"endTime" text DEFAULT '18:00' NOT NULL,
-	"createdAt" timestamp(3) with time zone DEFAULT now() NOT NULL,
-	"updatedAt" timestamp(3) with time zone DEFAULT now() NOT NULL
-);
---> statement-breakpoint
-CREATE TABLE "EmployeeAvailability" (
-	"id" text PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"memberId" text NOT NULL,
-	"date" text NOT NULL,
-	"startTime" text NOT NULL,
-	"endTime" text NOT NULL,
-	"isAvailable" boolean NOT NULL,
+	"generatedUntil" date NOT NULL,
 	"createdAt" timestamp(3) with time zone DEFAULT now() NOT NULL,
 	"updatedAt" timestamp(3) with time zone DEFAULT now() NOT NULL
 );
@@ -167,30 +136,36 @@ CREATE TABLE "ServiceCategory" (
 	"updatedAt" timestamp(3) with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "WeeklyScheduleTemplate" (
+	"id" text PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"memberId" text NOT NULL,
+	"dayOfWeek" integer NOT NULL,
+	"timeBlocks" jsonb NOT NULL,
+	"isActive" boolean DEFAULT true NOT NULL,
+	"createdAt" timestamp(3) with time zone DEFAULT now() NOT NULL,
+	"updatedAt" timestamp(3) with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 ALTER TABLE "Account" ADD CONSTRAINT "Account_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
 ALTER TABLE "Invitation" ADD CONSTRAINT "Invitation_inviterId_fkey" FOREIGN KEY ("inviterId") REFERENCES "public"."User"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
 ALTER TABLE "Invitation" ADD CONSTRAINT "Invitation_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "public"."Organization"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
 ALTER TABLE "Member" ADD CONSTRAINT "Member_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "public"."Organization"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
 ALTER TABLE "Member" ADD CONSTRAINT "Member_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
 ALTER TABLE "Session" ADD CONSTRAINT "Session_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
-ALTER TABLE "Appointment" ADD CONSTRAINT "Appointment_appointmentTypeId_fkey" FOREIGN KEY ("appointmentTypeId") REFERENCES "public"."AppointmentType"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
-ALTER TABLE "Appointment" ADD CONSTRAINT "Appointment_memberId_fkey" FOREIGN KEY ("memberId") REFERENCES "public"."Member"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
-ALTER TABLE "Appointment" ADD CONSTRAINT "Appointment_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "public"."Organization"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
-ALTER TABLE "AppointmentType" ADD CONSTRAINT "AppointmentType_memberId_fkey" FOREIGN KEY ("memberId") REFERENCES "public"."Member"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
-ALTER TABLE "BaseSchedule" ADD CONSTRAINT "BaseSchedule_memberId_fkey" FOREIGN KEY ("memberId") REFERENCES "public"."Member"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
-ALTER TABLE "EmployeeAvailability" ADD CONSTRAINT "EmployeeAvailability_memberId_fkey" FOREIGN KEY ("memberId") REFERENCES "public"."Member"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
+ALTER TABLE "DailyAvailability" ADD CONSTRAINT "DailyAvailability_memberId_fkey" FOREIGN KEY ("memberId") REFERENCES "public"."Member"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
+ALTER TABLE "ScheduleGenerationLog" ADD CONSTRAINT "ScheduleGenerationLog_memberId_fkey" FOREIGN KEY ("memberId") REFERENCES "public"."Member"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
 ALTER TABLE "Service" ADD CONSTRAINT "Service_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "public"."Organization"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
 ALTER TABLE "Service" ADD CONSTRAINT "Service_serviceCategoryId_fkey" FOREIGN KEY ("serviceCategoryId") REFERENCES "public"."ServiceCategory"("id") ON DELETE set null ON UPDATE cascade;--> statement-breakpoint
 ALTER TABLE "ServiceCategory" ADD CONSTRAINT "ServiceCategory_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "public"."Organization"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
+ALTER TABLE "WeeklyScheduleTemplate" ADD CONSTRAINT "WeeklyScheduleTemplate_memberId_fkey" FOREIGN KEY ("memberId") REFERENCES "public"."Member"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
 CREATE UNIQUE INDEX "Invitation_token_key" ON "Invitation" USING btree ("token");--> statement-breakpoint
 CREATE UNIQUE INDEX "Organization_slug_key" ON "Organization" USING btree ("slug");--> statement-breakpoint
 CREATE INDEX "Organization_workdays_idx" ON "Organization" USING gin ("workdays");--> statement-breakpoint
 CREATE UNIQUE INDEX "Session_token_key" ON "Session" USING btree ("token");--> statement-breakpoint
 CREATE UNIQUE INDEX "User_email_key" ON "User" USING btree ("email");--> statement-breakpoint
 CREATE UNIQUE INDEX "User_phoneNumber_key" ON "User" USING btree ("phoneNumber");--> statement-breakpoint
-CREATE INDEX "Appointment_memberId_date_idx" ON "Appointment" USING btree ("memberId","date");--> statement-breakpoint
-CREATE INDEX "Appointment_organizationId_date_idx" ON "Appointment" USING btree ("organizationId","date");--> statement-breakpoint
-CREATE INDEX "Appointment_status_idx" ON "Appointment" USING btree ("status");--> statement-breakpoint
-CREATE INDEX "AppointmentType_memberId_idx" ON "AppointmentType" USING btree ("memberId");--> statement-breakpoint
-CREATE INDEX "BaseSchedule_memberId_dayOfWeek_idx" ON "BaseSchedule" USING btree ("memberId","dayOfWeek");--> statement-breakpoint
-CREATE INDEX "EmployeeAvailability_memberId_date_idx" ON "EmployeeAvailability" USING btree ("memberId","date");
+CREATE INDEX "DailyAvailability_memberId_date_idx" ON "DailyAvailability" USING btree ("memberId","date");--> statement-breakpoint
+CREATE INDEX "DailyAvailability_date_idx" ON "DailyAvailability" USING btree ("date");--> statement-breakpoint
+CREATE INDEX "DailyAvailability_unique_member_date" ON "DailyAvailability" USING btree ("memberId","date");--> statement-breakpoint
+CREATE INDEX "ScheduleGenerationLog_memberId_idx" ON "ScheduleGenerationLog" USING btree ("memberId");--> statement-breakpoint
+CREATE INDEX "WeeklyScheduleTemplate_memberId_idx" ON "WeeklyScheduleTemplate" USING btree ("memberId");

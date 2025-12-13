@@ -1,0 +1,1 @@
+ALTER TABLE "ScheduleGenerationLog" ADD COLUMN "generatedFrom" date NOT NULL;

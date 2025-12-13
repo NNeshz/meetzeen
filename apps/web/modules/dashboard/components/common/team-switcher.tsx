@@ -58,6 +58,7 @@ export function TeamSwitcher() {
           id: firstCompany.organization.id ?? "",
           name: firstCompany.organization.name ?? "",
           logo: firstCompany.organization.logo ?? null,
+          timezone: firstCompany.organization.timezone ?? null,
         })
       }
     }
@@ -80,11 +81,12 @@ export function TeamSwitcher() {
     )
   }
 
-  const handleOrganizationChange = (org: { id: string; name: string; logo: string | null }) => {
+  const handleOrganizationChange = (org: { id: string; name: string; logo: string | null; timezone: string }) => {
     setOrganization({
       id: org.id,
       name: org.name,
       logo: org.logo,
+      timezone: org.timezone,
     })
   }
 
@@ -126,7 +128,7 @@ export function TeamSwitcher() {
             {companies?.map((company, index) => (
               <DropdownMenuItem
                 key={company.organization.id}
-                onClick={() => handleOrganizationChange(company.organization)}
+                onClick={() => handleOrganizationChange(company.organization as { id: string; name: string; logo: string | null; timezone: string })}
                 className="gap-2 p-2"
               >
                 <Avatar className="size-6 rounded-md">

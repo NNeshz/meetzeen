@@ -24,6 +24,7 @@ import {
   CommandItem,
   CommandList,
 } from "@meetzeen/ui/src/components/command";
+import { Input } from "@meetzeen/ui/src/components/input";
 
 const navMain = [
   {
@@ -227,10 +228,10 @@ export function DashboardCommand() {
       {/* Input que activa el command box */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <input
+        <Input
           type="text"
           placeholder="Busqueda global..."
-          className="h-10 w-full rounded-md border border-input bg-background px-10 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer"
+          className="h-10 w-full bg-background px-10 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer"
           onClick={() => setOpen(true)}
           readOnly
         />

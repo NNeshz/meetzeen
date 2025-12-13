@@ -7,69 +7,87 @@ export interface Team {
   createdAt: string;
 }
 
+export interface DayInfo {
+  id: string;
+  memberId: string;
+  date: string;
+  timeBlocks: Array<{ startTime: string; endTime: string }>;
+  isWorkingDay: boolean;
+  source: string;
+  reason: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WeeklyTemplate {
+  id: string;
+  dayOfWeek: number;
+  timeBlocks: TimeBlock[];
+}
+
+export interface CalendarData {
+  days: DayInfo[];
+  template: WeeklyTemplate[];
+}
+
 export interface TimeBlock {
-  startTime: string; // Format: "HH:mm"
-  endTime: string; // Format: "HH:mm"
+  startTime: string;
+  endTime: string;
 }
 
-export interface BaseSchedule {
-  id: string;
+export interface CreateTimeBlocks {
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+}
+
+export interface UpdateWeeklyTemplateParams {
   memberId: string;
-  dayOfWeek: number; // 0=Sunday, 1=Monday, ..., 6=Saturday
-  timeBlocks: TimeBlock[]; // Array of time blocks for the day
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+  dayOfWeek: number;
+  timeBlocks: TimeBlock[];
 }
 
-export interface RecurrencePattern {
-  frequency: "weekly" | "biweekly" | "monthly";
-  interval?: number;
-  count?: number;
-  until?: string; // Format: "YYYY-MM-DD"
-  byDay?: number[]; // Array of day of week [0-6]
-}
-
-export interface ScheduleException {
-  id: string;
+export interface CreateTemplateParams {
   memberId: string;
-  type: "day_off" | "custom_hours" | "holiday";
-  startDate: string; // Format: "YYYY-MM-DD"
-  endDate?: string | null; // Format: "YYYY-MM-DD"
-  recurrence?: RecurrencePattern | null;
-  timeBlocks?: TimeBlock[] | null; // Only for type="custom_hours"
-  reason?: string | null;
-  notes?: string | null;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-  // Campo usado cuando la excepción es expandida desde una recurrencia
-  originalExceptionId?: string;
+  timeBlocks: CreateTimeBlocks[];
 }
 
-export interface MemberCalendarResponse {
-  baseSchedules: BaseSchedule[];
-  exceptions: ScheduleException[];
+export interface SetDayAvailabilityParams {
+  memberId: string;
+  date: string;
+  timeBlocks: TimeBlock[];
+  reason?: string;
 }
 
-// Legacy types - kept for backward compatibility if needed
-export interface UpdateMemberCalendar {
-  dayOfWeek: number; // 0=Sunday, 1=Monday, ..., 6=Saturday
-  startTime: string; // Format: "HH:mm"
-  endTime: string; // Format: "HH:mm"
+export interface SetDaysOffParams {
+  memberId: string;
+  startDate: string;
+  endDate: string;
+  reason?: string;
 }
 
-export interface UpdateMemberCalendarRequest {
-  userId: string;
-  organizationId: string;
-  selectedDate: string; // ISO date string
-  dayOfWeek: number; // 0=Sunday, 1=Monday, ..., 6=Saturday
-  repeatType: "once" | "repeat" | "default" | "remove";
-  repeatCount?: number; // Only for "repeat" type, number of weeks (1-52)
-  timeSlots?: Array<{
-    startHour: number; // 0-23
-    startMinute: number; // 0-59
-    endHour: number; // 0-23
-    endMinute: number; // 0-59
-  }>;
+export interface SetMultipleDaysAvailabilityParams {
+  memberId: string;
+  dates: string[];
+  timeBlocks: TimeBlock[];
+  reason?: string;
+}
+
+export interface RemoveDayExceptionParams {
+  memberId: string;
+  date: string;
+}
+
+export interface UpdateScheduleParams {
+  memberId: string;
+  action: "solo-este-dia" | "repetir" | "vacaciones" | "para-siempre";
+  date: string;
+  timeBlocks: TimeBlock[];
+  repeatCount?: number;
+  reason?: string;
+}
+
+export interface RemoveScheduleParams {
+  memberId: string;
+  date: string;
 }

@@ -177,7 +177,7 @@ export function InvitationsTable() {
         </div>
       ) : (
         // Tabla con datos
-        <div className="rounded-lg border">
+        <div className="border">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>

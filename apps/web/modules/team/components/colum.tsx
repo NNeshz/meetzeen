@@ -70,7 +70,7 @@ export const columns: ColumnDef<Team>[] = [
     cell: ({ row }) => {
       const date = new Date(row.getValue("createdAt") as string);
       return (
-        <div className="text-sm text-muted-foreground">
+        <div className="text-sm text-muted-foreground min-w-[150px]">
           {date.toLocaleDateString("es-ES", {
             year: "numeric",
             month: "short",

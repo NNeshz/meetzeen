@@ -14,6 +14,7 @@ export class CompanyService {
           id: organization.id,
           name: organization.name,
           logo: organization.logo,
+          timezone: organization.timezone,
         },
         role: member.role,
       })
@@ -116,10 +117,6 @@ export class CompanyService {
 
     if (org && org.logo) {
       try {
-        // Extract S3 key from various URL formats:
-        // - https://bucket.s3.region.amazonaws.com/logos/file.jpg
-        // - https://project.supabase.co/storage/v1/object/public/bucket/logos/file.jpg
-        // - https://cdn.example.com/logos/file.jpg
         const urlParts = org.logo.split("/");
         const keyIndex = urlParts.findIndex((part) => part === "logos");
         if (keyIndex >= 0) {

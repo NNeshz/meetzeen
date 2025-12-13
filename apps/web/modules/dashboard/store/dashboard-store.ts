@@ -4,6 +4,7 @@ interface Organization {
   id: string;
   name: string;
   logo: string | null;
+  timezone: string | null;
 }
 
 interface DashboardStore {
@@ -13,5 +14,5 @@ interface DashboardStore {
 
 export const useDashboardStore = create<DashboardStore>((set) => ({
   organization: null,
-  setOrganization: (organization) => set({ organization }),
+  setOrganization: (organization) => set({ organization: organization }),
 }));
