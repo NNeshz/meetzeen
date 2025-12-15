@@ -12,7 +12,7 @@ import { useTeam } from "@/modules/team/hooks/use-team";
 import { columns } from "./colum";
 import { Team } from "@/modules/team/types/team.types";
 import { Input } from "@meetzeen/ui/components/input";
-import { IconSearch } from "@tabler/icons-react";
+import { IconPlus, IconSearch } from "@tabler/icons-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,6 +23,7 @@ import {
 } from "@meetzeen/ui/components/dropdown-menu";
 import { Button } from "@meetzeen/ui/components/button";
 import { IconColumns, IconRefresh } from "@tabler/icons-react";
+import Link from "next/link";
 
 const columnLabels: Record<string, string> = {
   name: "Miembro",
@@ -116,6 +117,11 @@ export function TeamTable() {
                 })}
             </DropdownMenuContent>
           </DropdownMenu>
+          <Link href="/dashboard/settings/invitations">
+            <Button>
+              <IconPlus className="size-4" />
+            </Button>
+          </Link>
         </div>
       </div>
 
