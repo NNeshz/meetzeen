@@ -40,7 +40,7 @@ const data = {
         },
         {
           title: "Historial",
-          url: "/dashboard/history",
+          url: "/dashboard/calendar/history",
         },
       ],
     },
@@ -93,6 +93,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const isElementInDropdown = React.useCallback(
     (element: HTMLElement | null): boolean => {
       if (!element) return false;
+
+      // Verificar que el elemento sea un Element y tenga el método closest
+      if (!(element instanceof Element) || typeof element.closest !== "function") {
+        return false;
+      }
 
       // Verificar si el elemento o alguno de sus ancestros es un dropdown
       const dropdownSelectors = [
@@ -148,7 +153,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         clearTimeout(hoverTimeoutRef.current);
       }
 
-      const relatedTarget = e.relatedTarget as HTMLElement | null;
+      // Verificar que relatedTarget sea un HTMLElement antes de usarlo
+      const relatedTarget =
+        e.relatedTarget instanceof HTMLElement
+          ? (e.relatedTarget as HTMLElement)
+          : null;
 
       // Verificar si el mouse se está moviendo hacia un dropdown
       const isMovingToDropdown = isElementInDropdown(relatedTarget);

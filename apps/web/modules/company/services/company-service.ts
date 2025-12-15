@@ -48,6 +48,24 @@ export class CompanyService {
     return response.data;
   }
 
+  async uploadLogo(file: File, organizationId: string) {
+    const response = await apiClient.company.uploadLogo.post(
+      {
+        organizationId,
+        file,
+      },
+      {
+        query: { organizationId },
+      }
+    );
+
+    if (response.error) {
+      throw new Error(response.error.value.message);
+    }
+
+    return response.data;
+  }
+
   async updateCompanyName(companyName: string, organizationId: string) {
     const orgId = organizationId || this.getOrganizationId();
 
@@ -82,6 +100,8 @@ export class CompanyService {
     if (response.error) {
       throw new Error(response.error.value.message);
     }
+
+    return response.data;
   }
 
   async updateCompanyTimezone(timezone: string, organizationId: string) {

@@ -1,1 +1,0 @@
-CREATE UNIQUE INDEX "Invitation_token_key" ON "Invitation" USING btree ("token");--> statement-breakpoint

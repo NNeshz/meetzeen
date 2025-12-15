@@ -8,7 +8,6 @@ export class ServiceCategoryService {
     const [newCategory] = await db
       .insert(serviceCategory)
       .values({
-        id: crypto.randomUUID(),
         name,
         organizationId,
         createdAt: new Date().toISOString(),

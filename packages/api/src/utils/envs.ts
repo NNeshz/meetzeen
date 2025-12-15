@@ -41,10 +41,15 @@ declare global {
       [key: string]: string | undefined;
       AUTH_SECRET: string;
       DATABASE_URL: string;
+      DIRECT_URL: string;
       NEXT_PUBLIC_BACKEND_URL: string;
       NEXT_PUBLIC_FRONTEND_URL: string;
       GOOGLE_CLIENT_ID: string;
       GOOGLE_CLIENT_SECRET: string;
+      S3_ACCESS_KEY: string;
+      S3_SECRET_ACCESS_KEY: string;
+      S3_REGION: string;
+      S3_BUCKET: string;
     }
   }
 }

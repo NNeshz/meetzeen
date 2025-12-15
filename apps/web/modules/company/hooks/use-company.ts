@@ -44,6 +44,14 @@ export const useCompany = () => {
     },
   });
 
+  const { mutate: uploadLogo, mutateAsync: uploadLogoAsync, isPending: isUploadingLogo } = useMutation({
+    mutationFn: (file: File) =>
+      companyService.uploadLogo(file, organizationId || ""),
+    onSuccess: () => {
+      invalidateCompanyQueries();
+    },
+  });
+
   const { mutate: updateCompanyName, isPending: isUpdatingCompanyName } =
     useMutation({
       mutationFn: (name: string) =>
@@ -167,7 +175,10 @@ export const useCompany = () => {
     updateEndHour,
     updateLocation,
     updateSocialLinks,
+    uploadLogo,
+    uploadLogoAsync,
     // Loading states
+    isUploadingLogo,
     isUpdatingCompanyWorkdays,
     isUpdatingStartHour,
     isUpdatingEndHour,

@@ -14,6 +14,8 @@ export default function SettingsPage() {
   const { companyData, isGettingCompany, errorGettingCompany } = useCompany();
   const queryClient = useQueryClient();
 
+  console.log(companyData);
+
   const handleUpdate = () => {
     queryClient.invalidateQueries({ queryKey: ["company"] });
   };
@@ -39,9 +41,13 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
       <div className="space-y-8">
-        <CompanyLogo />
+        <CompanyLogo
+          companyLogo={companyData?.logo}
+          companyName={companyData?.name}
+          onUpdate={handleUpdate}
+        />
         <CompanyName
           companyName={companyData?.name || ""}
           onUpdate={handleUpdate}

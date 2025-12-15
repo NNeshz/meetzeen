@@ -1,8 +1,6 @@
 import { db, member, invitation, organization, user } from "@meetzeen/database";
 import { and, eq } from "drizzle-orm";
-import {
-  hasAdminPermissions,
-} from "@meetzeen/api/src/modules/company/constants/company.constants";
+import { hasAdminPermissions } from "@meetzeen/api/src/modules/company/constants/company.constants";
 import { nanoid } from "nanoid";
 import { sendInvitationEmail } from "@meetzeen/auth/email";
 
@@ -65,7 +63,6 @@ export class InvitationsService {
 
     // Crear objeto de invitación
     const newInvitation = {
-      id: nanoid(),
       email,
       organizationId,
       role,
@@ -75,7 +72,10 @@ export class InvitationsService {
       expiresAt: expiresAt.toISOString(),
     };
 
-    await db.insert(invitation).values(newInvitation);
+    const [insertedInvitation] = await db
+      .insert(invitation)
+      .values(newInvitation)
+      .returning();
 
     const company = await db
       .select()
@@ -103,10 +103,10 @@ export class InvitationsService {
       success: true,
       message: "Invitación enviada exitosamente",
       invitation: {
-        id: newInvitation.id,
-        email: newInvitation.email,
-        role: newInvitation.role,
-        expiresAt: newInvitation.expiresAt,
+        id: insertedInvitation.id,
+        email: insertedInvitation.email,
+        role: insertedInvitation.role,
+        expiresAt: insertedInvitation.expiresAt,
       },
     };
   }
@@ -154,7 +154,6 @@ export class InvitationsService {
       const emailParts = invitationEmail.split("@");
       const userName = emailParts[0] || "Usuario";
       const newUser = {
-        id: nanoid(),
         email: invitationEmail,
         name: userName,
         image: "",
@@ -163,8 +162,8 @@ export class InvitationsService {
         updatedAt: now,
       };
 
-      await db.insert(user).values(newUser);
-      userId = newUser.id;
+      const [insertedUser] = await db.insert(user).values(newUser).returning();
+      userId = insertedUser.id;
     }
 
     // Verificar si ya es miembro de la organización
@@ -199,7 +198,6 @@ export class InvitationsService {
     // Crear miembro con el rol de la invitación
     const now = new Date().toISOString();
     const newMember = {
-      id: nanoid(),
       organizationId: invitationRecord.organizationId,
       userId: userId,
       role: invitationRecord.role || "employee",
@@ -207,7 +205,17 @@ export class InvitationsService {
       updatedAt: now,
     };
 
-    await db.insert(member).values(newMember);
+    const [insertedMember] = await db
+      .insert(member)
+      .values(newMember)
+      .returning();
+
+    // Obtener información de la organización
+    const org = await db
+      .select()
+      .from(organization)
+      .where(eq(organization.id, invitationRecord.organizationId))
+      .then((res) => res[0]);
 
     // Marcar la invitación como aceptada
     await db
@@ -215,20 +223,13 @@ export class InvitationsService {
       .set({ status: "accepted" })
       .where(eq(invitation.id, invitationRecord.id));
 
-    // Obtener información de la organización para la respuesta
-    const org = await db
-      .select()
-      .from(organization)
-      .where(eq(organization.id, invitationRecord.organizationId))
-      .then((res) => res[0]);
-
     return {
       success: true,
       message: "Invitación aceptada exitosamente",
       member: {
-        id: newMember.id,
-        role: newMember.role,
-        organizationId: newMember.organizationId,
+        id: insertedMember.id,
+        role: insertedMember.role,
+        organizationId: insertedMember.organizationId,
       },
       organization: org
         ? {
@@ -262,8 +263,8 @@ export class InvitationsService {
           invitationRecord.status === "accepted"
             ? "Esta invitación ya fue aceptada"
             : invitationRecord.status === "expired"
-            ? "Esta invitación ha expirado"
-            : "Esta invitación no está disponible",
+              ? "Esta invitación ha expirado"
+              : "Esta invitación no está disponible",
         status: invitationRecord.status,
       };
     }

@@ -49,6 +49,19 @@ export const companyRoutes = new Elysia({
       }),
     },
   )
+  .post(
+    "/uploadLogo",
+    ({ companyService, body }) => {
+      return companyService.uploadLogo(body.file, body.organizationId);
+    },
+    {
+      auth: true,
+      body: t.Object({
+        file: t.File(),
+        organizationId: t.String(),
+      }),
+    }
+  )
   .put(
     "/changeSlug",
     ({ companyService, body }) => {

@@ -5,16 +5,22 @@ import {
   text,
   timestamp,
   foreignKey,
+  jsonb,
   boolean,
   index,
+  date,
 } from "drizzle-orm/pg-core";
 import { organization, member } from "./schema";
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
+import type { TimeBlock } from "@meetzeen/api/src/modules/team/types/team.types.ts";
 
 export const serviceCategory = pgTable(
   "ServiceCategory",
   {
-    id: text().primaryKey().notNull(),
+    id: text()
+      .primaryKey()
+      .notNull()
+      .default(sql`gen_random_uuid()`),
     name: text().notNull(),
     organizationId: text().notNull(),
     createdAt: timestamp({ precision: 3, mode: "string", withTimezone: true })
@@ -38,7 +44,10 @@ export const serviceCategory = pgTable(
 export const service = pgTable(
   "Service",
   {
-    id: text().primaryKey().notNull(),
+    id: text()
+      .primaryKey()
+      .notNull()
+      .default(sql`gen_random_uuid()`),
     name: text().notNull(),
     serviceCategoryId: text(),
     description: text(),
@@ -71,15 +80,17 @@ export const service = pgTable(
   ]
 );
 
-export const baseSchedule = pgTable(
-  "BaseSchedule",
+export const weeklyScheduleTemplate = pgTable(
+  "WeeklyScheduleTemplate",
   {
-    id: text().primaryKey().notNull(),
+    id: text()
+      .primaryKey()
+      .notNull()
+      .default(sql`gen_random_uuid()`),
     memberId: text().notNull(),
-    // Day of week: 0=Sunday, 1=Monday, ..., 6=Saturday
-    dayOfWeek: integer().notNull(),
-    startTime: text().notNull(),
-    endTime: text().notNull(),
+    dayOfWeek: integer().notNull(), // 0-6 (0: Sunday, 6: Saturday)
+    timeBlocks: jsonb().$type<Array<TimeBlock>>().notNull(),
+    isActive: boolean().notNull().default(true),
     createdAt: timestamp({ precision: 3, mode: "string", withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -91,174 +102,105 @@ export const baseSchedule = pgTable(
     foreignKey({
       columns: [table.memberId],
       foreignColumns: [member.id],
-      name: "BaseSchedule_memberId_fkey",
+      name: "WeeklyScheduleTemplate_memberId_fkey",
     })
       .onUpdate("cascade")
       .onDelete("cascade"),
-    index("BaseSchedule_memberId_dayOfWeek_idx").using(
-      "btree",
-      table.memberId.asc(),
-      table.dayOfWeek.asc()
-    ),
+    index("WeeklyScheduleTemplate_memberId_idx").on(table.memberId),
   ]
 );
 
-export const employeeAvailability = pgTable(
-  "EmployeeAvailability",
-  {
-    id: text().primaryKey().notNull(),
-    memberId: text().notNull(),
-    date: text().notNull(),
-    startTime: text().notNull(),
-    endTime: text().notNull(),
-    isAvailable: boolean().notNull(),
-    createdAt: timestamp({ precision: 3, mode: "string", withTimezone: true })
-      .notNull()
-      .defaultNow(),
-    updatedAt: timestamp({ precision: 3, mode: "string", withTimezone: true })
-      .notNull()
-      .defaultNow(),
-  },
-  (table) => [
-    foreignKey({
-      columns: [table.memberId],
-      foreignColumns: [member.id],
-      name: "EmployeeAvailability_memberId_fkey",
-    })
-      .onUpdate("cascade")
-      .onDelete("cascade"),
-    index("EmployeeAvailability_memberId_date_idx").using(
-      "btree",
-      table.memberId.asc(),
-      table.date.asc()
-    ),
-  ]
-);
-
-export const appointmentType = pgTable(
-  "AppointmentType",
-  {
-    id: text().primaryKey().notNull(),
-    memberId: text().notNull(),
-    name: text().notNull(),
-    duration: integer().notNull(),
-    price: numeric(),
-    description: text(),
-    requiresApproval: boolean().notNull().default(false),
-    bufferBefore: integer().notNull().default(0),
-    bufferAfter: integer().notNull().default(0),
-    createdAt: timestamp({ precision: 3, mode: "string", withTimezone: true })
-      .notNull()
-      .defaultNow(),
-    updatedAt: timestamp({ precision: 3, mode: "string", withTimezone: true })
-      .notNull()
-      .defaultNow(),
-  },
-  (table) => [
-    foreignKey({
-      columns: [table.memberId],
-      foreignColumns: [member.id],
-      name: "AppointmentType_memberId_fkey",
-    })
-      .onUpdate("cascade")
-      .onDelete("cascade"),
-    index("AppointmentType_memberId_idx").using("btree", table.memberId.asc()),
-  ]
-);
-
-export const appointment = pgTable(
-  "Appointment",
-  {
-    id: text().primaryKey().notNull(),
-    appointmentTypeId: text().notNull(),
-    memberId: text().notNull(),
-    organizationId: text().notNull(),
-    customerName: text().notNull(),
-    customerEmail: text().notNull(),
-    customerPhone: text(),
-    date: text().notNull(),
-    startTime: text().notNull(),
-    endTime: text().notNull(),
-    status: text().notNull(),
-    createdAt: timestamp({ precision: 3, mode: "string", withTimezone: true })
-      .notNull()
-      .defaultNow(),
-    updatedAt: timestamp({ precision: 3, mode: "string", withTimezone: true })
-      .notNull()
-      .defaultNow(),
-  },
-  (table) => [
-    foreignKey({
-      columns: [table.appointmentTypeId],
-      foreignColumns: [appointmentType.id],
-      name: "Appointment_appointmentTypeId_fkey",
-    })
-      .onUpdate("cascade")
-      .onDelete("cascade"),
-    foreignKey({
-      columns: [table.memberId],
-      foreignColumns: [member.id],
-      name: "Appointment_memberId_fkey",
-    })
-      .onUpdate("cascade")
-      .onDelete("cascade"),
-    foreignKey({
-      columns: [table.organizationId],
-      foreignColumns: [organization.id],
-      name: "Appointment_organizationId_fkey",
-    })
-      .onUpdate("cascade")
-      .onDelete("cascade"),
-    index("Appointment_memberId_date_idx").using(
-      "btree",
-      table.memberId.asc(),
-      table.date.asc()
-    ),
-    index("Appointment_organizationId_date_idx").using(
-      "btree",
-      table.organizationId.asc(),
-      table.date.asc()
-    ),
-    index("Appointment_status_idx").using("btree", table.status.asc()),
-  ]
-);
-
-export const baseScheduleRelations = relations(baseSchedule, ({ one }) => ({
-  member: one(member, {
-    fields: [baseSchedule.memberId],
-    references: [member.id],
-  }),
-}));
-
-export const employeeAvailabilityRelations = relations(
-  employeeAvailability,
+export const weeklyScheduleTemplateRelations = relations(
+  weeklyScheduleTemplate,
   ({ one }) => ({
     member: one(member, {
-      fields: [employeeAvailability.memberId],
+      fields: [weeklyScheduleTemplate.memberId],
       references: [member.id],
     }),
   })
 );
 
-export const appointmentTypeRelations = relations(appointmentType, ({ one, many }) => ({
+export const dailyAvailability = pgTable(
+  "DailyAvailability",
+  {
+    id: text()
+      .primaryKey()
+      .notNull()
+      .default(sql`gen_random_uuid()`),
+    memberId: text().notNull(),
+    date: date().notNull(),
+    timeBlocks: jsonb().$type<Array<TimeBlock>>().notNull().default([]),
+    // Metadata util
+    isWorkingDay: boolean().notNull().default(true),
+    source: text().notNull().default("manual"), // "template" | "custom" | "exception"
+    reason: text(),
+    createdAt: timestamp({ precision: 3, mode: "string", withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp({ precision: 3, mode: "string", withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.memberId],
+      foreignColumns: [member.id],
+      name: "DailyAvailability_memberId_fkey",
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+    index("DailyAvailability_memberId_date_idx").on(table.memberId, table.date),
+    index("DailyAvailability_date_idx").on(table.date),
+    index("DailyAvailability_unique_member_date").on(
+      table.memberId,
+      table.date
+    ),
+  ]
+);
+
+export const dailyAvailabilityRelations = relations(dailyAvailability, ({ one }) => ({
   member: one(member, {
-    fields: [appointmentType.memberId],
+    fields: [dailyAvailability.memberId],
     references: [member.id],
   }),
-  appointments: many(appointment),
 }));
 
-export const appointmentRelations = relations(appointment, ({ one }) => ({
-  appointmentType: one(appointmentType, {
-    fields: [appointment.appointmentTypeId],
-    references: [appointmentType.id],
-  }),
-  member: one(member, {
-    fields: [appointment.memberId],
-    references: [member.id],
-  }),
-  organization: one(organization, {
-    fields: [appointment.organizationId],
-    references: [organization.id],
-  }),
-}));
+
+export const scheduleGenerationLog = pgTable(
+  "ScheduleGenerationLog",
+  {
+    id: text()
+      .primaryKey()
+      .notNull()
+      .default(sql`gen_random_uuid()`),
+    memberId: text().notNull(),
+    generatedFrom: date().notNull(),
+    generatedUntil: date().notNull(),
+    createdAt: timestamp({ precision: 3, mode: "string", withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp({ precision: 3, mode: "string", withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.memberId],
+      foreignColumns: [member.id],
+      name: "ScheduleGenerationLog_memberId_fkey",
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+    index("ScheduleGenerationLog_memberId_idx").on(table.memberId),
+  ]
+);
+
+export const scheduleGenerationLogRelations = relations(
+  scheduleGenerationLog,
+  ({ one }) => ({
+    member: one(member, {
+      fields: [scheduleGenerationLog.memberId],
+      references: [member.id],
+    }),
+  })
+);

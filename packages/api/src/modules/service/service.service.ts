@@ -47,7 +47,6 @@ export class ServiceService {
     const [newService] = await db
       .insert(service)
       .values({
-        id: crypto.randomUUID(),
         name: input.name,
         serviceCategoryId: input.serviceCategoryId || null,
         description: input.description || null,
