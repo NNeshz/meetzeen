@@ -77,6 +77,10 @@ export class InvitationsService {
       .values(newInvitation)
       .returning();
 
+    if (!insertedInvitation) {
+      throw new Error("Error al crear la invitación");
+    }
+
     const company = await db
       .select()
       .from(organization)
@@ -163,6 +167,9 @@ export class InvitationsService {
       };
 
       const [insertedUser] = await db.insert(user).values(newUser).returning();
+      if (!insertedUser) {
+        throw new Error("Error al crear el usuario");
+      }
       userId = insertedUser.id;
     }
 
@@ -209,6 +216,10 @@ export class InvitationsService {
       .insert(member)
       .values(newMember)
       .returning();
+
+    if (!insertedMember) {
+      throw new Error("Error al crear el miembro");
+    }
 
     // Obtener información de la organización
     const org = await db
