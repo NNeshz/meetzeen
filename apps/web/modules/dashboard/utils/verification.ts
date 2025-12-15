@@ -8,6 +8,9 @@ export async function getSessionFromBackend() {
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
   
   try {
+
+    console.log("Cookie header in verification.ts:", cookieHeader);
+
     const response = await fetch(`${backendUrl}/api/auth/get-session`, {
       method: "GET",
       headers: {
