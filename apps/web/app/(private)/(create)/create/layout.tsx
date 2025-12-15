@@ -15,6 +15,7 @@ export default async function CreateLayout({
   const session = await getSessionFromBackend();
 
   if (!session || !session.user) {
+    console.log("No session or user found");
     redirect("/");
   }
 
