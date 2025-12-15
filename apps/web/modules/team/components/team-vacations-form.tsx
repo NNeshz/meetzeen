@@ -31,8 +31,8 @@ import { DateRange } from "react-day-picker";
 
 const vacationsSchema = z.object({
   dateRange: z.object({
-    from: z.date({ required_error: "Selecciona la fecha de inicio" }),
-    to: z.date().optional(),
+    from: z.date({ error: "Selecciona la fecha de inicio" }),
+    to: z.date({ error: "Selecciona la fecha de fin" }).optional(),
   }).refine((data) => {
     if (data.to && data.from) {
       return data.to >= data.from;

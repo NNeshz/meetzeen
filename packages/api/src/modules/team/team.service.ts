@@ -236,7 +236,11 @@ export class TeamService {
 
       case "para-siempre": {
         // Obtener el día de la semana
-        const [year, month, day] = date.split("-").map(Number);
+        const dateParts = date.split("-").map(Number);
+        if (dateParts.length < 3 || dateParts[0] === undefined || dateParts[1] === undefined || dateParts[2] === undefined) {
+          throw new Error("Formato de fecha inválido");
+        }
+        const [year, month, day] = dateParts;
         const dateObj = new Date(year, month - 1, day);
         const dayOfWeek = dateObj.getDay();
 
@@ -259,7 +263,11 @@ export class TeamService {
   // Helper para calcular fechas de repetición
   private calculateRepeatDates(startDate: string, count: number): string[] {
     const dates: string[] = [];
-    const [year, month, day] = startDate.split("-").map(Number);
+    const dateParts = startDate.split("-").map(Number);
+    if (dateParts.length < 3 || dateParts[0] === undefined || dateParts[1] === undefined || dateParts[2] === undefined) {
+      throw new Error("Formato de fecha inválido");
+    }
+    const [year, month, day] = dateParts;
     const baseDate = new Date(year, month - 1, day, 12, 0, 0);
 
     for (let i = 0; i < count; i++) {
@@ -407,7 +415,11 @@ export class TeamService {
 
     // Calcular las fechas de repetición (cada 7 días)
     const dates: string[] = [];
-    const [year, month, day] = startDate.split("-").map(Number);
+    const dateParts = startDate.split("-").map(Number);
+    if (dateParts.length < 3 || dateParts[0] === undefined || dateParts[1] === undefined || dateParts[2] === undefined) {
+      throw new Error("Formato de fecha inválido");
+    }
+    const [year, month, day] = dateParts;
     const baseDate = new Date(year, month - 1, day, 12, 0, 0);
 
     for (let i = 0; i < repeatCount; i++) {
@@ -464,7 +476,11 @@ export class TeamService {
         )
       );
 
-    const [year, month, day] = date.split("-").map(Number);
+    const dateParts = date.split("-").map(Number);
+    if (dateParts.length < 3 || dateParts[0] === undefined || dateParts[1] === undefined || dateParts[2] === undefined) {
+      throw new Error("Formato de fecha inválido");
+    }
+    const [year, month, day] = dateParts;
     const dateObj = new Date(year, month - 1, day);
     const dayOfWeek = dateObj.getDay();
 
@@ -497,7 +513,11 @@ export class TeamService {
     const memberRecord = await this.getMember(userId, organizationId);
 
     // Obtener el día de la semana de la fecha proporcionada
-    const [year, month, day] = date.split("-").map(Number);
+    const dateParts = date.split("-").map(Number);
+    if (dateParts.length < 3 || dateParts[0] === undefined || dateParts[1] === undefined || dateParts[2] === undefined) {
+      throw new Error("Formato de fecha inválido");
+    }
+    const [year, month, day] = dateParts;
     const dateObj = new Date(year, month - 1, day);
     const dayOfWeek = dateObj.getDay();
 
@@ -542,7 +562,11 @@ export class TeamService {
 
     // Filtrar las disponibilidades que corresponden al mismo día de la semana
     const availabilitiesToUpdate = allAvailabilities.filter((avail) => {
-      const [y, m, d] = avail.date.split("-").map(Number);
+      const dateParts = avail.date.split("-").map(Number);
+      if (dateParts.length < 3 || dateParts[0] === undefined || dateParts[1] === undefined || dateParts[2] === undefined) {
+        return false;
+      }
+      const [y, m, d] = dateParts;
       const availDate = new Date(y, m - 1, d, 12, 0, 0);
       return availDate.getDay() === dayOfWeek;
     });
@@ -639,8 +663,16 @@ export class TeamService {
     if (!timeBlocks || timeBlocks.length === 0) return;
 
     for (const block of timeBlocks) {
-      const [sh, sm] = block.startTime.split(":").map(Number);
-      const [eh, em] = block.endTime.split(":").map(Number);
+      const startParts = block.startTime.split(":").map(Number);
+      const endParts = block.endTime.split(":").map(Number);
+      if (startParts.length < 2 || startParts[0] === undefined || startParts[1] === undefined) {
+        throw new Error(`Formato de hora de inicio inválido: ${block.startTime}`);
+      }
+      if (endParts.length < 2 || endParts[0] === undefined || endParts[1] === undefined) {
+        throw new Error(`Formato de hora de fin inválido: ${block.endTime}`);
+      }
+      const [sh, sm] = startParts;
+      const [eh, em] = endParts;
       if (sh * 60 + sm >= eh * 60 + em) {
         throw new Error(
           `Tiempos invalidos ${block.startTime} - ${block.endTime}`
@@ -650,21 +682,43 @@ export class TeamService {
 
     // Revisar sobreposiciones
     for (let i = 0; i < timeBlocks.length; i++) {
-      const [s1h, s1m] = timeBlocks[i].startTime.split(":").map(Number);
-      const [e1h, e1m] = timeBlocks[i].endTime.split(":").map(Number);
+      const block1 = timeBlocks[i];
+      if (!block1) continue;
+      
+      const startParts1 = block1.startTime.split(":").map(Number);
+      const endParts1 = block1.endTime.split(":").map(Number);
+      if (startParts1.length < 2 || startParts1[0] === undefined || startParts1[1] === undefined) {
+        throw new Error(`Formato de hora de inicio inválido: ${block1.startTime}`);
+      }
+      if (endParts1.length < 2 || endParts1[0] === undefined || endParts1[1] === undefined) {
+        throw new Error(`Formato de hora de fin inválido: ${block1.endTime}`);
+      }
+      const [s1h, s1m] = startParts1;
+      const [e1h, e1m] = endParts1;
 
       const start1 = s1h * 60 + s1m;
       const end1 = e1h * 60 + e1m;
 
       for (let j = i + 1; j < timeBlocks.length; j++) {
-        const [s2h, s2m] = timeBlocks[j].startTime.split(":").map(Number);
-        const [e2h, e2m] = timeBlocks[j].endTime.split(":").map(Number);
+        const block2 = timeBlocks[j];
+        if (!block2) continue;
+        
+        const startParts2 = block2.startTime.split(":").map(Number);
+        const endParts2 = block2.endTime.split(":").map(Number);
+        if (startParts2.length < 2 || startParts2[0] === undefined || startParts2[1] === undefined) {
+          throw new Error(`Formato de hora de inicio inválido: ${block2.startTime}`);
+        }
+        if (endParts2.length < 2 || endParts2[0] === undefined || endParts2[1] === undefined) {
+          throw new Error(`Formato de hora de fin inválido: ${block2.endTime}`);
+        }
+        const [s2h, s2m] = startParts2;
+        const [e2h, e2m] = endParts2;
         const start2 = s2h * 60 + s2m;
         const end2 = e2h * 60 + e2m;
 
         if (start1 < end2 && end1 < start2) {
           throw new Error(
-            `Tiempos invalidos ${timeBlocks[i].startTime} - ${timeBlocks[i].endTime}`
+            `Tiempos invalidos ${block1.startTime} - ${block1.endTime}`
           );
         }
       }
@@ -700,7 +754,11 @@ export class TeamService {
     if (log) {
       // Parsear fechas para comparar
       const parseDate = (dateStr: string): Date => {
-        const [year, month, day] = dateStr.split("-").map(Number);
+        const dateParts = dateStr.split("-").map(Number);
+        if (dateParts.length < 3 || dateParts[0] === undefined || dateParts[1] === undefined || dateParts[2] === undefined) {
+          throw new Error("Formato de fecha inválido");
+        }
+        const [year, month, day] = dateParts;
         return new Date(year, month - 1, day, 12, 0, 0);
       };
 
@@ -757,7 +815,11 @@ export class TeamService {
     for (const date of dates) {
       // Calcular el día de la semana usando la zona horaria especificada
       // Formato esperado: "YYYY-MM-DD"
-      const [year, month, day] = date.split("-").map(Number);
+      const dateParts = date.split("-").map(Number);
+      if (dateParts.length < 3 || dateParts[0] === undefined || dateParts[1] === undefined || dateParts[2] === undefined) {
+        continue;
+      }
+      const [year, month, day] = dateParts;
 
       // Crear una fecha en UTC (mediodía para evitar problemas de cambio de día)
       const dateInUTC = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
@@ -806,8 +868,16 @@ export class TeamService {
     const dates: string[] = [];
 
     // Parsear fechas manualmente para evitar problemas de zona horaria
-    const [startYear, startMonth, startDay] = start.split("-").map(Number);
-    const [endYear, endMonth, endDay] = end.split("-").map(Number);
+    const startParts = start.split("-").map(Number);
+    const endParts = end.split("-").map(Number);
+    if (startParts.length < 3 || startParts[0] === undefined || startParts[1] === undefined || startParts[2] === undefined) {
+      throw new Error("Formato de fecha de inicio inválido");
+    }
+    if (endParts.length < 3 || endParts[0] === undefined || endParts[1] === undefined || endParts[2] === undefined) {
+      throw new Error("Formato de fecha de fin inválido");
+    }
+    const [startYear, startMonth, startDay] = startParts;
+    const [endYear, endMonth, endDay] = endParts;
 
     // Crear fechas usando componentes locales (mediodía para evitar problemas de DST)
     let current = new Date(startYear, startMonth - 1, startDay, 12, 0, 0);
@@ -826,7 +896,11 @@ export class TeamService {
 
   private addDays(date: string, days: number): string {
     // Parsear fecha manualmente para evitar problemas de zona horaria
-    const [year, month, day] = date.split("-").map(Number);
+    const dateParts = date.split("-").map(Number);
+    if (dateParts.length < 3 || dateParts[0] === undefined || dateParts[1] === undefined || dateParts[2] === undefined) {
+      throw new Error("Formato de fecha inválido");
+    }
+    const [year, month, day] = dateParts;
     const d = new Date(year, month - 1, day, 12, 0, 0);
     d.setDate(d.getDate() + days);
 
@@ -862,7 +936,11 @@ export class TeamService {
 
     // Parsear fechas manualmente para comparaciones correctas
     const parseDate = (dateStr: string): Date => {
-      const [year, month, day] = dateStr.split("-").map(Number);
+      const dateParts = dateStr.split("-").map(Number);
+      if (dateParts.length < 3 || dateParts[0] === undefined || dateParts[1] === undefined || dateParts[2] === undefined) {
+        throw new Error("Formato de fecha inválido");
+      }
+      const [year, month, day] = dateParts;
       return new Date(year, month - 1, day, 12, 0, 0);
     };
 
