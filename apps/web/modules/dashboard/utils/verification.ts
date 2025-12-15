@@ -8,27 +8,23 @@ export async function getSessionFromBackend() {
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
   
   try {
-
-    console.log("Cookie header in verification.ts:", cookieHeader);
-
     const response = await fetch(`${backendUrl}/api/auth/get-session`, {
       method: "GET",
       headers: {
         "Cookie": cookieHeader,
+        "Content-Type": "application/json",
       },
+      credentials: "include",
       cache: "no-store",
     });
-
-    console.log("Response in verification.ts:", response);
-    console.log("Backend URL:", backendUrl);
-
+    
     if (!response.ok) {
       return null;
     }
 
     const data = await response.json();
     return data;
-  } catch (error) {
+  } catch {
     return null;
   }
 }
@@ -45,7 +41,9 @@ export async function getOrganizationsFromBackend() {
       method: "GET",
       headers: {
         "Cookie": cookieHeader,
+        "Content-Type": "application/json",
       },
+      credentials: "include",
       cache: "no-store",
     });
 
@@ -55,7 +53,7 @@ export async function getOrganizationsFromBackend() {
 
     const data = await response.json();
     return Array.isArray(data) ? data : [];
-  } catch (error) {
+  } catch {
     return [];
   }
 }

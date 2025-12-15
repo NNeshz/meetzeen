@@ -47,10 +47,19 @@ export const auth = betterAuth({
   advanced: {
     crossSubDomainCookies: {
       enabled: true,
-      domains: [
-        process.env.NEXT_PUBLIC_FRONTEND_WWW as string,
-        process.env.NEXT_PUBLIC_FRONTEND_URL as string,
-      ],
+      domain: ".meetzeen.com",
+    },
+    cookies: {
+      sessionToken: {
+        name: "better-auth.session_token",
+        options: {
+          httpOnly: true,
+          sameSite: "lax",
+          path: "/",
+          secure: process.env.NODE_ENV === "production",
+          domain: process.env.NODE_ENV === "production" ? ".meetzeen.com" : undefined,
+        },
+      },
     },
   },
   plugins: [
