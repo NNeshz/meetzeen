@@ -1,7 +1,16 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { openAPI, organization, magicLink } from "better-auth/plugins";
-import { db, user, session, account, verification, organization as org, member, invitation } from "@meetzeen/database";
+import {
+  db,
+  user,
+  session,
+  account,
+  verification,
+  organization as org,
+  member,
+  invitation,
+} from "@meetzeen/database";
 import { sendVerificationEmail } from "@meetzeen/auth/email";
 
 export const auth = betterAuth({
@@ -32,12 +41,16 @@ export const auth = betterAuth({
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-      scope: ["email", "profile", "openid"]
-    }
+      scope: ["email", "profile", "openid"],
+    },
   },
   advanced: {
     crossSubDomainCookies: {
       enabled: true,
+      domains: [
+        process.env.NEXT_PUBLIC_FRONTEND_WWW as string,
+        process.env.NEXT_PUBLIC_FRONTEND_URL as string,
+      ],
     },
   },
   plugins: [
@@ -50,5 +63,5 @@ export const auth = betterAuth({
         await sendVerificationEmail(email, token);
       },
     }),
-  ]
+  ],
 });
