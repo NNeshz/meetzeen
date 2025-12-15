@@ -5,7 +5,7 @@ export async function getSessionFromBackend() {
   const allCookies = cookieStore.getAll();
   const cookieHeader = allCookies.map(c => `${c.name}=${c.value}`).join("; ");
 
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
   
   try {
     const response = await fetch(`${backendUrl}/api/auth/get-session`, {
@@ -15,6 +15,9 @@ export async function getSessionFromBackend() {
       },
       cache: "no-store",
     });
+
+    console.log("Response in verification.ts:", response);
+    console.log("Backend URL:", backendUrl);
 
     if (!response.ok) {
       return null;
@@ -32,7 +35,7 @@ export async function getOrganizationsFromBackend() {
   const allCookies = cookieStore.getAll();
   const cookieHeader = allCookies.map(c => `${c.name}=${c.value}`).join("; ");
 
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
   
   try {
     const response = await fetch(`${backendUrl}/api/auth/organization/list`, {

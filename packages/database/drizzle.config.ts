@@ -5,7 +5,9 @@ export default defineConfig({
   out: "./drizzle",
   dialect: "postgresql",
   dbCredentials: {
-    url: process.env.DATABASE_URL!,
+    // Para migraciones, usar DIRECT_URL si está disponible (requerido para operaciones DDL)
+    // Pgbouncer (puerto 6543) no soporta CREATE SCHEMA y otras operaciones DDL
+    url: process.env.DIRECT_URL || process.env.DATABASE_URL!,
   },
 });
 
