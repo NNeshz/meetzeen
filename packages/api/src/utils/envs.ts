@@ -9,6 +9,7 @@ const envSchema = t.Object({
   DATABASE_URL: t.String(),
   NEXT_PUBLIC_BACKEND_URL: t.String(),
   NEXT_PUBLIC_FRONTEND_URL: t.String(),
+  NEXT_PUBLIC_FRONTEND_WWW: t.String(),
   GOOGLE_CLIENT_ID: t.String(),
   GOOGLE_CLIENT_SECRET: t.String(),
 });
@@ -44,6 +45,7 @@ declare global {
       DIRECT_URL: string;
       NEXT_PUBLIC_BACKEND_URL: string;
       NEXT_PUBLIC_FRONTEND_URL: string;
+      NEXT_PUBLIC_FRONTEND_WWW: string;
       GOOGLE_CLIENT_ID: string;
       GOOGLE_CLIENT_SECRET: string;
       S3_ACCESS_KEY: string;
