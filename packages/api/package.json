@@ -8,8 +8,8 @@
   },
   "dependencies": {
     "@meetzeen/database": "*",
-    "elysia": "latest",
-    "@sinclair/typebox": "^0.34.14"
+    "elysia": "*",
+    "@sinclair/typebox": "^0.34.41"
   },
   "devDependencies": {
     "bun-types": "latest"
