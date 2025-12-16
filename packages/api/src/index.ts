@@ -11,6 +11,7 @@ import { teamRoutes } from "@meetzeen/api/src/modules/team/team.routes";
 export const api = new Elysia({
   prefix: "/api",
 })
+  .use(betterAuthPlugin)
   .use(
     cors({
       origin: [
@@ -23,7 +24,6 @@ export const api = new Elysia({
       allowedHeaders: ["Authorization", "Content-Type", "Cookie", "Set-Cookie"],
     })
   )
-  .use(betterAuthPlugin)
   .use(companyRoutes)
   .use(serviceCategoryRoutes)
   .use(serviceRoutes)
