@@ -20,8 +20,7 @@ export const api = new Elysia({
       ],
       methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
       credentials: true,
-      allowedHeaders: ["Authorization", "Content-Type", "Cookie"],
-      exposeHeaders: ["Set-Cookie"],
+      allowedHeaders: ["Authorization", "Content-Type", "Cookie", "Set-Cookie"],
     })
   )
   .use(betterAuthPlugin)
