@@ -12,6 +12,29 @@ export const useAllCompanies = () => {
   return { data, isLoading, error };
 };
 
+export const useCompanyBySlug = (slug: string) => {
+  const {
+    data: companyData,
+    isLoading: isGettingCompany,
+    error: errorGettingCompany,
+  } = useQuery({
+    queryKey: ["company", "slug", slug],
+    queryFn: () => {
+      if (!slug) {
+        throw new Error("Slug is required");
+      }
+      return companyService.getCompanyBySlug(slug);
+    },
+    enabled: !!slug,
+  });
+
+  return {
+    companyData,
+    isGettingCompany,
+    errorGettingCompany,
+  };
+};
+
 export const useCompany = () => {
   const organizationId = useDashboardStore((state) => state.organization?.id);
   const queryClient = useQueryClient();
@@ -44,7 +67,11 @@ export const useCompany = () => {
     },
   });
 
-  const { mutate: uploadLogo, mutateAsync: uploadLogoAsync, isPending: isUploadingLogo } = useMutation({
+  const {
+    mutate: uploadLogo,
+    mutateAsync: uploadLogoAsync,
+    isPending: isUploadingLogo,
+  } = useMutation({
     mutationFn: (file: File) =>
       companyService.uploadLogo(file, organizationId || ""),
     onSuccess: () => {

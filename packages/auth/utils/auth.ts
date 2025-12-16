@@ -28,7 +28,7 @@ export const auth = betterAuth({
     },
   }),
   secret: process.env.AUTH_SECRET,
-  baseURL: process.env.NEXT_PUBLIC_BACKEND_URL,
+  baseURL: `${process.env.NEXT_PUBLIC_BACKEND_URL}`,
   trustedOrigins: [
     process.env.NEXT_PUBLIC_FRONTEND_URL as string,
     process.env.NEXT_PUBLIC_FRONTEND_WWW as string,
@@ -41,32 +41,12 @@ export const auth = betterAuth({
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-      scope: ["email", "profile", "openid"],
     },
   },
   advanced: {
     crossSubDomainCookies: {
       enabled: true,
       domain: ".meetzeen.com",
-    },
-    cookies: {
-      sessionToken: {
-        name: "better-auth.session_token",
-        attributes: {
-          httpOnly: true,
-          sameSite: "lax",
-          path: "/",
-          secure: true,
-          domain: ".meetzeen.com",
-        },
-      },
-      state: {
-        attributes: {
-          sameSite: "none",
-          secure: true,
-          domain: ".meetzeen.com",
-        }
-      }
     },
   },
   plugins: [

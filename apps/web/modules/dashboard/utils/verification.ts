@@ -9,8 +9,6 @@ export async function getSessionFromBackend() {
   
   try {
 
-    console.log("Cookie header in verification.ts:", cookieHeader);
-
     const response = await fetch(`${backendUrl}/api/auth/get-session`, {
       method: "GET",
       headers: {

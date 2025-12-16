@@ -49,6 +49,17 @@ export const companyRoutes = new Elysia({
       }),
     },
   )
+  .get(
+    "/getCompanyBySlug",
+    ({ companyService, query }) => {
+      return companyService.getCompanyBySlug(query.slug);
+    },
+    {
+      query: t.Object({
+        slug: t.String(),
+      }),
+    }
+  )
   .post(
     "/uploadLogo",
     ({ companyService, body }) => {

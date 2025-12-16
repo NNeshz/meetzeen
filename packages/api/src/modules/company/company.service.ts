@@ -108,6 +108,16 @@ export class CompanyService {
     return company;
   }
 
+  async getCompanyBySlug(slug: string) {
+    const [company] = await db
+      .select()
+      .from(organization)
+      .where(eq(organization.slug, slug))
+      .limit(1);
+
+    return company;
+  }
+
   async uploadLogo(file: File, organizationId: string) {
     const [org] = await db
       .select({ logo: organization.logo })

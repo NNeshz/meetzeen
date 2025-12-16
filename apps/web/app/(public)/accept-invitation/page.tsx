@@ -2,34 +2,64 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useVerifyInvitation, useAcceptInvitation } from "@/modules/invitations/hooks/use-invitations";
+import {
+  useVerifyInvitation,
+  useAcceptInvitation,
+} from "@/modules/invitations/hooks/use-invitations";
 import { Button } from "@meetzeen/ui/components/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@meetzeen/ui/components/card";
-import { Alert, AlertDescription, AlertTitle } from "@meetzeen/ui/components/alert";
-import { Loader2, CheckCircle2, XCircle, Mail, Building2, User } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@meetzeen/ui/components/card";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@meetzeen/ui/components/alert";
+import {
+  Loader2,
+  CheckCircle2,
+  XCircle,
+  Mail,
+  Building2,
+  User,
+} from "lucide-react";
 
 export default function AcceptInvitationPage() {
   const router = useRouter();
   const [token, setToken] = useState<string | null>(null);
+  const [isInitializing, setIsInitializing] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Leer el token de la URL sin usar useSearchParams
+  // Leer el token de la URL
   useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const tokenParam = params.get("token");
       setToken(tokenParam);
+      setIsInitializing(false);
+
+      if (!tokenParam) {
+        setError("No se proporcionó un token de invitación");
+      }
     }
   }, []);
 
-  const { data: invitationData, isLoading: isVerifying, error: verifyError } = useVerifyInvitation(token);
-  const { acceptInvitation, isPending: isAccepting, isSuccess: isAccepted } = useAcceptInvitation();
+  const {
+    data: invitationData,
+    isLoading: isVerifying,
+    error: verifyError,
+  } = useVerifyInvitation(token);
 
-  useEffect(() => {
-    if (!token) {
-      setError("No se proporcionó un token de invitación");
-    }
-  }, [token]);
+  const {
+    acceptInvitation,
+    isPending: isAccepting,
+    isSuccess: isAccepted,
+  } = useAcceptInvitation();
 
   const handleAccept = () => {
     if (!token) return;
@@ -47,6 +77,23 @@ export default function AcceptInvitationPage() {
     });
   };
 
+  // Mostrar loader mientras se inicializa
+  if (isInitializing) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center justify-center gap-4 py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <p className="text-muted-foreground">Cargando...</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Error: No hay token
   if (!token) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
@@ -61,7 +108,8 @@ export default function AcceptInvitationPage() {
             <Alert variant="destructive">
               <AlertTitle>Token no encontrado</AlertTitle>
               <AlertDescription>
-                No se proporcionó un token de invitación válido. Por favor, verifica el enlace que recibiste por correo.
+                No se proporcionó un token de invitación válido. Por favor,
+                verifica el enlace que recibiste por correo.
               </AlertDescription>
             </Alert>
           </CardContent>
@@ -70,6 +118,7 @@ export default function AcceptInvitationPage() {
     );
   }
 
+  // Verificando invitación
   if (isVerifying) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
@@ -85,10 +134,12 @@ export default function AcceptInvitationPage() {
     );
   }
 
+  // Error al verificar
   if (verifyError || !invitationData) {
-    const errorMessage = verifyError instanceof Error 
-      ? verifyError.message 
-      : "Error al verificar la invitación";
+    const errorMessage =
+      verifyError instanceof Error
+        ? verifyError.message
+        : "Error al verificar la invitación";
 
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
@@ -110,6 +161,7 @@ export default function AcceptInvitationPage() {
     );
   }
 
+  // Invitación inválida
   if (!invitationData.valid) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
@@ -125,7 +177,8 @@ export default function AcceptInvitationPage() {
             <Alert variant="destructive">
               <AlertTitle>Esta invitación no está disponible</AlertTitle>
               <AlertDescription>
-                {invitationData.message || "La invitación ha expirado o ya fue utilizada."}
+                {invitationData.message ||
+                  "La invitación ha expirado o ya fue utilizada."}
               </AlertDescription>
             </Alert>
           </CardContent>
@@ -134,6 +187,7 @@ export default function AcceptInvitationPage() {
     );
   }
 
+  // Invitación aceptada exitosamente
   if (isAccepted) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
@@ -150,8 +204,9 @@ export default function AcceptInvitationPage() {
               <CheckCircle2 className="h-4 w-4" />
               <AlertTitle>¡Bienvenido!</AlertTitle>
               <AlertDescription>
-                Has sido agregado exitosamente a {invitationData.organization?.name || "la organización"}.
-                Serás redirigido al dashboard en breve.
+                Has sido agregado exitosamente a{" "}
+                {invitationData.organization?.name || "la organización"}. Serás
+                redirigido al dashboard en breve.
               </AlertDescription>
             </Alert>
           </CardContent>
@@ -160,10 +215,11 @@ export default function AcceptInvitationPage() {
     );
   }
 
+  // Vista principal: Mostrar detalles de la invitación
   const { invitation, organization, inviter } = invitationData;
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-linear-to-br from-background to-muted/20">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background to-muted/20">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Invitación a unirte</CardTitle>
