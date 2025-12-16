@@ -11,19 +11,15 @@ import { teamRoutes } from "@meetzeen/api/src/modules/team/team.routes";
 export const api = new Elysia({
   prefix: "/api",
 })
-  .use(betterAuthPlugin)
   .use(
     cors({
-      origin: [
-        process.env.NEXT_PUBLIC_FRONTEND_URL,
-        process.env.NEXT_PUBLIC_FRONTEND_WWW,
-        process.env.NEXT_PUBLIC_BACKEND_URL,
-      ],
+      origin: process.env.NEXT_PUBLIC_FRONTEND_URL,
       methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
       credentials: true,
-      allowedHeaders: ["Authorization", "Content-Type", "Cookie", "Set-Cookie"],
+      allowedHeaders: ["Authorization", "Content-Type"],
     })
   )
+  .use(betterAuthPlugin)
   .use(companyRoutes)
   .use(serviceCategoryRoutes)
   .use(serviceRoutes)
