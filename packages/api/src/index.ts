@@ -13,10 +13,14 @@ export const api = new Elysia({
 })
   .use(
     cors({
-      origin: process.env.NEXT_PUBLIC_FRONTEND_URL,
+      origin: [
+        process.env.NEXT_PUBLIC_FRONTEND_URL,
+        process.env.NEXT_PUBLIC_FRONTEND_WWW,
+        process.env.NEXT_PUBLIC_BACKEND_URL,
+      ],
       methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
       credentials: true,
-      allowedHeaders: ["Authorization", "Content-Type"],
+      allowedHeaders: ["Authorization", "Content-Type"]
     })
   )
   .use(betterAuthPlugin)
