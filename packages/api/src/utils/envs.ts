@@ -40,12 +40,14 @@ declare global {
   namespace NodeJS {
     interface ProcessEnv {
       [key: string]: string | undefined;
+      NODE_ENV: string;
       AUTH_SECRET: string;
       DATABASE_URL: string;
       DIRECT_URL: string;
       NEXT_PUBLIC_BACKEND_URL: string;
       NEXT_PUBLIC_FRONTEND_URL: string;
       NEXT_PUBLIC_FRONTEND_WWW: string;
+      NEXT_PUBLIC_MEETZEEN: string;
       GOOGLE_CLIENT_ID: string;
       GOOGLE_CLIENT_SECRET: string;
       S3_ACCESS_KEY: string;

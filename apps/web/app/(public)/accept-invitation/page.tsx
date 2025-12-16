@@ -165,7 +165,7 @@ export default function AcceptInvitationPage() {
   if (!invitationData.valid) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
+        <Card className="w-full max-w-md rounded-none">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <XCircle className="h-5 w-5 text-destructive" />
@@ -173,7 +173,7 @@ export default function AcceptInvitationPage() {
             </CardTitle>
             <CardDescription>{invitationData.message}</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="rounded-none">
             <Alert variant="destructive">
               <AlertTitle>Esta invitación no está disponible</AlertTitle>
               <AlertDescription>
