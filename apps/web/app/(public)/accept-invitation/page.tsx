@@ -219,7 +219,7 @@ export default function AcceptInvitationPage() {
   const { invitation, organization, inviter } = invitationData;
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background to-muted/20">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-linear-to-b from-background to-muted/20">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Invitación a unirte</CardTitle>

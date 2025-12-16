@@ -46,7 +46,9 @@ export const auth = betterAuth({
   advanced: {
     crossSubDomainCookies: {
       enabled: true,
-      domain: ".meetzeen.com",
+      // IMPORTANTE: Esto se usa en producción para que las cookies se compartan entre los subdominios
+      // En desarrollo, se puede omitir este campo
+      // domain: ".meetzeen.com"
     },
   },
   plugins: [

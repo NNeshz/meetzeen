@@ -1,7 +1,7 @@
 import { auth } from "@meetzeen/auth";
 import { FilesService } from "@meetzeen/api/src/modules/buckets/buckets.service";
 
-import { db, organization, member, user } from "@meetzeen/database";
+import { db, organization, member, user, service } from "@meetzeen/database";
 import { eq } from "drizzle-orm";
 
 export class CompanyService {
@@ -115,6 +115,15 @@ export class CompanyService {
       .where(eq(organization.slug, slug))
       .limit(1);
 
+    if (!company) {
+      throw new Error("Company not found");
+    }
+
+    const services = await db
+      .select()
+      .from(service)
+      .where(eq(service.organizationId, company.id));
+
     return company;
   }
 
@@ -149,14 +158,14 @@ export class CompanyService {
       throw new Error("Failed to upload logo");
     }
     const { publicUrl, s3Key } = result;
-    
+
     // Save the public URL to database - this URL will be accessible without authentication
     const [updatedOrganization] = await db
       .update(organization)
       .set({ logo: publicUrl })
       .where(eq(organization.id, organizationId))
       .returning();
-    
+
     return { publicUrl, s3Key, organization: updatedOrganization };
   }
 
