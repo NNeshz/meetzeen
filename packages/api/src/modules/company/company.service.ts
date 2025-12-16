@@ -120,11 +120,21 @@ export class CompanyService {
     }
 
     const services = await db
-      .select()
+      .select({
+        id: service.id,
+        name: service.name,
+        description: service.description,
+        price: service.price,
+        duration: service.duration,
+        discount: service.discount,
+      })
       .from(service)
       .where(eq(service.organizationId, company.id));
 
-    return company;
+    return {
+      company,
+      services,
+    };
   }
 
   async uploadLogo(file: File, organizationId: string) {
