@@ -2,10 +2,8 @@
 
 import { useCompanyBySlug } from "@/modules/company/hooks/use-company";
 import Image from "next/image";
-import { Button } from "@meetzeen/ui/components/button";
-import { IconShare3 } from "@tabler/icons-react";
 import { CompanyInformation } from "@/modules/company/components/slug/company-information";
-import { toast } from "sonner";
+import { CompanyServicesResume } from "@/modules/company/components/slug/company-services-resume";
 
 function getInitials(name: string | undefined): string {
   if (!name) return "";
@@ -45,37 +43,19 @@ export function CompanyHeader({ slug }: { slug: string }) {
     );
   }
 
-  const hasLogo = companyData?.logo && companyData.logo.trim() !== "";
-  const initials = getInitials(companyData?.name);
-
-  const shareUrl = typeof window !== "undefined" ? window.location.href : "";
-  const shareText = companyData?.name
-    ? `Agenda tu cita en ${companyData.name}:\n${shareUrl}`
-    : `Agenda tu cita aquí:\n${shareUrl}`;
-
-  const handleShareCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(shareText);
-      toast.success("URL copiada al portapapeles correctamente", {
-        position: "top-center",
-      });
-    } catch (err) {
-      toast.error("Error al copiar la URL al portapapeles", {
-        position: "top-center",
-      });
-    }
-  };
+  const hasLogo = companyData?.company?.logo && companyData.company.logo.trim() !== "";
+  const initials = getInitials(companyData?.company?.name);
 
   return (
     <div className="flex flex-col items-center justify-center px-4 py-8 overflow-hidden">
       <div className="w-full max-w-2xl flex flex-col items-center space-y-6">
         {/* Logo or Initials Avatar */}
         <div className="flex items-center justify-center">
-          {hasLogo && companyData?.logo ? (
+          {hasLogo && companyData?.company?.logo ? (
             <div className="relative w-24 h-24 lg:w-32 lg:h-32">
               <Image
-                src={companyData.logo}
-                alt={companyData?.name || "Company logo"}
+                src={companyData.company.logo}
+                alt={companyData?.company?.name || "Company logo"}
                 fill
                 className="object-cover"
                 sizes="128px"
@@ -91,24 +71,17 @@ export function CompanyHeader({ slug }: { slug: string }) {
         {/* Company Name */}
         <div className="text-center">
           <h1 className="text-3xl md:text-4xl font-semibold tracking-tighter">
-            {companyData?.name}
+            {companyData?.company?.name}
           </h1>
-          {companyData?.slug && (
-            <p className="text-lg text-muted-foreground">@{companyData.slug}</p>
+          {companyData?.company?.slug && (
+            <p className="text-lg text-muted-foreground">@{companyData.company.slug}</p>
           )}
         </div>
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-          {companyData && <CompanyInformation companyData={companyData} />}
-          <Button
-            variant="outline"
-            className="w-full sm:w-auto"
-            onClick={handleShareCopy}
-          >
-            Compartir
-            <IconShare3 className="ml-2 h-4 w-4" />
-          </Button>
+          {companyData && <CompanyInformation companyData={companyData.company} />}
+          <CompanyServicesResume />
         </div>
       </div>
     </div>

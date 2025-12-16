@@ -8,6 +8,7 @@ import {
   IconBrandInstagram,
   IconBrandWhatsapp,
   IconBrandTiktok,
+  IconShare3,
 } from "@tabler/icons-react";
 import Link from "next/link";
 import {
@@ -17,6 +18,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
+  SheetFooter,
 } from "@meetzeen/ui/components/sheet";
 import {
   Drawer,
@@ -25,9 +27,11 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
+  DrawerFooter,
 } from "@meetzeen/ui/components/drawer";
 import { Button } from "@meetzeen/ui/components/button";
 import { useIsMobile } from "@meetzeen/ui/src/hooks/use-mobile";
+import { toast } from "sonner";
 
 interface CompanyData {
   id: string;
@@ -62,34 +66,36 @@ function isGoogleMapsUrl(url: string | null): boolean {
     const urlObj = new URL(url);
     const hostname = urlObj.hostname.toLowerCase();
     const pathname = urlObj.pathname.toLowerCase();
-    
+
     return (
       (hostname.includes("google.com") || hostname.includes("maps.google")) &&
-      (pathname.includes("/maps") || 
-       urlObj.searchParams.has("q") ||
-       urlObj.searchParams.has("ll") ||
-       url.includes("maps.google.com") ||
-       url.includes("goo.gl/maps") ||
-       url.includes("maps.app.goo.gl"))
+      (pathname.includes("/maps") ||
+        urlObj.searchParams.has("q") ||
+        urlObj.searchParams.has("ll") ||
+        url.includes("maps.google.com") ||
+        url.includes("goo.gl/maps") ||
+        url.includes("maps.app.goo.gl"))
     );
   } catch {
     // Si no es una URL válida, verificar si contiene texto relacionado con Google Maps
-    return url.toLowerCase().includes("maps.google") || 
-           url.toLowerCase().includes("goo.gl/maps");
+    return (
+      url.toLowerCase().includes("maps.google") ||
+      url.toLowerCase().includes("goo.gl/maps")
+    );
   }
 }
 
 function formatWorkdays(workdays: number[] | null): string {
   if (!workdays || workdays.length === 0) return "No especificado";
-  
+
   const sortedDays = [...workdays].sort((a, b) => a - b);
   const dayNames = sortedDays.map((day) => DAYS_OF_WEEK[day]);
-  
+
   if (dayNames.length === 7) return "Todos los días";
   if (dayNames.length === 5 && sortedDays.every((d) => d >= 1 && d <= 5)) {
     return "Lunes a Viernes";
   }
-  
+
   return dayNames.join(", ");
 }
 
@@ -108,7 +114,9 @@ function CompanyInformationContent({
   return (
     <div className="p-4 space-y-4">
       {/* Horarios de trabajo */}
-      {(companyData.workdays || companyData.startTime || companyData.endTime) && (
+      {(companyData.workdays ||
+        companyData.startTime ||
+        companyData.endTime) && (
         <div className="space-y-2">
           <div className="flex items-center gap-2 text-sm font-semibold">
             <IconCalendar className="w-4 h-4" />
@@ -123,7 +131,8 @@ function CompanyInformationContent({
               <div className="flex items-center gap-2">
                 <IconClock className="w-4 h-4 text-muted-foreground" />
                 <span>
-                  {formatTime(companyData.startTime)} - {formatTime(companyData.endTime)}
+                  {formatTime(companyData.startTime)} -{" "}
+                  {formatTime(companyData.endTime)}
                 </span>
               </div>
             )}
@@ -249,6 +258,24 @@ export function CompanyInformation({
 }) {
   const isMobile = useIsMobile();
 
+  const shareUrl = typeof window !== "undefined" ? window.location.href : "";
+  const shareText = companyData?.name
+    ? `Agenda tu cita en ${companyData.name}:\n${shareUrl}`
+    : `Agenda tu cita aquí:\n${shareUrl}`;
+
+  const handleShareCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(shareText);
+      toast.success("URL copiada al portapapeles correctamente", {
+        position: "top-center",
+      });
+    } catch (err) {
+      toast.error("Error al copiar la URL al portapapeles", {
+        position: "top-center",
+      });
+    }
+  };
+
   if (isMobile) {
     return (
       <Drawer>
@@ -263,6 +290,16 @@ export function CompanyInformation({
             </DrawerDescription>
           </DrawerHeader>
           <CompanyInformationContent companyData={companyData} />
+          <DrawerFooter>
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto"
+              onClick={handleShareCopy}
+            >
+              Compartir
+              <IconShare3 className="ml-2 h-4 w-4" />
+            </Button>
+          </DrawerFooter>
         </DrawerContent>
       </Drawer>
     );
@@ -276,11 +313,19 @@ export function CompanyInformation({
       <SheetContent>
         <SheetHeader>
           <SheetTitle>Información de la compañía</SheetTitle>
-          <SheetDescription>
-            Información de {companyData.name}
-          </SheetDescription>
+          <SheetDescription>Información de {companyData.name}</SheetDescription>
         </SheetHeader>
         <CompanyInformationContent companyData={companyData} />
+        <SheetFooter>
+          <Button
+            variant="outline"
+            className="w-full sm:w-auto"
+            onClick={handleShareCopy}
+          >
+            Compartir
+            <IconShare3 className="ml-2 h-4 w-4" />
+          </Button>
+        </SheetFooter>
       </SheetContent>
     </Sheet>
   );

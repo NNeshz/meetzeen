@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { CompanyHeader } from "@/modules/company/components/slug/company-header";
+import { CompanyServices } from "@/modules/company/components/slug/company-services";
+import { CompanyServicesResume } from "@/modules/company/components/slug/company-services-resume";
 
 export default function Page() {
   const params = useParams();
@@ -38,8 +40,9 @@ export default function Page() {
   }
 
   return (
-    <div>
+    <div className="pb-4">
       <CompanyHeader slug={slug} />
+      <CompanyServices slug={slug} />
     </div>
   );
 }
