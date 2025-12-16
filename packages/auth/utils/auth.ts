@@ -47,7 +47,6 @@ export const auth = betterAuth({
   advanced: {
     crossSubDomainCookies: {
       enabled: true,
-      domain: ".meetzeen.com",
     }
   },
   plugins: [
