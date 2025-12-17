@@ -18,7 +18,7 @@ export const columns: ColumnDef<Service>[] = [
     accessorKey: "name",
     header: "Nombre",
     cell: ({ row }) => {
-      return <div className="font-medium">{row.getValue("name")}</div>;
+      return <div className="font-medium min-w-56">{row.getValue("name")}</div>;
     },
   },
   {
@@ -87,7 +87,7 @@ export const columns: ColumnDef<Service>[] = [
     cell: ({ row }) => {
       const date = new Date(row.getValue("createdAt") as string);
       return (
-        <div className="text-sm text-muted-foreground">
+        <div className="text-sm text-muted-foreground min-w-32">
           {date.toLocaleDateString("es-ES", {
             year: "numeric",
             month: "short",

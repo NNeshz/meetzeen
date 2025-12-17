@@ -90,11 +90,11 @@ export function CompanyWorkdays({
     <div className="w-full border border-border">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleUpdate)}>
-          <div className="border-b border-border p-4 flex items-center justify-between">
+          <div className="border-b border-border p-4 sm:p-6">
             <div className="space-y-4 w-full">
               <div>
-                <p className="font-semibold text-lg">Días laborables</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="font-semibold text-base sm:text-lg">Días laborables</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Selecciona los días de la semana en que tu empresa está abierta.
                   Puedes cambiarlos en cualquier momento.
                 </p>
@@ -105,15 +105,34 @@ export function CompanyWorkdays({
                 render={() => (
                   <FormItem>
                     <FormControl>
-                      <ButtonGroup className="w-full max-w-md">
-                        <ButtonGroup className="w-full">
+                      <div className="w-full">
+                        {/* Mobile: Grid layout */}
+                        <div className="grid grid-cols-2 sm:hidden gap-2">
                           {DAYS.map((d) => {
                             const selected = currentWorkdays.includes(d.value);
                             return (
                               <Button
                                 key={d.value}
                                 type="button"
-                                className="flex-1"
+                                className="w-full text-xs"
+                                variant={selected ? "default" : "outline"}
+                                onClick={() => toggleDay(d.value)}
+                                disabled={isUpdatingCompanyWorkdays}
+                              >
+                                <span className="truncate">{d.label}</span>
+                              </Button>
+                            );
+                          })}
+                        </div>
+                        {/* Desktop: ButtonGroup layout */}
+                        <ButtonGroup className="hidden sm:flex w-full max-w-md">
+                          {DAYS.map((d) => {
+                            const selected = currentWorkdays.includes(d.value);
+                            return (
+                              <Button
+                                key={d.value}
+                                type="button"
+                                className="flex-1 text-sm"
                                 variant={selected ? "default" : "outline"}
                                 onClick={() => toggleDay(d.value)}
                                 disabled={isUpdatingCompanyWorkdays}
@@ -123,32 +142,36 @@ export function CompanyWorkdays({
                             );
                           })}
                         </ButtonGroup>
-                      </ButtonGroup>
+                      </div>
                     </FormControl>
                   </FormItem>
                 )}
               />
             </div>
           </div>
-          <div className="p-4 flex items-center justify-between">
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">
+          <div className="p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-1 flex-1">
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Selecciona los días de la semana en que tu empresa está abierta.
               </p>
               {hasErrors && (
                 <div className="space-y-1">
                   {formErrors.workdays && (
-                    <p className="text-sm text-destructive">
+                    <p className="text-xs sm:text-sm text-destructive">
                       {formErrors.workdays.message}
                     </p>
                   )}
                   {mutationError && (
-                    <p className="text-sm text-destructive">{mutationError}</p>
+                    <p className="text-xs sm:text-sm text-destructive">{mutationError}</p>
                   )}
                 </div>
               )}
             </div>
-            <Button type="submit" disabled={isUpdatingCompanyWorkdays}>
+            <Button 
+              type="submit" 
+              disabled={isUpdatingCompanyWorkdays}
+              className="w-full sm:w-auto"
+            >
               {isUpdatingCompanyWorkdays ? "Guardando..." : "Guardar"}
             </Button>
           </div>

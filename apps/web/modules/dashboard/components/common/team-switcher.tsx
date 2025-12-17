@@ -43,7 +43,7 @@ function getInitials(name: string): string {
 
 export function TeamSwitcher() {
   const { data: companies, isLoading } = useAllCompanies()
-  const { isMobile } = useSidebar()
+  const { isMobile, setOpenMobile } = useSidebar()
   const { organization, setOrganization } = useDashboardStore()
 
   React.useEffect(() => {
@@ -82,6 +82,9 @@ export function TeamSwitcher() {
   }
 
   const handleOrganizationChange = (org: { id: string; name: string; logo: string | null; timezone: string }) => {
+    if (isMobile) {
+      setOpenMobile(false)
+    }
     setOrganization({
       id: org.id,
       name: org.name,
