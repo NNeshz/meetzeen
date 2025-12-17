@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useCompanyServicesStore } from "@/modules/slug/store/service-store";
-import { IconClock, IconShoppingCart } from "@tabler/icons-react";
+import { useEmployeeSelectionStore } from "@/modules/slug/store/employee-store";
+import { IconClock, IconShoppingCart, IconUser, IconCalendar } from "@tabler/icons-react";
 import {
   Sheet,
   SheetContent,
@@ -40,8 +41,18 @@ function calculateFinalPrice(price: number, discount: number): number {
   return price;
 }
 
+function formatDate(date: Date): string {
+  return date.toLocaleDateString("es-ES", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
 export function CompanyServicesResume() {
   const { services } = useCompanyServicesStore();
+  const { selectedDate, selectedEmployeeName, selectedTimeSlot } = useEmployeeSelectionStore();
   const [open, setOpen] = useState(false);
 
   // Calcular totales
@@ -132,6 +143,39 @@ export function CompanyServicesResume() {
               );
             })}
           </div>
+
+          {/* Información de cita */}
+          {(selectedDate || selectedEmployeeName || selectedTimeSlot) && (
+            <div className="space-y-3 pt-4 border-t mb-4">
+              <h3 className="font-semibold text-sm mb-3">Información de la cita</h3>
+              
+              {selectedEmployeeName && (
+                <div className="flex items-center gap-2 text-sm">
+                  <IconUser className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">Atendido por:</span>
+                  <span className="font-medium">{selectedEmployeeName}</span>
+                </div>
+              )}
+
+              {selectedDate && (
+                <div className="flex items-center gap-2 text-sm">
+                  <IconCalendar className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">Fecha:</span>
+                  <span className="font-medium capitalize">
+                    {formatDate(selectedDate)}
+                  </span>
+                </div>
+              )}
+
+              {selectedTimeSlot && (
+                <div className="flex items-center gap-2 text-sm">
+                  <IconClock className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">Horario:</span>
+                  <span className="font-medium">{selectedTimeSlot}</span>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Totales */}
           <div className="space-y-3 pt-4 border-t">

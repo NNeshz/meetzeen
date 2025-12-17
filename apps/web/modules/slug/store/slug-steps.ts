@@ -8,6 +8,12 @@ interface SlugStepsStore {
 
 export const useSlugSteps = create<SlugStepsStore>((set) => ({
   steps: 1,
-  nextStep: () => set((state) => ({ steps: state.steps + 1 })),
-  previousStep: () => set((state) => ({ steps: state.steps - 1 })),
+  nextStep: () =>
+    set((state) => ({
+      steps: Math.min(state.steps + 1, 3),
+    })),
+  previousStep: () =>
+    set((state) => ({
+      steps: Math.max(state.steps - 1, 1),
+    })),
 }));

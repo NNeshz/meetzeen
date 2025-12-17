@@ -7,6 +7,7 @@ import { CompanyServices } from "@/modules/slug/company-services";
 import { useSlugSteps } from "@/modules/slug/store/slug-steps";
 import { CompanyEmployees } from "@/modules/slug/company-employees";
 import { CompanyButtons } from "@/modules/slug/company-buttons";
+import { CompanyClientForm } from "@/modules/slug/components/company-client-form";
 
 export default function Page() {
   const params = useParams();
@@ -47,7 +48,7 @@ export default function Page() {
       <CompanyHeader slug={slug} />
       {steps === 1 && <CompanyServices slug={slug} />}
       {steps === 2 && <CompanyEmployees slug={slug} />}
-
+      {steps === 3 && <CompanyClientForm />}
       <CompanyButtons />
     </div>
   );

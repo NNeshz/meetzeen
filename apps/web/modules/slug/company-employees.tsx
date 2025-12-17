@@ -1,11 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import { useCompanyBySlug, useAvailability } from "@/modules/slug/hooks/use-slugs";
+import {
+  useCompanyBySlug,
+  useAvailability,
+} from "@/modules/slug/hooks/use-slugs";
 import { useCompanyServicesStore } from "@/modules/slug/store/service-store";
-import { Avatar, AvatarImage, AvatarFallback } from "@meetzeen/ui/components/avatar";
+import { useEmployeeSelectionStore } from "@/modules/slug/store/employee-store";
+import {
+  Avatar,
+  AvatarImage,
+  AvatarFallback,
+} from "@meetzeen/ui/components/avatar";
 import { Card } from "@meetzeen/ui/components/card";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@meetzeen/ui/components/collapsible";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@meetzeen/ui/components/collapsible";
 import { Calendar } from "@meetzeen/ui/components/calendar";
 import { Button } from "@meetzeen/ui/components/button";
 import { IconChevronDown } from "@tabler/icons-react";
@@ -25,20 +37,22 @@ function getInitialsFromName(name: string): string {
 }
 
 // Extrae las fechas disponibles de la disponibilidad del empleado
-function getAvailableDates(availability: Array<Record<string, string[]>>): Date[] {
+function getAvailableDates(
+  availability: Array<Record<string, string[]>>
+): Date[] {
   const dates: Date[] = [];
-  
+
   availability.forEach((dayAvailability) => {
     const dateKey = Object.keys(dayAvailability)[0];
     if (!dateKey) return;
-    
+
     const dateStr = dateKey.replace("Date:", "");
     const date = new Date(dateStr + "T00:00:00");
     if (!isNaN(date.getTime())) {
       dates.push(date);
     }
   });
-  
+
   return dates.sort((a, b) => a.getTime() - b.getTime());
 }
 
@@ -48,13 +62,13 @@ function getTimeSlotsForDate(
   selectedDate: Date | undefined
 ): string[] {
   if (!selectedDate) return [];
-  
+
   const dateStr = selectedDate.toISOString().split("T")[0];
   const dateKey = `Date:${dateStr}`;
-  
+
   const dayAvailability = availability.find((day) => day[dateKey]);
   if (!dayAvailability) return [];
-  
+
   return dayAvailability[dateKey] || [];
 }
 
@@ -66,11 +80,8 @@ export function CompanyEmployees({ slug }: { slug: string }) {
   const companyId = companyData?.company?.id;
   const serviceIds = selectedServices.map((service) => service.id);
 
-  const {
-    availabilityData,
-    isLoadingAvailability,
-    errorAvailability,
-  } = useAvailability(companyId, serviceIds);
+  const { availabilityData, isLoadingAvailability, errorAvailability } =
+    useAvailability(companyId, serviceIds);
 
   if (isGettingCompany) {
     return (
@@ -99,8 +110,8 @@ export function CompanyEmployees({ slug }: { slug: string }) {
       <div className="flex items-center justify-center px-4">
         <div className="text-center">
           <p className="text-muted-foreground">
-            Por favor, selecciona al menos un servicio para ver la disponibilidad
-            de los empleados.
+            Por favor, selecciona al menos un servicio para ver la
+            disponibilidad de los empleados.
           </p>
         </div>
       </div>
@@ -160,7 +171,7 @@ export function CompanyEmployees({ slug }: { slug: string }) {
             const { info, availability } = employee;
             const hasAvailability = availability.length > 0;
             const availableDates = getAvailableDates(availability);
-            
+
             return (
               <EmployeeCard
                 key={info.memberId}
@@ -194,16 +205,57 @@ function EmployeeCard({
   availableDates,
   hasAvailability,
 }: EmployeeCardProps) {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const {
+    selectedDate,
+    selectedEmployeeId,
+    selectedTimeSlot,
+    setSelectedDate,
+    setSelectedEmployee,
+    setSelectedTimeSlot,
+  } = useEmployeeSelectionStore();
+  
   const [isOpen, setIsOpen] = useState(false);
-
-  const timeSlots = getTimeSlotsForDate(availability, selectedDate);
+  
+  // Usar la fecha del store si corresponde a este empleado, sino undefined
+  const localSelectedDate = selectedEmployeeId === employee.memberId ? selectedDate : undefined;
+  const timeSlots = getTimeSlotsForDate(availability, localSelectedDate);
 
   // Resetear fecha seleccionada cuando se cierra el desplegable
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
-    if (!open) {
+    if (!open && selectedEmployeeId === employee.memberId) {
       setSelectedDate(undefined);
+      setSelectedTimeSlot(undefined);
+    }
+  };
+
+  // Manejar selección de fecha
+  const handleDateSelect = (date: Date | undefined) => {
+    if (date) {
+      setSelectedEmployee(employee.memberId, employee.name);
+      setSelectedDate(date);
+    } else {
+      setSelectedDate(undefined);
+      setSelectedTimeSlot(undefined);
+    }
+  };
+
+  // Manejar selección de horario
+  const handleTimeSlotClick = (timeSlot: string) => {
+    // Si el horario ya está seleccionado, deseleccionarlo
+    if (selectedTimeSlot === timeSlot && selectedEmployeeId === employee.memberId) {
+      setSelectedTimeSlot(undefined);
+    } else {
+      // Si es un horario diferente, cambiar la selección
+      // Asegurarse de que el empleado esté establecido
+      if (selectedEmployeeId !== employee.memberId) {
+        setSelectedEmployee(employee.memberId, employee.name);
+      }
+      // Si hay una fecha seleccionada localmente pero no en el store, establecerla
+      if (localSelectedDate && (!selectedDate || selectedEmployeeId !== employee.memberId)) {
+        setSelectedDate(localSelectedDate);
+      }
+      setSelectedTimeSlot(timeSlot);
     }
   };
 
@@ -213,7 +265,7 @@ function EmployeeCard({
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     if (date < today) return true;
-    
+
     // Deshabilitar fechas que no están en availableDates
     const dateStr = date.toISOString().split("T")[0];
     return !availableDates.some(
@@ -230,8 +282,8 @@ function EmployeeCard({
             className="w-full justify-between p-6 hover:bg-accent/50"
           >
             <div className="flex items-center gap-4 flex-1">
-              <Avatar className="h-12 w-12">
-                <AvatarImage src={employee.imageUrl} alt={employee.name} />
+              <Avatar className="h-12 w-12 rounded-none">
+                <AvatarImage src={employee.imageUrl} alt={employee.name} className="rounded-none" />
                 <AvatarFallback>
                   {getInitialsFromName(employee.name)}
                 </AvatarFallback>
@@ -246,7 +298,7 @@ function EmployeeCard({
               </div>
             </div>
             <IconChevronDown
-              className={`h-5 w-5 transition-transform duration-200 ${
+              className={`h-5 w-5 mr-4 transition-transform duration-200 ${
                 isOpen ? "rotate-180" : ""
               }`}
             />
@@ -260,8 +312,8 @@ function EmployeeCard({
               <div className="w-full">
                 <Calendar
                   mode="single"
-                  selected={selectedDate}
-                  onSelect={setSelectedDate}
+                  selected={localSelectedDate}
+                  onSelect={handleDateSelect}
                   disabled={isDateDisabled}
                   className="rounded-md border w-full"
                   showOutsideDays={false}
@@ -269,17 +321,25 @@ function EmployeeCard({
               </div>
 
               {/* Horarios */}
-              {selectedDate && timeSlots.length > 0 && (
-                <div className="flex-1 overflow-y-auto max-h-[400px] pr-2 space-y-2">
-                  {timeSlots.map((time, idx) => (
-                    <Button
-                      key={idx}
-                      variant="outline"
-                      className="w-full justify-center py-3 text-base hover:bg-primary hover:text-primary-foreground transition-colors"
-                    >
-                      {time}
-                    </Button>
-                  ))}
+              {localSelectedDate && timeSlots.length > 0 && (
+                <div className="flex-1 overflow-y-auto max-h-[400px] pr-2 space-y-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                  {timeSlots.map((time, idx) => {
+                    const isSelected = selectedTimeSlot === time && selectedEmployeeId === employee.memberId;
+                    return (
+                      <Button
+                        key={idx}
+                        variant={isSelected ? "default" : "outline"}
+                        onClick={() => handleTimeSlotClick(time)}
+                        className={`w-full justify-center py-3 text-base transition-colors ${
+                          isSelected
+                            ? "bg-brand text-black hover:bg-brand/90"
+                            : "hover:bg-brand hover:text-black"
+                        }`}
+                      >
+                        {time}
+                      </Button>
+                    );
+                  })}
                 </div>
               )}
             </div>
