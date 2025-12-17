@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { Button, buttonVariants } from "@meetzeen/ui/components/button";
 import { ThemeSwitcher } from "@meetzeen/ui/components/global/theme-switcher";
@@ -33,6 +34,7 @@ const buttonConfigs = {
 };
 
 export function Navbar() {
+  const [isOpen, setIsOpen] = useState(false);
   const { data: session } = authClient.useSession();
   const { data: organizations } = authClient.useListOrganizations();
   const isAuthenticated = !!session?.user;
@@ -105,7 +107,7 @@ export function Navbar() {
         </div>
 
         {/* Mobile Menu Button */}
-        <Sheet>
+        <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetTrigger asChild>
             <Button
               variant="ghost"
@@ -128,24 +130,28 @@ export function Navbar() {
               <div className="flex flex-col gap-4">
                 <Link
                   href="/"
+                  onClick={() => setIsOpen(false)}
                   className="text-primary/50 hover:text-primary text-4xl font-medium transition-colors"
                 >
                   Tutorial
                 </Link>
                 <Link
                   href="/"
+                  onClick={() => setIsOpen(false)}
                   className="text-primary/50 hover:text-primary text-4xl font-medium transition-colors"
                 >
                   Servicio
                 </Link>
                 <Link
                   href="/"
+                  onClick={() => setIsOpen(false)}
                   className="text-primary/50 hover:text-primary text-4xl font-medium transition-colors"
                 >
                   Demo
                 </Link>
                 <Link
                   href="/"
+                  onClick={() => setIsOpen(false)}
                   className="text-primary/50 hover:text-primary text-4xl font-medium transition-colors"
                 >
                   Precios
@@ -157,6 +163,7 @@ export function Navbar() {
               <ThemeSwitcher />
               <Link
                 href={currentButtonConfig.href}
+                onClick={() => setIsOpen(false)}
                 className={buttonVariants({
                   variant: currentButtonConfig.variant,
                   className: "flex-1",

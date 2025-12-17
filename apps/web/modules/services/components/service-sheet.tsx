@@ -39,7 +39,7 @@ export function ServicesSheet({
             Completa el formulario para crear un nuevo servicio
           </SheetDescription>
         </SheetHeader>
-        <div className="px-4">
+        <div className="px-4 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
           <ServiceForm onSuccess={() => setOpen(false)} />
         </div>
       </SheetContent>

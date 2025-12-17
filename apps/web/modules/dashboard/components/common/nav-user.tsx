@@ -35,11 +35,14 @@ import { IconLogout } from "@tabler/icons-react";
 
 export function NavUser() {
   const router = useRouter();
-  const { isMobile } = useSidebar()
+  const { isMobile, setOpenMobile } = useSidebar()
   const { data: session, isPending } = authClient.useSession();
   const user = session?.user;
 
   const handleLogout = async () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
     await authClient.signOut({
       fetchOptions: {
         credentials: "include",

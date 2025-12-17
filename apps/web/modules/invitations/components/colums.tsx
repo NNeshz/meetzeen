@@ -54,7 +54,7 @@ export const columns: ColumnDef<Invitation>[] = [
       const isExpired = date < now;
       
       return (
-        <div className={`text-sm ${isExpired ? "text-destructive" : "text-muted-foreground"}`}>
+        <div className={`text-sm min-w-32 ${isExpired ? "text-destructive" : "text-muted-foreground"}`}>
           {date.toLocaleDateString("es-ES", {
             year: "numeric",
             month: "short",
@@ -70,7 +70,7 @@ export const columns: ColumnDef<Invitation>[] = [
     cell: ({ row }) => {
       const date = new Date(row.getValue("createdAt") as string);
       return (
-        <div className="text-sm text-muted-foreground">
+        <div className="text-sm text-muted-foreground min-w-32">
           {date.toLocaleDateString("es-ES", {
             year: "numeric",
             month: "short",
