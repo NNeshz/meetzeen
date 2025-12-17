@@ -48,18 +48,6 @@ export class CompanyService {
     return response.data;
   }
 
-  async getCompanyBySlug(slug: string) {
-    const response = await apiClient.company.getCompanyBySlug.get({
-      query: { slug },
-    });
-
-    if (response.error) {
-      throw new Error(response.error.value.message);
-    }
-
-    return response.data;
-  }
-
   async uploadLogo(file: File, organizationId: string) {
     const response = await apiClient.company.uploadLogo.post(
       {

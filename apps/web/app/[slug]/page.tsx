@@ -2,15 +2,18 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { CompanyHeader } from "@/modules/company/components/slug/company-header";
-import { CompanyServices } from "@/modules/company/components/slug/company-services";
-import { CompanyServicesResume } from "@/modules/company/components/slug/company-services-resume";
+import { CompanyHeader } from "@/modules/slug/company-header";
+import { CompanyServices } from "@/modules/slug/company-services";
+import { useSlugSteps } from "@/modules/slug/store/slug-steps";
+import { CompanyEmployees } from "@/modules/slug/company-employees";
+import { CompanyButtons } from "@/modules/slug/company-buttons";
 
 export default function Page() {
   const params = useParams();
   const [slug, setSlug] = useState<string | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
-
+  const { steps } = useSlugSteps();
+  
   useEffect(() => {
     const slugParam = params.slug as string;
     setSlug(slugParam || null);
@@ -42,7 +45,10 @@ export default function Page() {
   return (
     <div className="pb-4">
       <CompanyHeader slug={slug} />
-      <CompanyServices slug={slug} />
+      {steps === 1 && <CompanyServices slug={slug} />}
+      {steps === 2 && <CompanyEmployees slug={slug} />}
+
+      <CompanyButtons />
     </div>
   );
 }

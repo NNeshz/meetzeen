@@ -1,10 +1,10 @@
 "use client";
 
-import { useCompanyBySlug } from "@/modules/company/hooks/use-company";
+import { useCompanyBySlug } from "@/modules/slug/hooks/use-slugs";
 import { Badge } from "@meetzeen/ui/components/badge";
 import { Button } from "@meetzeen/ui/src/components/button";
 import { IconCheck, IconClock, IconPlus } from "@tabler/icons-react";
-import { useCompanyServicesStore } from "@/modules/company/store/company-services-store";
+import { useCompanyServicesStore } from "@/modules/slug/store/service-store";
 
 function formatPrice(price: string): string {
   const priceNum = parseFloat(price);

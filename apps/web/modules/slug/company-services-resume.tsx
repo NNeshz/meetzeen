@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useCompanyServicesStore } from "@/modules/company/store/company-services-store";
+import { useCompanyServicesStore } from "@/modules/slug/store/service-store";
 import { IconClock, IconShoppingCart } from "@tabler/icons-react";
 import {
   Sheet,

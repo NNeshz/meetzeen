@@ -108,35 +108,6 @@ export class CompanyService {
     return company;
   }
 
-  async getCompanyBySlug(slug: string) {
-    const [company] = await db
-      .select()
-      .from(organization)
-      .where(eq(organization.slug, slug))
-      .limit(1);
-
-    if (!company) {
-      throw new Error("Company not found");
-    }
-
-    const services = await db
-      .select({
-        id: service.id,
-        name: service.name,
-        description: service.description,
-        price: service.price,
-        duration: service.duration,
-        discount: service.discount,
-      })
-      .from(service)
-      .where(eq(service.organizationId, company.id));
-
-    return {
-      company,
-      services,
-    };
-  }
-
   async uploadLogo(file: File, organizationId: string) {
     const [org] = await db
       .select({ logo: organization.logo })
