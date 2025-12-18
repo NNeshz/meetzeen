@@ -1,12 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
-import { bookingService } from "@/modules/booking/service/booking-service";
+import { bookingService, type CustomerData } from "@/modules/booking/service/booking-service";
 
 export const useAllBookings = (
   organizationId: string,
   memberId: string,
   date: string,
   startTime: string,
-  services: string[]
+  services: string[],
+  customer: CustomerData
 ) => {
   return useQuery({
     queryKey: ["bookings", organizationId],
@@ -16,7 +17,8 @@ export const useAllBookings = (
         memberId,
         services,
         date,
-        startTime
+        startTime,
+        customer
       ),
   });
 };

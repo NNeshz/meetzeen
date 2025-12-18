@@ -84,6 +84,10 @@ export class BookingService {
       phoneNumber: customerData.phoneNumber,
     });
 
+    if (!customer) {
+      throw new Error("Error al crear o actualizar el cliente");
+    }
+
     // 6. Calcular totales
     const { totalAmount, totalDiscount } = this.calculateTotals(serviceRecords);
 
@@ -119,6 +123,10 @@ export class BookingService {
         source: "online",
       })
       .returning();
+
+    if (!newAppointment) {
+      throw new Error("Error al crear la cita");
+    }
 
     // 9. Crear los servicios reservados (ServicesBooked)
     const servicesBookedData = serviceRecords.map((serviceRecord, index) => {
@@ -168,7 +176,11 @@ export class BookingService {
    * Retorna en formato "HH:MM:SS" para el tipo time() de PostgreSQL
    */
   private calculateEndTime(startTime: string, durationMinutes: number): string {
-    const [hours, minutes] = startTime.split(":").map(Number);
+    const parts = startTime.split(":").map(Number);
+    if (parts.length < 2 || parts[0] === undefined || parts[1] === undefined) {
+      throw new Error(`Formato de hora inválido: ${startTime}`);
+    }
+    const [hours, minutes] = parts;
     const startMinutes = hours * 60 + minutes;
     const endMinutes = startMinutes + durationMinutes;
     const endHours = Math.floor(endMinutes / 60);
@@ -254,10 +266,14 @@ export class BookingService {
   }
 
   /**
-   * Convierte tiempo en formato "HH:MM" a minutos desde medianoche
+   * Convierte tiempo en formato "HH:MM" o "HH:MM:SS" a minutos desde medianoche
    */
   private timeToMinutes(time: string): number {
-    const [hours, minutes] = time.split(":").map(Number);
+    const parts = time.split(":").map(Number);
+    if (parts.length < 2 || parts[0] === undefined || parts[1] === undefined) {
+      throw new Error(`Formato de hora inválido: ${time}`);
+    }
+    const [hours, minutes] = parts;
     return hours * 60 + minutes;
   }
 
