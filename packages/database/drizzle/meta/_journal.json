@@ -15,6 +15,20 @@
       "when": 1765415851972,
       "tag": "0001_nifty_genesis",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1766021485622,
+      "tag": "0002_amused_shaman",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1766032927130,
+      "tag": "0003_supreme_franklin_storm",
+      "breakpoints": true
     }
   ]
 }

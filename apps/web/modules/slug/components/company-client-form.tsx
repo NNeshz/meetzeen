@@ -25,6 +25,10 @@ import { useCompanyServicesStore } from "@/modules/slug/store/service-store";
 import { useEmployeeSelectionStore } from "@/modules/slug/store/employee-store";
 import { IconClock, IconUser, IconCalendar } from "@tabler/icons-react";
 import { Card } from "@meetzeen/ui/components/card";
+import { useCompanyBySlug } from "@/modules/slug/hooks/use-slugs";
+import { bookingService } from "@/modules/booking/service/booking-service";
+import { useState } from "react";
+import { useSlugSteps } from "@/modules/slug/store/slug-steps";
 
 const formSchema = z.object({
   name: z
@@ -83,10 +87,17 @@ function formatDate(date: Date): string {
   });
 }
 
-export function CompanyClientForm() {
+export function CompanyClientForm({ slug }: { slug: string }) {
   const { services } = useCompanyServicesStore();
-  const { selectedDate, selectedEmployeeName, selectedTimeSlot } =
-    useEmployeeSelectionStore();
+  const {
+    selectedDate,
+    selectedEmployeeId,
+    selectedEmployeeName,
+    selectedTimeSlot,
+  } = useEmployeeSelectionStore();
+  const { companyData } = useCompanyBySlug(slug);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -99,8 +110,83 @@ export function CompanyClientForm() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+  async function onSubmit(_values: z.infer<typeof formSchema>) {
+    // El parámetro _values es requerido por react-hook-form pero no se usa aquí
+    // ya que los datos del cliente se manejarán en el servicio de booking
+    void _values; // Marcar como usado para evitar warning de ESLint
+    // Validaciones tempranas
+    if (!companyData?.company?.id) {
+      setSubmitError("No se pudo obtener la información de la empresa");
+      return;
+    }
+
+    if (!selectedEmployeeId) {
+      setSubmitError("Debes seleccionar un empleado");
+      return;
+    }
+
+    if (!selectedDate) {
+      setSubmitError("Debes seleccionar una fecha");
+      return;
+    }
+
+    if (!selectedTimeSlot) {
+      setSubmitError("Debes seleccionar un horario");
+      return;
+    }
+
+    if (services.length === 0) {
+      setSubmitError("Debes seleccionar al menos un servicio");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      // Después de las validaciones, sabemos que estos valores existen
+      // Usamos type assertions porque ya validamos que no son undefined
+      const organizationId: string = companyData.company.id;
+      const memberId: string = selectedEmployeeId as string;
+      const appointmentDate: Date = selectedDate as Date;
+      const timeSlot: string = selectedTimeSlot as string;
+
+      // Formatear la fecha a YYYY-MM-DD
+      const formattedDate = appointmentDate
+        .toISOString()
+        .split("T")[0] as string;
+
+      // Obtener los IDs de los servicios
+      const serviceIds: string[] = services.map((service) => service.id);
+
+      // Preparar datos del cliente
+      const customerData = {
+        name: _values.name,
+        lastName: _values.lastName,
+        email: _values.email,
+        phoneNumber:
+          _values.phone && _values.ladaCode
+            ? `${_values.ladaCode}${_values.phone}`
+            : undefined,
+      };
+
+      await bookingService.createBooking(
+        organizationId, // organizationId
+        memberId, // memberId
+        serviceIds, // services
+        formattedDate, // date en formato YYYY-MM-DD
+        timeSlot, // startTime en formato HH:MM
+        customerData // customer data
+      );
+
+      useSlugSteps.setState({ steps: 4 });
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error ? error.message : "Error al crear la reserva"
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -232,6 +318,20 @@ export function CompanyClientForm() {
                 )}
               />
             </ButtonGroup>
+          </div>
+          {submitError && (
+            <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
+              {submitError}
+            </div>
+          )}
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="px-6 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? "Enviando..." : "Confirmar reserva"}
+            </button>
           </div>
         </form>
       </Form>

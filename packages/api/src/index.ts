@@ -8,6 +8,8 @@ import { serviceRoutes } from "@meetzeen/api/src/modules/service/service.routes"
 import { invitationsRoutes } from "@meetzeen/api/src/modules/invitations/invitations.routes";
 import { teamRoutes } from "@meetzeen/api/src/modules/team/team.routes";
 import { slugRoutes } from "@meetzeen/api/src/modules/slug/slug.routes";
+import { bookingRoutes } from "@meetzeen/api/src/modules/booking/booking.routes";
+import { customerRoutes } from "@meetzeen/api/src/modules/customers/customer.routes";
 
 export const api = new Elysia({
   prefix: "/api",
@@ -31,5 +33,7 @@ export const api = new Elysia({
   .use(invitationsRoutes)
   .use(teamRoutes)
   .use(slugRoutes)
+  .use(bookingRoutes)
+  .use(customerRoutes)
 
 export type Api = typeof api;

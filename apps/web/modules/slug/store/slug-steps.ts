@@ -10,7 +10,7 @@ export const useSlugSteps = create<SlugStepsStore>((set) => ({
   steps: 1,
   nextStep: () =>
     set((state) => ({
-      steps: Math.min(state.steps + 1, 3),
+      steps: Math.min(state.steps + 1, 4),
     })),
   previousStep: () =>
     set((state) => ({

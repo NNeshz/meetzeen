@@ -13,7 +13,10 @@ import { relations, sql } from "drizzle-orm";
 export const user = pgTable(
   "User",
   {
-    id: text().primaryKey().notNull().default(sql`gen_random_uuid()`),
+    id: text()
+      .primaryKey()
+      .notNull()
+      .default(sql`gen_random_uuid()`),
     name: text().notNull(),
     image: text().notNull(),
     phoneNumber: text().unique(),
@@ -40,17 +43,13 @@ export const user = pgTable(
   ]
 );
 
-export const userRelations = relations(user, ({ many }) => ({
-  accounts: many(account),
-  sessions: many(session),
-  invitations: many(invitation),
-  members: many(member),
-}));
-
 export const session = pgTable(
   "Session",
   {
-    id: text().primaryKey().notNull().default(sql`gen_random_uuid()`),
+    id: text()
+      .primaryKey()
+      .notNull()
+      .default(sql`gen_random_uuid()`),
     expiresAt: timestamp({ precision: 3, mode: "string" }).notNull(),
     token: text().notNull(),
     createdAt: timestamp({ precision: 3, mode: "string", withTimezone: true })
@@ -80,17 +79,13 @@ export const session = pgTable(
   ]
 );
 
-export const sessionRelations = relations(session, ({ one }) => ({
-  user: one(user, {
-    fields: [session.userId],
-    references: [user.id],
-  }),
-}));
-
 export const account = pgTable(
   "Account",
   {
-    id: text().primaryKey().notNull().default(sql`gen_random_uuid()`),
+    id: text()
+      .primaryKey()
+      .notNull()
+      .default(sql`gen_random_uuid()`),
     accountId: text().notNull(),
     providerId: text().notNull(),
     userId: text().notNull(),
@@ -119,15 +114,11 @@ export const account = pgTable(
   ]
 );
 
-export const accountRelations = relations(account, ({ one }) => ({
-  user: one(user, {
-    fields: [account.userId],
-    references: [user.id],
-  }),
-}));
-
 export const verification = pgTable("Verification", {
-  id: text().primaryKey().notNull().default(sql`gen_random_uuid()`),
+  id: text()
+    .primaryKey()
+    .notNull()
+    .default(sql`gen_random_uuid()`),
   identifier: text().notNull(),
   value: text().notNull(),
   expiresAt: timestamp({ precision: 3, mode: "string" }).notNull(),
@@ -138,14 +129,16 @@ export const verification = pgTable("Verification", {
 export const organization = pgTable(
   "Organization",
   {
-    id: text().primaryKey().notNull().default(sql`gen_random_uuid()`),
+    id: text()
+      .primaryKey()
+      .notNull()
+      .default(sql`gen_random_uuid()`),
     name: text().notNull(),
     timezone: text(),
     currency: text(),
     slug: text(),
     logo: text(),
-    // Array of integers (0-6) representing workdays: 0=Sunday, 1=Monday, ..., 6=Saturday
-    workdays: integer().array(),
+    workdays: integer().array(), // 0=Sunday, 1=Monday, ..., 6=Saturday
     startTime: text().$default(() => "09:00"),
     endTime: text().$default(() => "18:00"),
     location: text(),
@@ -166,7 +159,6 @@ export const organization = pgTable(
       "btree",
       table.slug.asc().nullsLast()
     ),
-    // Index for querying organizations by workdays (common filter in booking systems)
     index("Organization_workdays_idx").using("gin", table.workdays),
   ]
 );
@@ -174,7 +166,10 @@ export const organization = pgTable(
 export const member = pgTable(
   "Member",
   {
-    id: text().primaryKey().notNull().default(sql`gen_random_uuid()`),
+    id: text()
+      .primaryKey()
+      .notNull()
+      .default(sql`gen_random_uuid()`),
     organizationId: text().notNull(),
     userId: text().notNull(),
     role: text().notNull(),
@@ -203,21 +198,13 @@ export const member = pgTable(
   ]
 );
 
-export const memberRelations = relations(member, ({ one }) => ({
-  organization: one(organization, {
-    fields: [member.organizationId],
-    references: [organization.id],
-  }),
-  user: one(user, {
-    fields: [member.userId],
-    references: [user.id],
-  }),
-}));
-
 export const invitation = pgTable(
   "Invitation",
   {
-    id: text().primaryKey().notNull().default(sql`gen_random_uuid()`),
+    id: text()
+      .primaryKey()
+      .notNull()
+      .default(sql`gen_random_uuid()`),
     organizationId: text().notNull(),
     email: text().notNull(),
     role: text(),
@@ -233,7 +220,10 @@ export const invitation = pgTable(
       .defaultNow(),
   },
   (table) => [
-    uniqueIndex("Invitation_token_key").using("btree", table.token.asc().nullsLast()),
+    uniqueIndex("Invitation_token_key").using(
+      "btree",
+      table.token.asc().nullsLast()
+    ),
     foreignKey({
       columns: [table.inviterId],
       foreignColumns: [user.id],
@@ -250,6 +240,42 @@ export const invitation = pgTable(
       .onDelete("cascade"),
   ]
 );
+
+// ============================================================================
+// RELACIONES
+// ============================================================================
+
+export const userRelations = relations(user, ({ many }) => ({
+  accounts: many(account),
+  sessions: many(session),
+  invitations: many(invitation),
+  members: many(member),
+}));
+
+export const sessionRelations = relations(session, ({ one }) => ({
+  user: one(user, {
+    fields: [session.userId],
+    references: [user.id],
+  }),
+}));
+
+export const accountRelations = relations(account, ({ one }) => ({
+  user: one(user, {
+    fields: [account.userId],
+    references: [user.id],
+  }),
+}));
+
+export const memberRelations = relations(member, ({ one }) => ({
+  organization: one(organization, {
+    fields: [member.organizationId],
+    references: [organization.id],
+  }),
+  user: one(user, {
+    fields: [member.userId],
+    references: [user.id],
+  }),
+}));
 
 export const invitationRelations = relations(invitation, ({ one }) => ({
   organization: one(organization, {

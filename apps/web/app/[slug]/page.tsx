@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { CompanyHeader } from "@/modules/slug/company-header";
-import { CompanyServices } from "@/modules/slug/company-services";
+import { CompanyHeader } from "@/modules/slug/components/company-header";
+import { CompanyServices } from "@/modules/slug/components/company-services";
 import { useSlugSteps } from "@/modules/slug/store/slug-steps";
-import { CompanyEmployees } from "@/modules/slug/company-employees";
-import { CompanyButtons } from "@/modules/slug/company-buttons";
+import { CompanyEmployees } from "@/modules/slug/components/company-employees";
+import { CompanyButtons } from "@/modules/slug/components/company-buttons";
 import { CompanyClientForm } from "@/modules/slug/components/company-client-form";
+import { CompanyCompleted } from "@/modules/slug/components/company-completed";
 
 export default function Page() {
   const params = useParams();
@@ -48,7 +49,8 @@ export default function Page() {
       <CompanyHeader slug={slug} />
       {steps === 1 && <CompanyServices slug={slug} />}
       {steps === 2 && <CompanyEmployees slug={slug} />}
-      {steps === 3 && <CompanyClientForm />}
+      {steps === 3 && <CompanyClientForm slug={slug} />}
+      {steps === 4 && <CompanyCompleted />}
       <CompanyButtons />
     </div>
   );
