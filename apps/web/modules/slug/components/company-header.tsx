@@ -2,8 +2,8 @@
 
 import { useCompanyBySlug } from "@/modules/slug/hooks/use-slugs";
 import Image from "next/image";
-import { CompanyInformation } from "@/modules/slug/company-information";
-import { CompanyServicesResume } from "@/modules/slug/company-services-resume";
+import { CompanyInformation } from "@/modules/slug/components/company-information";
+import { CompanyServicesResume } from "@/modules/slug/components/company-services-resume";
 
 function getInitials(name: string | undefined): string {
   if (!name) return "";
