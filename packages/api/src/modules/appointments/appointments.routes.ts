@@ -8,6 +8,20 @@ export const appointmentsRoutes = new Elysia({
 })
   .use(betterAuthPlugin)
   .use(appointmentsModule)
+  .get("/", ({ appointmentsService, query }) => {
+    return appointmentsService.getAppointments(
+      query.organizationId,
+      query.clientDate,
+      query.memberId,
+    );
+  }, {
+    auth: true,
+    query: t.Object({
+      organizationId: t.String(),
+      clientDate: t.String(), // YYYY-MM-DD
+      memberId: t.Optional(t.String()),
+    }),
+  })
   .get(
     "/history",
     ({ appointmentsService, query }) => {

@@ -1,3 +1,5 @@
+import { Appointment } from "@/modules/appointments/types/appointments-types";
+import { calculateLayout } from "../utils/layout-utils";
 import { cn } from "@meetzeen/ui/src/lib/utils";
 import {
   addDays,
@@ -12,9 +14,11 @@ import { useEffect, useRef } from "react";
 
 interface WeekViewProps {
   currentDate: Date;
+  appointments?: Appointment[];
 }
 
-export function WeekView({ currentDate }: WeekViewProps) {
+
+export function WeekView({ currentDate, appointments = [] }: WeekViewProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const startDate = startOfWeek(currentDate, { weekStartsOn: 1 });
   const days = eachDayOfInterval({
@@ -31,6 +35,18 @@ export function WeekView({ currentDate }: WeekViewProps) {
       scrollRef.current.scrollTop = 8 * hourHeight;
     }
   }, []);
+
+  const getDayAppointments = (day: Date) => {
+    if (!appointments) return [];
+
+    // Filter appointments for this day
+    const dayAppointments = appointments.filter((apt) =>
+      isSameDay(new Date(apt.start), day)
+    );
+
+    // Calculate layout
+    return calculateLayout(dayAppointments);
+  };
 
   return (
     <div className="flex flex-col h-full overflow-hidden bg-background">
@@ -83,36 +99,60 @@ export function WeekView({ currentDate }: WeekViewProps) {
 
           {/* Grid Columns */}
           <div className="flex-1 grid grid-cols-7">
-            {days.map((day) => (
-              <div
-                key={day.toString()}
-                className={cn(
-                  "border-r last:border-r-0 relative",
-                  isToday(day) ? "bg-primary/5" : ""
-                )}
-              >
-                {hours.map((hour) => (
-                  <div
-                    key={hour}
-                    className={cn(
-                      "h-[60px] border-b border-dashed",
-                      hour === 0 && "border-t border-dashed"
-                    )}
-                  />
-                ))}
+            {days.map((day) => {
+              const dayApts = getDayAppointments(day);
+              return (
+                <div
+                  key={day.toString()}
+                  className={cn(
+                    "border-r last:border-r-0 relative",
+                    isToday(day) ? "bg-primary/5" : ""
+                  )}
+                >
+                  {hours.map((hour) => (
+                    <div
+                      key={hour}
+                      className={cn(
+                        "h-[60px] border-b border-dashed",
+                        hour === 0 && "border-t border-dashed"
+                      )}
+                    />
+                  ))}
 
-                {/* Current Time Indicator (if today) */}
-                {isToday(day) && (
-                  <CurrentTimeIndicator />
-                )}
-              </div>
-            ))}
+                  {/* Render Appointments */}
+                  {dayApts.map((apt) => (
+                    <div
+                      key={apt.id}
+                      className="absolute bg-primary/20 border border-primary/50 rounded px-1 overflow-hidden hover:z-20 transition-all text-[10px] leading-tight"
+                      style={{
+                        top: `${apt.top}px`,
+                        height: `${apt.height}px`,
+                        left: `${apt.left}%`,
+                        width: `${apt.width}%`,
+                      }}
+                    >
+                      <div className="font-semibold truncate">{apt.title || "Cita"}</div>
+                      <div className="truncate">{apt.clientName || "Cliente"}</div>
+                      <div className="truncate text-muted-foreground">
+                        {format(new Date(apt.start), "HH:mm")} - {format(new Date(apt.end), "HH:mm")}
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Current Time Indicator (if today) */}
+                  {isToday(day) && (
+                    <CurrentTimeIndicator />
+                  )}
+                </div>
+              )
+            })}
           </div>
         </div>
       </div>
     </div>
   );
 }
+
 
 function CurrentTimeIndicator() {
   const now = new Date();

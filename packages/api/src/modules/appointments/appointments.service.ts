@@ -1,8 +1,92 @@
 import { db, appointment } from "@meetzeen/database";
-import { and, eq, desc, count, sql } from "drizzle-orm";
+import { and, eq, desc, count, sql, gte } from "drizzle-orm";
 
 export class AppointmentsService {
   constructor() {}
+
+  /**
+   * Obtiene todas las citas desde la fecha del cliente en adelante, agrupadas por fecha
+   * @param organizationId - ID de la organización
+   * @param clientDate - Fecha del cliente en formato YYYY-MM-DD (hoy)
+   * @param memberId - ID opcional del miembro para filtrar
+   * @returns Array de objetos agrupados por fecha con formato { date: "Date:YYYY-MM-DD", appointments: [...] }
+   */
+  async getAppointments(
+    organizationId: string,
+    clientDate: string,
+    memberId?: string
+  ) {
+    // Construir condiciones de filtrado
+    const whereConditions = [
+      eq(appointment.organizationId, organizationId),
+      // Obtener citas desde hoy en adelante (incluyendo todo el día de hoy)
+      gte(appointment.appointmentDate, clientDate),
+    ];
+
+    // Filtrar por memberId si se proporciona
+    if (memberId) {
+      whereConditions.push(eq(appointment.memberId, memberId));
+    }
+
+    // Obtener todas las citas que cumplan las condiciones
+    const appointments = await db
+      .select({
+        id: appointment.id,
+        customerName: appointment.customerName,
+        customerEmail: appointment.customerEmail,
+        customerPhone: appointment.customerPhone,
+        memberName: appointment.memberName,
+        memberEmail: appointment.memberEmail,
+        memberId: appointment.memberId,
+        appointmentDate: appointment.appointmentDate,
+        startTime: appointment.startTime,
+        endTime: appointment.endTime,
+        status: appointment.status,
+        paymentStatus: appointment.paymentStatus,
+        amountPaid: appointment.amountPaid,
+        notes: appointment.notes,
+        createdAt: appointment.createdAt,
+      })
+      .from(appointment)
+      .where(and(...whereConditions))
+      .orderBy(appointment.appointmentDate, appointment.startTime);
+
+    // Agrupar citas por fecha
+    const groupedByDate = appointments.reduce(
+      (acc, appointment) => {
+        const date = appointment.appointmentDate;
+        const dateKey = `Date:${date}`;
+
+        if (!acc[dateKey]) {
+          acc[dateKey] = {
+            date: dateKey,
+            appointments: [],
+          };
+        }
+
+        // Agregar el prefijo "Date:" al appointmentDate
+        acc[dateKey].appointments.push({
+          ...appointment,
+          appointmentDate: dateKey,
+        });
+        return acc;
+      },
+      {} as Record<
+        string,
+        { date: string; appointments: typeof appointments }
+      >
+    );
+
+    // Convertir el objeto agrupado a un array y ordenar por fecha
+    const result = Object.values(groupedByDate).sort((a, b) => {
+      // Extraer la fecha de "Date:YYYY-MM-DD" para comparar
+      const dateA = a.date.replace("Date:", "");
+      const dateB = b.date.replace("Date:", "");
+      return dateA.localeCompare(dateB);
+    });
+
+    return result;
+  }
 
   /**
    * Obtiene el historial de citas pasadas basado en el timezone del cliente
@@ -25,7 +109,10 @@ export class AppointmentsService {
     const clientNow = new Date(clientCurrentTime);
 
     const todayInClientTz = this.getTodayInTimezone(clientTimezone, clientNow);
-    const currentTimeInClientTz = this.getCurrentTimeInTimezone(clientTimezone, clientNow);
+    const currentTimeInClientTz = this.getCurrentTimeInTimezone(
+      clientTimezone,
+      clientNow
+    );
 
     const whereConditions = [
       eq(appointment.organizationId, organizationId),

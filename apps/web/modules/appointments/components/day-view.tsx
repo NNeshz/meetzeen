@@ -1,13 +1,16 @@
+import { Appointment } from "@/modules/appointments/types/appointments-types";
 import { cn } from "@meetzeen/ui/src/lib/utils";
-import { format, isToday } from "date-fns";
+import { format, isSameDay, isToday } from "date-fns";
 import { es } from "date-fns/locale";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
+import { calculateLayout } from "../utils/layout-utils";
 
 interface DayViewProps {
   currentDate: Date;
+  appointments?: Appointment[];
 }
 
-export function DayView({ currentDate }: DayViewProps) {
+export function DayView({ currentDate, appointments = [] }: DayViewProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const hours = Array.from({ length: 24 }, (_, i) => i);
 
@@ -18,6 +21,12 @@ export function DayView({ currentDate }: DayViewProps) {
       scrollRef.current.scrollTop = 8 * hourHeight;
     }
   }, []);
+
+  const dayAppointments = useMemo(() => {
+    if (!appointments) return [];
+    const filtered = appointments.filter((apt) => isSameDay(new Date(apt.start), currentDate));
+    return calculateLayout(filtered);
+  }, [appointments, currentDate]);
 
   return (
     <div className="flex flex-col h-full overflow-hidden bg-background">
@@ -69,6 +78,27 @@ export function DayView({ currentDate }: DayViewProps) {
                 )}
               />
             ))}
+
+            {/* Appointments */}
+            {dayAppointments.map((apt) => (
+              <div
+                key={apt.id}
+                className="absolute bg-brand/20 border border-brand/50 rounded px-2 py-1 overflow-hidden hover:z-20 transition-all text-xs"
+                style={{
+                  top: `${apt.top}px`,
+                  height: `${apt.height}px`,
+                  left: `${apt.left}%`,
+                  width: `${apt.width}%`,
+                }}
+              >
+                <div className="font-semibold">{apt.title || "Cita"}</div>
+                <div className="truncate">{apt.clientName}</div>
+                <div className="text-muted-foreground text-[10px]">
+                  {format(new Date(apt.start), "HH:mm")} - {format(new Date(apt.end), "HH:mm")}
+                </div>
+              </div>
+            ))}
+
             {isToday(currentDate) && (
               <CurrentTimeIndicator />
             )}
