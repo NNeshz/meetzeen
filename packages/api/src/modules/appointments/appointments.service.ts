@@ -64,7 +64,11 @@ export class AppointmentsService {
           };
         }
 
-        acc[dateKey].appointments.push(appointment);
+        // Agregar el prefijo "Date:" al appointmentDate
+        acc[dateKey].appointments.push({
+          ...appointment,
+          appointmentDate: dateKey,
+        });
         return acc;
       },
       {} as Record<
