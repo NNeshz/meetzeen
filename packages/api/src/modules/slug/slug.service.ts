@@ -7,9 +7,16 @@ import {
   weeklyScheduleTemplate,
   scheduleGenerationLog,
   organization,
+  appointment,
 } from "@meetzeen/database";
 import { eq, inArray, and, gte, lte } from "drizzle-orm";
 import type { TimeBlock } from "@meetzeen/api/src/modules/team/types/team.types";
+
+interface ExistingAppointment {
+  startTime: string;
+  endTime: string;
+  date: string;
+}
 
 export class SlugService {
   constructor() {}
@@ -46,6 +53,8 @@ export class SlugService {
   async getAvailability(
     companyId: string,
     serviceIds: string[],
+    clientTimezone: string,
+    clientCurrentTime: string,
     startDate?: string,
     endDate?: string
   ) {
@@ -71,9 +80,6 @@ export class SlugService {
       );
     }
 
-    // Obtener la duración máxima del servicio (para calcular slots disponibles)
-    // Usamos la máxima para asegurar que cada slot pueda acomodar cualquier servicio
-    // El intervalo de 15 minutos en calculateAvailableSlots generará suficientes opciones
     const maxDuration = Math.max(...services.map((s) => s.duration));
 
     // 3. Obtener la organización para timezone
@@ -81,9 +87,12 @@ export class SlugService {
       where: eq(organization.id, companyId),
       columns: { timezone: true },
     });
-    const timezone = org?.timezone || "UTC";
+    const serverTimezone = org?.timezone || "UTC";
 
-    // 4. Buscar todos los miembros de la organización
+    // 4. Calcular fecha y hora actual en el timezone del cliente
+    const clientNow = this.parseClientDateTime(clientCurrentTime, clientTimezone);
+
+    // 5. Buscar todos los miembros de la organización
     const members = await db
       .select({
         memberId: member.id,
@@ -97,7 +106,7 @@ export class SlugService {
       return [];
     }
 
-    // 5. Obtener información de usuarios
+    // 6. Obtener información de usuarios (una sola query)
     const userIds = members.map((m) => m.userId);
     const users = await db
       .select({
@@ -110,38 +119,73 @@ export class SlugService {
 
     const userMap = new Map(users.map((u) => [u.id, u]));
 
-    // 6. Calcular rango de fechas (por defecto: hoy + 30 días)
-    const today = this.getTodayInTimezone(timezone);
+    // 7. Calcular rango de fechas
+    const today = this.getTodayInTimezone(clientTimezone);
     const fromDate = startDate || today;
     const toDate = endDate || this.addDays(today, 30);
 
-    // 7. Asegurar que las disponibilidades estén generadas para todos los miembros
+    // 8. Asegurar disponibilidades generadas (en paralelo)
     const memberIds = members.map((m) => m.memberId);
     await Promise.all(
       memberIds.map((memberId) =>
-        this.ensureAvailabilitiesGenerated(memberId, fromDate, toDate, timezone)
+        this.ensureAvailabilitiesGenerated(memberId, fromDate, toDate, serverTimezone)
       )
     );
 
-    // 8. Obtener disponibilidades diarias de todos los miembros
-    const availabilities = await db
-      .select({
-        id: dailyAvailability.id,
-        memberId: dailyAvailability.memberId,
-        date: dailyAvailability.date,
-        timeBlocks: dailyAvailability.timeBlocks,
-        isWorkingDay: dailyAvailability.isWorkingDay,
-      })
-      .from(dailyAvailability)
-      .where(
-        and(
-          inArray(dailyAvailability.memberId, memberIds),
-          gte(dailyAvailability.date, fromDate),
-          lte(dailyAvailability.date, toDate)
+    // 9. OPTIMIZACIÓN: Obtener disponibilidades y citas en paralelo
+    const [availabilities, appointments] = await Promise.all([
+      db
+        .select({
+          id: dailyAvailability.id,
+          memberId: dailyAvailability.memberId,
+          date: dailyAvailability.date,
+          timeBlocks: dailyAvailability.timeBlocks,
+          isWorkingDay: dailyAvailability.isWorkingDay,
+        })
+        .from(dailyAvailability)
+        .where(
+          and(
+            inArray(dailyAvailability.memberId, memberIds),
+            gte(dailyAvailability.date, fromDate),
+            lte(dailyAvailability.date, toDate)
+          )
+        ),
+      
+      // Obtener citas existentes confirmadas y programadas
+      db
+        .select({
+          memberId: appointment.memberId,
+          appointmentDate: appointment.appointmentDate,
+          startTime: appointment.startTime,
+          endTime: appointment.endTime,
+        })
+        .from(appointment)
+        .where(
+          and(
+            inArray(appointment.memberId, memberIds),
+            gte(appointment.appointmentDate, fromDate),
+            lte(appointment.appointmentDate, toDate),
+            inArray(appointment.status, ["scheduled", "confirmed", "in_progress"])
+          )
         )
-      );
+    ]);
 
-    // 9. Agrupar disponibilidades por miembro
+    // 10. Agrupar citas por miembro y fecha para acceso O(1)
+    const appointmentsByMemberDate = new Map<string, ExistingAppointment[]>();
+    for (const apt of appointments) {
+      if (!apt.memberId) continue;
+      
+      const key = `${apt.memberId}-${apt.appointmentDate}`;
+      const existing = appointmentsByMemberDate.get(key) || [];
+      existing.push({
+        startTime: apt.startTime,
+        endTime: String(apt.endTime),
+        date: apt.appointmentDate,
+      });
+      appointmentsByMemberDate.set(key, existing);
+    }
+
+    // 11. Agrupar disponibilidades por miembro
     const availabilityByMember = new Map<string, typeof availabilities>();
     for (const avail of availabilities) {
       const existing = availabilityByMember.get(avail.memberId) || [];
@@ -149,7 +193,7 @@ export class SlugService {
       availabilityByMember.set(avail.memberId, existing);
     }
 
-    // 10. Construir respuesta para cada empleado
+    // 12. Construir respuesta para cada empleado
     const result = [];
 
     for (const memberRecord of members) {
@@ -174,10 +218,23 @@ export class SlugService {
           continue;
         }
 
+        // Obtener citas del empleado para este día
+        const key = `${memberRecord.memberId}-${dayAvail.date}`;
+        const dayAppointments = appointmentsByMemberDate.get(key) || [];
+
+        // Determinar tiempo mínimo basado en hora actual del cliente
+        let minTimeInMinutes: number | null = null;
+        if (dayAvail.date === clientNow.date) {
+          // Si es el día de hoy, usar la hora actual del cliente
+          minTimeInMinutes = this.timeToMinutes(clientNow.time);
+        }
+
         const slots = this.calculateAvailableSlots(
           dayAvail.timeBlocks,
           maxDuration,
-          [] // Por ahora sin citas existentes - se puede agregar después
+          dayAppointments,
+          5, // buffer minutes
+          minTimeInMinutes
         );
 
         if (slots.length > 0) {
@@ -201,31 +258,34 @@ export class SlugService {
   }
 
   /**
-   * Calcula los slots de tiempo disponibles basándose en los bloques de tiempo
-   * y la duración del servicio.
-   *
-   * @param timeBlocks - Bloques de tiempo disponibles del empleado
-   * @param serviceDuration - Duración del servicio en minutos
-   * @param existingAppointments - Citas existentes (para futuro uso)
-   * @param bufferMinutes - Minutos de buffer entre citas (default: 5)
+   * Calcula los slots de tiempo disponibles considerando citas existentes
+   * y la hora actual del cliente
    */
   private calculateAvailableSlots(
     timeBlocks: TimeBlock[],
     serviceDuration: number,
-    existingAppointments: Array<{ startTime: string; endTime: string }> = [],
-    bufferMinutes: number = 5
+    existingAppointments: ExistingAppointment[] = [],
+    bufferMinutes: number = 5,
+    minTimeInMinutes: number | null = null
   ): string[] {
     const slots: string[] = [];
-    
-    // Intervalo mínimo para generar slots (15 minutos para permitir flexibilidad)
-    // Esto permite que servicios de diferentes duraciones puedan encontrar horarios
     const slotInterval = 15;
 
     for (const block of timeBlocks) {
-      const blockStart = this.timeToMinutes(block.startTime);
+      let blockStart = this.timeToMinutes(block.startTime);
       const blockEnd = this.timeToMinutes(block.endTime);
 
-      // Generar slots cada intervalo dentro del bloque
+      // Si hay un tiempo mínimo, ajustar el inicio del bloque
+      if (minTimeInMinutes !== null && blockStart < minTimeInMinutes) {
+        // Redondear hacia arriba al siguiente intervalo
+        blockStart = Math.ceil(minTimeInMinutes / slotInterval) * slotInterval;
+        
+        // Si el tiempo mínimo supera el final del bloque, saltar este bloque
+        if (blockStart >= blockEnd) {
+          continue;
+        }
+      }
+
       let currentSlot = blockStart;
 
       while (currentSlot + serviceDuration <= blockEnd) {
@@ -235,7 +295,8 @@ export class SlugService {
         // Verificar si el slot no colisiona con citas existentes
         const isSlotAvailable = !existingAppointments.some((apt) => {
           const aptStart = this.timeToMinutes(apt.startTime);
-          const aptEnd = this.timeToMinutes(apt.endTime) + bufferMinutes;
+          const aptEndTime = typeof apt.endTime === 'string' ? apt.endTime : '00:00';
+          const aptEnd = this.timeToMinutes(aptEndTime) + bufferMinutes;
 
           // Hay colisión si los rangos se superponen
           return currentSlot < aptEnd && slotEnd > aptStart;
@@ -253,19 +314,55 @@ export class SlugService {
 
         if (nextAppointment) {
           // Si hay una cita próxima, saltar al final de la cita + buffer
-          const aptEnd =
-            this.timeToMinutes(nextAppointment.endTime) + bufferMinutes;
-          // Asegurar que avanzamos al menos un intervalo
+          const aptEndTime = typeof nextAppointment.endTime === 'string' ? nextAppointment.endTime : '00:00';
+          const aptEnd = this.timeToMinutes(aptEndTime) + bufferMinutes;
           currentSlot = Math.max(aptEnd, currentSlot + slotInterval);
         } else {
-          // Avanzar según el intervalo (15 minutos por defecto)
-          // Esto permite generar más opciones para servicios de diferentes duraciones
           currentSlot += slotInterval;
         }
       }
     }
 
     return slots;
+  }
+
+  /**
+   * Parsea la hora actual del cliente en formato ISO o "YYYY-MM-DD HH:MM"
+   */
+  private parseClientDateTime(
+    clientCurrentTime: string,
+    timezone: string
+  ): { date: string; time: string } {
+    // Intentar parsear como ISO string o formato personalizado
+    let date: Date;
+    
+    if (clientCurrentTime.includes('T') || clientCurrentTime.includes('Z')) {
+      // Formato ISO
+      date = new Date(clientCurrentTime);
+    } else {
+      // Formato "YYYY-MM-DD HH:MM"
+      const [datePart, timePart] = clientCurrentTime.split(' ');
+      if (!datePart || !timePart) {
+        throw new Error('Formato de hora del cliente inválido');
+      }
+      date = new Date(`${datePart}T${timePart}:00`);
+    }
+
+    const formatter = new Intl.DateTimeFormat('en-CA', {
+      timeZone: timezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+
+    const parts = formatter.formatToParts(date);
+    const dateStr = `${parts.find(p => p.type === 'year')?.value}-${parts.find(p => p.type === 'month')?.value}-${parts.find(p => p.type === 'day')?.value}`;
+    const timeStr = `${parts.find(p => p.type === 'hour')?.value}:${parts.find(p => p.type === 'minute')?.value}`;
+
+    return { date: dateStr, time: timeStr };
   }
 
   /**

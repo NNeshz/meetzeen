@@ -15,9 +15,14 @@ export class SlugService {
     return response.data;
   }
 
-  async getAvailability(companyId: string, services: string[]) {
+  async getAvailability(
+    companyId: string,
+    services: string[],
+    clientTimeZone: string,
+    clientCurrentTime: string
+  ) {
     const response = await apiClient.slug.availability.get({
-      query: { companyId, services },
+      query: { companyId, services, clientTimeZone, clientCurrentTime },
     });
 
     if (response.error) {

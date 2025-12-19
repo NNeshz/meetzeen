@@ -21,6 +21,8 @@ export const slugRoutes = new Elysia({
       return slugService.getAvailability(
         query.companyId,
         query.services,
+        query.clientTimeZone,
+        query.clientCurrentTime,
         query.startDate,
         query.endDate
       );
@@ -29,6 +31,8 @@ export const slugRoutes = new Elysia({
       query: t.Object({
         companyId: t.String({ minLength: 1 }),
         services: t.Array(t.String({ minLength: 1 }), { minItems: 1 }),
+        clientTimeZone: t.String({ minLength: 1 }),
+        clientCurrentTime: t.String({ minLength: 1 }),
         startDate: t.Optional(
           t.String({
             pattern: "^\\d{4}-\\d{2}-\\d{2}$",
