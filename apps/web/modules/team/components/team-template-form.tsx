@@ -232,7 +232,7 @@ export function TeamTemplateForm({ memberId }: { memberId: string }) {
           Crear horario semanal
         </Button>
       </SheetTrigger>
-      <SheetContent className="w-full sm:max-w-2xl font-geist">
+      <SheetContent className="w-full sm:max-w-xl font-geist">
         <SheetHeader>
           <SheetTitle>Selecciona los días</SheetTitle>
           <SheetDescription>

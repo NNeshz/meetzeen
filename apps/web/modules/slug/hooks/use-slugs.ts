@@ -28,6 +28,9 @@ export const useAvailability = (
   companyId: string | undefined,
   serviceIds: string[]
 ) => {
+  const clientTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const clientCurrentTime = new Date().toISOString();
+
   const {
     data: availabilityData,
     isLoading: isLoadingAvailability,
@@ -38,7 +41,12 @@ export const useAvailability = (
       if (!companyId || serviceIds.length === 0) {
         throw new Error("Company ID and at least one service are required");
       }
-      return slugService.getAvailability(companyId, serviceIds);
+      return slugService.getAvailability(
+        companyId,
+        serviceIds,
+        clientTimeZone,
+        clientCurrentTime
+      );
     },
     enabled: !!companyId && serviceIds.length > 0,
   });

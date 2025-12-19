@@ -46,12 +46,12 @@ export default function Page() {
 
   return (
     <div className="pb-4">
-      <CompanyHeader slug={slug} />
+      {steps !== 4 && <CompanyHeader slug={slug} />}
       {steps === 1 && <CompanyServices slug={slug} />}
       {steps === 2 && <CompanyEmployees slug={slug} />}
       {steps === 3 && <CompanyClientForm slug={slug} />}
       {steps === 4 && <CompanyCompleted />}
-      <CompanyButtons />
+      {steps !== 4 && <CompanyButtons />}
     </div>
   );
 }
