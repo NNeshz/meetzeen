@@ -15,9 +15,10 @@ import {
 interface MonthViewProps {
   currentDate: Date;
   appointments?: Appointment[];
+  onAppointmentClick?: (appointmentId: string) => void;
 }
 
-export function MonthView({ currentDate, appointments = [] }: MonthViewProps) {
+export function MonthView({ currentDate, appointments = [], onAppointmentClick }: MonthViewProps) {
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(monthStart);
   const startDate = startOfWeek(monthStart, { weekStartsOn: 1 }); // Monday start
@@ -78,8 +79,12 @@ export function MonthView({ currentDate, appointments = [] }: MonthViewProps) {
               {/* Event List */}
               <div className="flex-1 flex flex-col gap-1 overflow-hidden">
                 {dayAppointments.slice(0, 3).map(apt => (
-                  <div key={apt.id} className="text-[10px] bg-primary/10 text-primary truncate px-1 rounded border border-primary/20">
-                    {format(new Date(apt.start), "HH:mm")} {apt.title || "Cita"}
+                  <div
+                    key={apt.id}
+                    onClick={() => onAppointmentClick?.(apt.id)}
+                    className="text-[10px] bg-primary/10 text-primary truncate px-1 rounded border border-primary/20 cursor-pointer hover:bg-primary/20 transition-colors"
+                  >
+                    {format(new Date(apt.start), "HH:mm")} Cita
                   </div>
                 ))}
                 {dayAppointments.length > 3 && (

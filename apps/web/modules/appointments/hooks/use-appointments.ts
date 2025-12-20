@@ -20,3 +20,13 @@ export const useAppointments = () => {
 
   return { data, isLoading, error, refetch };
 };
+
+export const useAppointmentById = (id: string) => {
+  const organizationId = useDashboardStore((state) => state.organization?.id);
+
+  return useQuery({
+    queryKey: ["appointment", id],
+    queryFn: () => appointmentsService.getAppointmentById(id),
+    enabled: !!organizationId && !!id,
+  });
+};

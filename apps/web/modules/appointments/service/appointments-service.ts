@@ -34,6 +34,18 @@ export class AppointmentsService {
 
     return response.data;
   }
+
+  async getAppointmentById(id: string) {
+    const response = await apiClient.appointments({ id }).get({
+      query: { organizationId: this.getOrganizationId() },
+    });
+
+    if (response.error) {
+      throw new Error(response.error.value.message);
+    }
+
+    return response.data;
+  }
 }
 
 export const appointmentsService = new AppointmentsService();

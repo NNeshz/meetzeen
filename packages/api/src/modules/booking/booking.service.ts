@@ -108,7 +108,7 @@ export class BookingService {
         customerId: customer.id,
         memberId: memberRecord.id,
         serviceId: serviceRecords[0]?.id || null, // Primer servicio como referencia
-        customerName: customer.name,
+        customerName: customer.name + " " + customer.lastName,
         customerEmail: customer.email,
         customerPhone: customer.phoneNumber || null,
         memberName: memberRecord.user.name,

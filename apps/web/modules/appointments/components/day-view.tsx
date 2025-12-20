@@ -8,23 +8,34 @@ import { calculateLayout } from "../utils/layout-utils";
 interface DayViewProps {
   currentDate: Date;
   appointments?: Appointment[];
+  zoom?: number;
+  onAppointmentClick?: (appointmentId: string) => void;
 }
 
-export function DayView({ currentDate, appointments = [] }: DayViewProps) {
+export function DayView({
+  currentDate,
+  appointments = [],
+  zoom,
+  onAppointmentClick,
+}: DayViewProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const hours = Array.from({ length: 24 }, (_, i) => i);
+  const hourHeight = 240; // h-60 equivalent
+  const pixelsPerMinute = hourHeight / 60;
 
   // Scroll to 8 AM on mount
   useEffect(() => {
-    if (scrollRef.current) {
-      const hourHeight = 60;
+    // Only scroll on mount
+    if (scrollRef.current && scrollRef.current.scrollTop === 0) {
       scrollRef.current.scrollTop = 8 * hourHeight;
     }
   }, []);
 
   const dayAppointments = useMemo(() => {
     if (!appointments) return [];
-    const filtered = appointments.filter((apt) => isSameDay(new Date(apt.start), currentDate));
+    const filtered = appointments.filter((apt) =>
+      isSameDay(new Date(apt.start), currentDate)
+    );
     return calculateLayout(filtered);
   }, [appointments, currentDate]);
 
@@ -40,9 +51,7 @@ export function DayView({ currentDate, appointments = [] }: DayViewProps) {
           <div
             className={cn(
               "inline-flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold",
-              isToday(currentDate)
-                ? "bg-brand text-black"
-                : "text-foreground"
+              isToday(currentDate) ? "bg-brand text-black" : "text-foreground"
             )}
           >
             {format(currentDate, "d")}
@@ -52,13 +61,17 @@ export function DayView({ currentDate, appointments = [] }: DayViewProps) {
 
       {/* Time Grid */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
-        <div className="flex relative min-h-[1440px] py-10">
+        <div
+          className="flex relative py-10"
+          style={{ minHeight: `${24 * hourHeight}px` }}
+        >
           {/* Time Labels */}
           <div className="w-16 flex-shrink-0 border-r bg-muted/5 flex flex-col">
             {hours.map((hour) => (
               <div
                 key={hour}
-                className="h-[60px] border-b text-xs text-muted-foreground text-right pr-2 pt-1 relative"
+                className="border-b text-xs text-muted-foreground text-right pr-2 pt-1 relative"
+                style={{ height: `${hourHeight}px` }}
               >
                 <span className="-top-2.5 relative bg-background px-1">
                   {format(new Date().setHours(hour, 0, 0, 0), "HH:mm")}
@@ -73,35 +86,51 @@ export function DayView({ currentDate, appointments = [] }: DayViewProps) {
               <div
                 key={hour}
                 className={cn(
-                  "h-[60px] border-b border-dashed",
+                  "border-b border-dashed",
                   hour === 0 && "border-t border-dashed"
                 )}
+                style={{ height: `${hourHeight}px` }}
               />
             ))}
 
             {/* Appointments */}
-            {dayAppointments.map((apt) => (
-              <div
-                key={apt.id}
-                className="absolute bg-brand/20 border border-brand/50 rounded px-2 py-1 overflow-hidden hover:z-20 transition-all text-xs"
-                style={{
-                  top: `${apt.top}px`,
-                  height: `${apt.height}px`,
-                  left: `${apt.left}%`,
-                  width: `${apt.width}%`,
-                }}
-              >
-                <div className="font-semibold">{apt.title || "Cita"}</div>
-                <div className="truncate">{apt.clientName}</div>
-                <div className="text-muted-foreground text-[10px]">
-                  {format(new Date(apt.start), "HH:mm")} - {format(new Date(apt.end), "HH:mm")}
-                </div>
-              </div>
-            ))}
+            {dayAppointments.map((apt) => {
+              const showDetails = apt.height > 30; // Threshold for showing details
 
-            {isToday(currentDate) && (
-              <CurrentTimeIndicator />
-            )}
+              return (
+                <div
+                  key={apt.id}
+                  onClick={() => onAppointmentClick?.(apt.id)}
+                  className={cn(
+                    "absolute rounded p-2 overflow-hidden hover:z-20 transition-all text-xs cursor-pointer hover:opacity-90 hover:shadow-md",
+                    apt.color
+                  )}
+                  style={{
+                    top: `${apt.top * pixelsPerMinute}px`,
+                    height: `${apt.height * pixelsPerMinute}px`,
+                    left: `${apt.left}%`,
+                    width: `${apt.width}%`,
+                  }}
+                >
+                  <div className="font-semibold truncate">
+                    {apt.clientName || "Cliente"}
+                  </div>
+                  {showDetails && (
+                    <div
+                      className={cn(
+                        "font-light text-[10px] truncate",
+                        apt.isPast ? "text-muted-foreground" : "text-current/70"
+                      )}
+                    >
+                      {format(new Date(apt.start), "HH:mm")} -{" "}
+                      {format(new Date(apt.end), "HH:mm")}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            {isToday(currentDate) && <CurrentTimeIndicator />}
           </div>
         </div>
       </div>
@@ -121,5 +150,5 @@ function CurrentTimeIndicator() {
     >
       <div className="h-2 w-2 rounded-full bg-red-500 -ml-1" />
     </div>
-  )
+  );
 }

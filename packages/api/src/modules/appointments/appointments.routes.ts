@@ -22,6 +22,14 @@ export const appointmentsRoutes = new Elysia({
       memberId: t.Optional(t.String()),
     }),
   })
+  .get("/:id", ({ appointmentsService, params }) => {
+    return appointmentsService.getAppointmentById(params.id);
+  }, {
+    auth: true,
+    params: t.Object({
+      id: t.String(),
+    }),
+  })
   .get(
     "/history",
     ({ appointmentsService, query }) => {
