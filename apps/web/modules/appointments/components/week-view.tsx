@@ -59,14 +59,12 @@ export function WeekView({ currentDate, appointments = [] }: WeekViewProps) {
             <div className="w-16 shrink-0 sticky left-0 z-40 bg-background border-r" />
 
             {/* Days Header */}
-            <div className="flex">
+            <div className="flex flex-1">
               {days.map((day) => (
                 <div
                   key={day.toString()}
-                  className={cn(
-                    "flex-1 py-2 text-center border-r last:border-r-0 flex items-center justify-center gap-2",
-                    isToday(day) ? "bg-brand/5" : ""
-                  )}
+                  className="flex-1 py-2 text-center border-r last:border-r-0 flex items-center justify-center gap-2 bg-background"
+                  style={{ minWidth: "240px" }}
                 >
                   <div className="text-xs font-medium text-muted-foreground uppercase">
                     {format(day, "EEE", { locale: es })}
@@ -107,7 +105,7 @@ export function WeekView({ currentDate, appointments = [] }: WeekViewProps) {
             </div>
 
             {/* Grid Columns */}
-            <div className="flex">
+            <div className="flex flex-1">
               {days.map((day) => {
                 const dayApts = getDayAppointments(day);
                 return (
@@ -117,6 +115,7 @@ export function WeekView({ currentDate, appointments = [] }: WeekViewProps) {
                       "flex-1 border-r last:border-r-0 relative",
                       isToday(day) ? "bg-primary/5" : ""
                     )}
+                    style={{ minWidth: "240px" }}
                   >
                     {hours.map((hour) => (
                       <div
