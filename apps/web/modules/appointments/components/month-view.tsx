@@ -79,7 +79,7 @@ export function MonthView({ currentDate, appointments = [] }: MonthViewProps) {
               <div className="flex-1 flex flex-col gap-1 overflow-hidden">
                 {dayAppointments.slice(0, 3).map(apt => (
                   <div key={apt.id} className="text-[10px] bg-primary/10 text-primary truncate px-1 rounded border border-primary/20">
-                    {format(new Date(apt.start), "HH:mm")} {apt.title || "Cita"}
+                    {format(new Date(apt.start), "HH:mm")} Cita
                   </div>
                 ))}
                 {dayAppointments.length > 3 && (

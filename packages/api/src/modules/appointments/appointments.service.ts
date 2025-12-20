@@ -33,11 +33,6 @@ export class AppointmentsService {
       .select({
         id: appointment.id,
         customerName: appointment.customerName,
-        customerEmail: appointment.customerEmail,
-        customerPhone: appointment.customerPhone,
-        memberName: appointment.memberName,
-        memberEmail: appointment.memberEmail,
-        memberId: appointment.memberId,
         appointmentDate: appointment.appointmentDate,
         startTime: appointment.startTime,
         endTime: appointment.endTime,
@@ -71,10 +66,7 @@ export class AppointmentsService {
         });
         return acc;
       },
-      {} as Record<
-        string,
-        { date: string; appointments: typeof appointments }
-      >
+      {} as Record<string, { date: string; appointments: typeof appointments }>
     );
 
     // Convertir el objeto agrupado a un array y ordenar por fecha
@@ -138,17 +130,9 @@ export class AppointmentsService {
       .select({
         id: appointment.id,
         customerName: appointment.customerName,
-        customerEmail: appointment.customerEmail,
-        customerPhone: appointment.customerPhone,
-        memberName: appointment.memberName,
-        memberEmail: appointment.memberEmail,
         appointmentDate: appointment.appointmentDate,
         startTime: appointment.startTime,
         endTime: appointment.endTime,
-        status: appointment.status,
-        paymentStatus: appointment.paymentStatus,
-        amountPaid: appointment.amountPaid,
-        createdAt: appointment.createdAt,
       })
       .from(appointment)
       .where(and(...whereConditions))

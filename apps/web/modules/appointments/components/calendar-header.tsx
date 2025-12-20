@@ -6,7 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@meetzeen/ui/components/select";
-import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
+import { IconChevronLeft, IconChevronRight, IconZoomIn, IconZoomOut } from "@tabler/icons-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -29,6 +29,7 @@ export function CalendarHeader({
   onNext,
   onToday,
 }: CalendarHeaderProps) {
+
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between p-4 border-b">
       <div className="flex items-center justify-between sm:justify-start gap-4">
@@ -52,6 +53,7 @@ export function CalendarHeader({
         <Button variant="outline" size="sm" onClick={onToday} className="sm:hidden flex-1">
           Hoy
         </Button>
+
         <Select value={view} onValueChange={(v) => onViewChange(v as CalendarView)}>
           <SelectTrigger className="w-[120px]">
             <SelectValue placeholder="Vista" />
