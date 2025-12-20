@@ -8,6 +8,7 @@ import { CalendarHeader, CalendarView } from "./calendar-header";
 import { DayView } from "./day-view";
 import { MonthView } from "./month-view";
 import { WeekView } from "./week-view";
+import { AppointmentSheet } from "./appointment-sheet";
 
 const COLORS = [
   "bg-teal-100 text-teal-900",   // Menta
@@ -20,8 +21,23 @@ export function AppointmentsCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState<CalendarView>("month");
   const [zoom, setZoom] = useState(1);
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   const { data, isLoading } = useAppointments();
+
+  const handleAppointmentClick = (appointmentId: string) => {
+    setSelectedAppointmentId(appointmentId);
+    setIsSheetOpen(true);
+  };
+
+  const handleSheetOpenChange = (open: boolean) => {
+    setIsSheetOpen(open);
+    if (!open) {
+      // Reset appointmentId when sheet closes
+      setSelectedAppointmentId(null);
+    }
+  };
 
   const appointments = useMemo<Appointment[]>(() => {
     if (!data) return [];
@@ -84,27 +100,53 @@ export function AppointmentsCalendar() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-100px)] border rounded-lg shadow-sm bg-background overflow-hidden">
-      <CalendarHeader
-        currentDate={currentDate}
-        view={view}
-        onViewChange={setView}
-        onPrev={handlePrev}
-        onNext={handleNext}
-        onToday={handleToday}
-        zoom={zoom}
-        onZoomChange={setZoom}
-      />
-      <div className="flex-1 overflow-hidden relative">
-        {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-background/50 z-10">
-            Loading...
-          </div>
-        )}
-        {view === "month" && <MonthView currentDate={currentDate} appointments={appointments} />}
-        {view === "week" && <WeekView currentDate={currentDate} appointments={appointments} zoom={zoom} />}
-        {view === "day" && <DayView currentDate={currentDate} appointments={appointments} zoom={zoom} />}
+    <>
+      <div className="flex flex-col h-[calc(100vh-100px)] w-full min-w-0 border rounded-lg shadow-sm bg-background overflow-hidden">
+        <CalendarHeader
+          currentDate={currentDate}
+          view={view}
+          onViewChange={setView}
+          onPrev={handlePrev}
+          onNext={handleNext}
+          onToday={handleToday}
+        />
+        <div className="flex-1 overflow-hidden relative w-full">
+          {isLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-background/50 z-10">
+              Loading...
+            </div>
+          )}
+          {view === "month" && (
+            <MonthView
+              currentDate={currentDate}
+              appointments={appointments}
+              onAppointmentClick={handleAppointmentClick}
+            />
+          )}
+          {view === "week" && (
+            <WeekView
+              currentDate={currentDate}
+              appointments={appointments}
+              zoom={zoom}
+              onAppointmentClick={handleAppointmentClick}
+            />
+          )}
+          {view === "day" && (
+            <DayView
+              currentDate={currentDate}
+              appointments={appointments}
+              zoom={zoom}
+              onAppointmentClick={handleAppointmentClick}
+            />
+          )}
+        </div>
       </div>
-    </div>
+      <AppointmentSheet
+        appointmentId={selectedAppointmentId}
+        open={isSheetOpen}
+        onOpenChange={handleSheetOpenChange}
+        showTrigger={false}
+      />
+    </>
   );
 }

@@ -15,9 +15,11 @@ import { useEffect, useRef } from "react";
 interface WeekViewProps {
   currentDate: Date;
   appointments?: Appointment[];
+  zoom?: number;
+  onAppointmentClick?: (appointmentId: string) => void;
 }
 
-export function WeekView({ currentDate, appointments = [] }: WeekViewProps) {
+export function WeekView({ currentDate, appointments = [], zoom, onAppointmentClick }: WeekViewProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const startDate = startOfWeek(currentDate, { weekStartsOn: 1 });
   const days = eachDayOfInterval({
@@ -64,7 +66,7 @@ export function WeekView({ currentDate, appointments = [] }: WeekViewProps) {
                 <div
                   key={day.toString()}
                   className="flex-1 py-2 text-center border-r last:border-r-0 flex items-center justify-center gap-2 bg-background"
-                  style={{ minWidth: "240px" }}
+                  style={{ minWidth: "160px" }}
                 >
                   <div className="text-xs font-medium text-muted-foreground uppercase">
                     {format(day, "EEE", { locale: es })}
@@ -115,7 +117,7 @@ export function WeekView({ currentDate, appointments = [] }: WeekViewProps) {
                       "flex-1 border-r last:border-r-0 relative",
                       isToday(day) ? "bg-primary/5" : ""
                     )}
-                    style={{ minWidth: "240px" }}
+                    style={{ minWidth: "160px" }}
                   >
                     {hours.map((hour) => (
                       <div
@@ -135,8 +137,9 @@ export function WeekView({ currentDate, appointments = [] }: WeekViewProps) {
                       return (
                         <div
                           key={apt.id}
+                          onClick={() => onAppointmentClick?.(apt.id)}
                           className={cn(
-                            "absolute rounded p-2 overflow-hidden hover:z-20 transition-all text-[10px] leading-tight",
+                            "absolute rounded p-2 overflow-hidden hover:z-20 transition-all text-[10px] leading-tight cursor-pointer hover:opacity-90 hover:shadow-md",
                             apt.color
                           )}
                           style={{

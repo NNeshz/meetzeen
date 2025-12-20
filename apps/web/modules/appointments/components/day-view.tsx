@@ -8,11 +8,15 @@ import { calculateLayout } from "../utils/layout-utils";
 interface DayViewProps {
   currentDate: Date;
   appointments?: Appointment[];
+  zoom?: number;
+  onAppointmentClick?: (appointmentId: string) => void;
 }
 
 export function DayView({
   currentDate,
   appointments = [],
+  zoom,
+  onAppointmentClick,
 }: DayViewProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const hours = Array.from({ length: 24 }, (_, i) => i);
@@ -96,8 +100,9 @@ export function DayView({
               return (
                 <div
                   key={apt.id}
+                  onClick={() => onAppointmentClick?.(apt.id)}
                   className={cn(
-                    "absolute rounded p-2 overflow-hidden hover:z-20 transition-all text-xs",
+                    "absolute rounded p-2 overflow-hidden hover:z-20 transition-all text-xs cursor-pointer hover:opacity-90 hover:shadow-md",
                     apt.color
                   )}
                   style={{

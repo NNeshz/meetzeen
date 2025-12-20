@@ -1,4 +1,4 @@
-import { db, appointment } from "@meetzeen/database";
+import { db, appointment, customer, member } from "@meetzeen/database";
 import { and, eq, desc, count, sql, gte } from "drizzle-orm";
 
 export class AppointmentsService {
@@ -150,6 +150,91 @@ export class AppointmentsService {
         hasNextPage: finalOffset + finalLimit < totalAppointments,
         hasPrevPage: finalOffset > 0,
       },
+    };
+  }
+
+  async getAppointmentById(id: string) {
+    const [found] = await db
+      .select({
+        id: appointment.id,
+        customerId: appointment.customerId,
+        customerName: appointment.customerName,
+        customerEmail: appointment.customerEmail,
+        customerPhone: appointment.customerPhone,
+        customerNotes: appointment.customerNotes,
+        memberId: appointment.memberId,
+        memberName: appointment.memberName,
+        memberEmail: appointment.memberEmail,
+        memberRole: appointment.memberRole,
+        organizationId: appointment.organizationId,
+        serviceId: appointment.serviceId,
+        appointmentDate: appointment.appointmentDate,
+        startTime: appointment.startTime,
+        endTime: appointment.endTime,
+        status: appointment.status,
+        notes: appointment.notes,
+        cancellationReason: appointment.cancellationReason,
+        cancelledAt: appointment.cancelledAt,
+        cancelledBy: appointment.cancelledBy,
+        paymentStatus: appointment.paymentStatus,
+        paymentMethod: appointment.paymentMethod,
+        amountPaid: appointment.amountPaid,
+        source: appointment.source,
+        reminderSent: appointment.reminderSent,
+        reminderSentAt: appointment.reminderSentAt,
+        createdAt: appointment.createdAt,
+        updatedAt: appointment.updatedAt,
+        // Relaciones del cliente
+        customer: {
+          id: customer.id,
+          name: customer.name,
+          lastName: customer.lastName,
+          email: customer.email,
+          phoneNumber: customer.phoneNumber,
+          notes: customer.notes,
+        },
+        // Relaciones del miembro
+        member: {
+          id: member.id,
+          role: member.role,
+        },
+        // Servicios reservados
+        servicesBooked: sql<unknown>`
+          (
+            SELECT json_agg(sb)
+            FROM "ServicesBooked" sb
+            WHERE sb."appointmentId" = ${id}
+          )
+        `,
+      })
+      .from(appointment)
+      .leftJoin(customer, eq(appointment.customerId, customer.id))
+      .leftJoin(member, eq(appointment.memberId, member.id))
+      .where(eq(appointment.id, id));
+
+    if (!found) {
+      throw new Error("Appointment not found");
+    }
+
+    // Obtener serviciosBooked (deserializar si es necesario)
+    const servicesBooked = Array.isArray(found.servicesBooked)
+      ? found.servicesBooked
+      : (found.servicesBooked
+        ? typeof found.servicesBooked === "string"
+          ? JSON.parse(found.servicesBooked)
+          : found.servicesBooked
+        : []);
+
+    // Prefijo de fecha
+    const appointmentDate =
+      found.appointmentDate?.startsWith("Date:")
+        ? found.appointmentDate
+        : `Date:${found.appointmentDate}`;
+
+    return {
+      ...found,
+      servicesBooked,
+      appointmentDate,
     };
   }
 
