@@ -102,7 +102,7 @@ export function AppointmentSheet({
           </div>
         ) : isViewMode && appointment ? (
           <div className="flex flex-col h-full overflow-y-auto">
-            <div className="px-8 py-8 space-y-8">
+            <div className="px-4 py-4 space-y-8">
               {/* Header */}
               <div className="space-y-3">
                 <div className="flex items-center gap-3">

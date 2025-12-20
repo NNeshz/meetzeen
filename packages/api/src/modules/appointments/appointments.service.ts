@@ -1,5 +1,5 @@
 import { db, appointment, customer, member } from "@meetzeen/database";
-import { and, eq, desc, count, sql, gte } from "drizzle-orm";
+import { and, or, eq, desc, count, sql, gte, like } from "drizzle-orm";
 
 export class AppointmentsService {
   constructor() {}
@@ -92,13 +92,18 @@ export class AppointmentsService {
     organizationId: string,
     clientTimezone: string,
     clientCurrentTime: string,
+    search?: string,
     limit?: number,
     offset?: number
   ) {
     const finalLimit = limit ?? 50;
     const finalOffset = offset ?? 0;
 
+    // Validar y convertir la fecha del cliente
     const clientNow = new Date(clientCurrentTime);
+    if (isNaN(clientNow.getTime())) {
+      throw new Error(`Invalid date format: ${clientCurrentTime}. Expected ISO 8601 format.`);
+    }
 
     const todayInClientTz = this.getTodayInTimezone(clientTimezone, clientNow);
     const currentTimeInClientTz = this.getCurrentTimeInTimezone(
@@ -108,9 +113,6 @@ export class AppointmentsService {
 
     const whereConditions = [
       eq(appointment.organizationId, organizationId),
-      // La cita es pasada si:
-      // 1. La fecha es anterior a hoy, O
-      // 2. La fecha es hoy pero la hora de inicio ya pasó
       sql`(
         ${appointment.appointmentDate} < ${todayInClientTz}
         OR (
@@ -119,6 +121,19 @@ export class AppointmentsService {
         )
       )`,
     ];
+
+    if (search && search.trim()) {
+      const searchTerm = `%${search.trim()}%`;
+      whereConditions.push(
+        sql`(
+          ${appointment.customerName} ILIKE ${searchTerm}
+          OR (
+            ${appointment.customerPhone} IS NOT NULL 
+            AND ${appointment.customerPhone} ILIKE ${searchTerm}
+          )
+        )`
+      );
+    }
 
     const totalAppointments = await db
       .select({ count: count() })
@@ -141,7 +156,12 @@ export class AppointmentsService {
       .offset(finalOffset);
 
     return {
-      results: appointments,
+      results: {
+        appointments: appointments.map((app) => ({
+          ...app,
+          appointmentDate: `Date:${app.appointmentDate}`,
+        })),
+      },
       meta: {
         totalAppointments,
         filteredAppointments: totalAppointments,
@@ -219,17 +239,16 @@ export class AppointmentsService {
     // Obtener serviciosBooked (deserializar si es necesario)
     const servicesBooked = Array.isArray(found.servicesBooked)
       ? found.servicesBooked
-      : (found.servicesBooked
+      : found.servicesBooked
         ? typeof found.servicesBooked === "string"
           ? JSON.parse(found.servicesBooked)
           : found.servicesBooked
-        : []);
+        : [];
 
     // Prefijo de fecha
-    const appointmentDate =
-      found.appointmentDate?.startsWith("Date:")
-        ? found.appointmentDate
-        : `Date:${found.appointmentDate}`;
+    const appointmentDate = found.appointmentDate?.startsWith("Date:")
+      ? found.appointmentDate
+      : `Date:${found.appointmentDate}`;
 
     return {
       ...found,

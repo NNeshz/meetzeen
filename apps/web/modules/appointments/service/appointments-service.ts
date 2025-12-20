@@ -6,13 +6,6 @@ export class AppointmentsService {
     return useDashboardStore.getState().organization?.id || "";
   }
 
-  /**
-   * Obtiene todas las citas desde la fecha del cliente en adelante, agrupadas por fecha
-   * @param organizationId - ID de la organización
-   * @param clientDate - Fecha del cliente en formato YYYY-MM-DD (hoy)
-   * @param memberId - ID opcional del miembro para filtrar
-   * @returns Array de objetos agrupados por fecha con formato { date: "Date:YYYY-MM-DD", appointments: [...] }
-   */
   async getAppointments(
     organizationId: string,
     clientDate: string,
@@ -44,6 +37,33 @@ export class AppointmentsService {
       throw new Error(response.error.value.message);
     }
 
+    return response.data;
+  }
+
+  async getAppointmentsHistory(
+    clientTimezone: string,
+    clientCurrentTime: string,
+    organizationId?: string,
+    search?: string
+  ) {
+    const orgId = organizationId || this.getOrganizationId();
+
+    if (!orgId) {
+      throw new Error("Organization ID is required");
+    }
+
+    const response = await apiClient.appointments.history.get({
+      query: {
+        organizationId: orgId,
+        clientTimezone,
+        clientCurrentTime,
+        search,
+      },
+    });
+
+    if (response.error) {
+      throw new Error(response.error.value.message);
+    }
     return response.data;
   }
 }
