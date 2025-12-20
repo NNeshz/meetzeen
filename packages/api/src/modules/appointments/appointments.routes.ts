@@ -37,6 +37,7 @@ export const appointmentsRoutes = new Elysia({
         query.organizationId,
         query.clientTimezone,
         query.clientCurrentTime,
+        query.search,
         query.limit,
         query.offset
       );
@@ -45,8 +46,9 @@ export const appointmentsRoutes = new Elysia({
       auth: true,
       query: t.Object({
         organizationId: t.String(),
+        search: t.Optional(t.String()),
         clientTimezone: t.String(), // Timezone del cliente (ej: "America/Mexico_City")
-        clientCurrentTime: t.String(), // Hora actual del cliente en formato ISO string
+        clientCurrentTime: t.String(), // Hora actual del cliente en formato ISO string (HH:mm:ss)
         limit: t.Optional(t.Number()),
         offset: t.Optional(t.Number()),
       }),

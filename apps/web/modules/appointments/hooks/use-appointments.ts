@@ -30,3 +30,23 @@ export const useAppointmentById = (id: string) => {
     enabled: !!organizationId && !!id,
   });
 };
+
+export const useAppointmentsHistory = (search?: string) => {
+  const organizationId = useDashboardStore((state) => state.organization?.id);
+
+  const clientTimezone = Temporal.Now.timeZoneId();
+  // Usar instant() para obtener un ISO string completo que el backend pueda convertir a Date
+  const clientCurrentTime = Temporal.Now.instant().toString();
+
+  return useQuery({
+    queryKey: ["appointments-history", organizationId, search],
+    queryFn: () =>
+      appointmentsService.getAppointmentsHistory(
+        clientTimezone,
+        clientCurrentTime,
+        organizationId,
+        search
+      ),
+    enabled: !!organizationId,
+  });
+};
