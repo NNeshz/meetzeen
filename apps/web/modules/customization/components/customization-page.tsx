@@ -37,27 +37,20 @@ export function CustomizationPage() {
 
   return (
     <div className="bg-background">
-      {/* Desktop Layout: Panel fijo + Preview */}
       <div className="hidden lg:flex h-screen">
-        {/* Panel lateral fijo (no es sidebar, es parte del layout) */}
-        <aside className="w-[340px] border-r bg-card flex-shrink-0 overflow-y-auto">
+        <aside className="w-[340px] bg-card shrink-0 overflow-y-auto">
           <CustomizationPanel config={config} setConfig={setConfig} />
         </aside>
 
-        {/* Área de previsualización */}
         <main className="flex-1 overflow-y-auto">
           <CustomizationPreview config={config} />
         </main>
       </div>
 
-      {/* Mobile Layout: Sheet + Preview */}
       <div className="lg:hidden">
-        {/* Botón flotante para abrir el sheet */}
         <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
           <SheetTrigger asChild>
-            <Button
-              size="icon"
-            >
+            <Button size="icon">
               <Settings2 className="h-6 w-6" />
               <span className="sr-only">Abrir configuración</span>
             </Button>
@@ -70,7 +63,6 @@ export function CustomizationPage() {
           </SheetContent>
         </Sheet>
 
-        {/* Preview en mobile */}
         <main className="min-h-screen">
           <CustomizationPreview config={config} />
         </main>

@@ -71,7 +71,7 @@ export function ColorPicker({ id, value, onChange }: ColorPickerProps) {
           className="w-full justify-start gap-3 h-11 px-3 bg-transparent"
         >
           <div
-            className="h-6 w-6 rounded-md border shadow-sm flex-shrink-0"
+            className="h-6 w-6 rounded-md border shadow-sm shrink-0"
             style={{ backgroundColor: value }}
           />
           <span className="font-mono text-sm uppercase">{value}</span>
@@ -88,25 +88,30 @@ export function ColorPicker({ id, value, onChange }: ColorPickerProps) {
 
           {/* Input de color nativo + texto */}
           <div className="flex items-center gap-2">
-            <div className="relative">
+            <div className="relative h-10 w-10 shrink-0">
+              <div
+                className="absolute inset-0 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center pointer-events-none"
+                style={{ backgroundColor: value }}
+              >
+                <Pipette
+                  className={cn(
+                    "h-4 w-4 drop-shadow-md",
+                    isLightColor(value) ? "text-black" : "text-white"
+                  )}
+                />
+              </div>
               <input
                 type="color"
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
               />
-              <div
-                className="h-10 w-10 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center cursor-pointer hover:border-muted-foreground/50 transition-colors"
-                style={{ backgroundColor: value }}
-              >
-                <Pipette className="h-4 w-4 text-white drop-shadow-md" />
-              </div>
             </div>
             <Input
               value={inputValue}
               onChange={handleInputChange}
               onBlur={handleInputBlur}
-              className="font-mono uppercase text-sm h-10"
+              className="font-mono uppercase text-sm h-10 flex-1"
               maxLength={7}
               placeholder="#000000"
             />
@@ -123,7 +128,6 @@ export function ColorPicker({ id, value, onChange }: ColorPickerProps) {
                   key={color}
                   onClick={() => {
                     onChange(color);
-                    setOpen(false);
                   }}
                   className={cn(
                     "h-8 w-8 rounded-lg border-2 transition-all hover:scale-110 flex items-center justify-center",
@@ -152,6 +156,7 @@ export function ColorPicker({ id, value, onChange }: ColorPickerProps) {
 }
 
 function isLightColor(hex: string): boolean {
+  if (!hex || !/^#[0-9A-Fa-f]{6}$/.test(hex)) return false;
   const r = Number.parseInt(hex.slice(1, 3), 16);
   const g = Number.parseInt(hex.slice(3, 5), 16);
   const b = Number.parseInt(hex.slice(5, 7), 16);
