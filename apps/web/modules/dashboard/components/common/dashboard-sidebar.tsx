@@ -77,6 +77,10 @@ const data = {
           url: "/dashboard/settings/invitations",
         },
         {
+          title: "Personalización",
+          url: "/dashboard/settings/customization",
+        },
+        {
           title: "Plan",
           url: "/dashboard/settings/subscription",
         },

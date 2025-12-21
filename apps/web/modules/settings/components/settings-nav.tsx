@@ -27,6 +27,12 @@ export default function SettingsNav() {
         Invitaciones
       </Link>
       <Link
+        href="/dashboard/settings/customization"
+        className={`${getTextClasses("/dashboard/settings/customization")}`}
+      >
+        Personalización
+      </Link>
+      <Link
         href="/dashboard/settings/subscription"
         className={`${getTextClasses("/dashboard/settings/subscription")}`}
       >
