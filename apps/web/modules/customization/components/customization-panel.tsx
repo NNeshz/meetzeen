@@ -35,7 +35,6 @@ const roundedOptions = [
   { value: "md", label: "Medio" },
   { value: "lg", label: "Grande" },
   { value: "xl", label: "Extra grande" },
-  { value: "full", label: "Completo" },
 ];
 
 const alignmentOptions = [
@@ -57,21 +56,19 @@ export function CustomizationPanel({
 
   return (
     <div className="flex flex-col h-full">
-      <div className="px-6 py-6 bg-muted/10">
+      <div className="px-4 py-4">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-lg bg-primary/10">
             <Paintbrush className="h-5 w-5 text-primary" />
           </div>
           <div>
             <h2 className="font-semibold text-lg">Personalizar</h2>
-            <p className="text-sm text-muted-foreground">
-              Configura el estilo
-            </p>
+            <p className="text-sm text-muted-foreground">Configura el estilo</p>
           </div>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 py-6 space-y-8">
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-8">
         {/* Colores */}
         <div className="space-y-4">
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -156,7 +153,10 @@ export function CustomizationPanel({
               <Select
                 value={config.alignment}
                 onValueChange={(value) =>
-                  updateConfig("alignment", value as "left" | "center" | "right")
+                  updateConfig(
+                    "alignment",
+                    value as "left" | "center" | "right"
+                  )
                 }
               >
                 <SelectTrigger id="alignment" className="w-full">
@@ -195,8 +195,7 @@ export function CustomizationPanel({
           </div>
         </div>
       </div>
-
-      <div className="p-4 bg-background mt-auto sticky bottom-0 z-10">
+      <div className="p-4">
         <Button className="w-full gap-2" size="lg">
           <Save className="h-4 w-4" />
           Guardar cambios

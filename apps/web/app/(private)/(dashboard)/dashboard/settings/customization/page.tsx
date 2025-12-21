@@ -2,7 +2,7 @@ import { CustomizationPage } from "@/modules/customization/components/customizat
 
 export default function CustomizationSettingsPage() {
   return (
-    <div className="h-[calc(100vh-6rem)]">
+    <div className="h-[85vh]">
       <CustomizationPage />
     </div>
   );

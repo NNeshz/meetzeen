@@ -1,13 +1,10 @@
 "use client";
 
 import {
-  Star,
   Clock,
   Check,
   Plus,
   MapPin,
-  Phone,
-  Mail,
   ChevronDown,
   Calendar as CalendarIcon,
 } from "lucide-react";
@@ -23,7 +20,6 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@meetzeen/ui/src/components/collapsible";
-import { Calendar } from "@meetzeen/ui/src/components/calendar";
 import { useState } from "react";
 
 interface PreviewProps {
@@ -36,7 +32,6 @@ const roundedMap: Record<string, string> = {
   md: "rounded-md",
   lg: "rounded-lg",
   xl: "rounded-xl",
-  full: "rounded-full",
 };
 
 const alignmentMap: Record<string, string> = {
@@ -51,7 +46,7 @@ export function CustomizationPreview({ config }: PreviewProps) {
 
   return (
     <div
-      className="flex-1 bg-muted/30 min-h-full py-8 px-4 sm:px-6"
+      className="flex-1 py-8 px-4 sm:px-6"
       style={fontStyle}
     >
       <div className="max-w-3xl mx-auto space-y-6 pb-20">
@@ -116,7 +111,7 @@ function PreviewHeader({
   const isCenter = config.alignment === "center";
 
   return (
-    <div className={cn("flex flex-col justify-center px-4 py-8 bg-background border shadow-sm", roundedClass)}>
+    <div className={cn("flex flex-col justify-center px-4 py-8 bg-background shadow-sm", roundedClass)}>
       <div className={cn("w-full flex flex-col space-y-6", alignClass)}>
         {/* Logo/Avatar */}
         <div

@@ -36,26 +36,30 @@ export function CustomizationPage() {
   const [isSheetOpen, setIsSheetOpen] = React.useState(false);
 
   return (
-    <div className="bg-background">
-      <div className="hidden lg:flex h-screen">
-        <aside className="w-[340px] bg-card shrink-0 overflow-y-auto">
+    <div className="h-full">
+      <div className="hidden lg:flex h-full">
+        <aside className="w-[340px] overflow-y-auto">
           <CustomizationPanel config={config} setConfig={setConfig} />
         </aside>
 
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
           <CustomizationPreview config={config} />
         </main>
       </div>
 
       <div className="lg:hidden">
         <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-          <SheetTrigger asChild>
-            <Button size="icon">
+          <SheetTrigger asChild className="fixed bottom-4 right-4">
+            <Button size={"lg"}>
               <Settings2 className="h-6 w-6" />
+              Personalizar
               <span className="sr-only">Abrir configuración</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-[320px] p-0 overflow-y-auto">
+          <SheetContent
+            side="left"
+            className="w-[320px] p-0 overflow-y-auto fixed"
+          >
             <SheetHeader className="sr-only">
               <SheetTitle>Personalizar</SheetTitle>
             </SheetHeader>
