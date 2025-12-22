@@ -43,6 +43,16 @@ export const auth = betterAuth({
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      // Scopes adicionales para Google Calendar
+      scope: [
+        "openid",
+        "email",
+        "profile",
+        "https://www.googleapis.com/auth/calendar.events",
+      ],
+      // Necesario para obtener refresh_token y mantener acceso
+      accessType: "offline",
+      prompt: "consent",
     },
   },
   advanced: {

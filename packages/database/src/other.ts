@@ -271,6 +271,9 @@ export const appointment = pgTable(
       withTimezone: true,
     }),
 
+    // Google Calendar integration
+    googleCalendarEventId: text(),
+
     createdAt: timestamp({ precision: 3, mode: "string", withTimezone: true })
       .notNull()
       .defaultNow(),
