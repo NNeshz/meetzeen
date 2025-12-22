@@ -1,4 +1,5 @@
 import { CustomerService } from "@meetzeen/api/src/modules/customers/customer.service";
+import { GoogleCalendarService } from "@meetzeen/api/src/modules/google-calendar/google-calendar.service";
 import {
   db,
   member,
@@ -12,7 +13,11 @@ import {
 import { and, eq, inArray, or } from "drizzle-orm";
 
 export class BookingService {
-  constructor(private readonly customerService: CustomerService) {}
+  private readonly googleCalendarService: GoogleCalendarService;
+
+  constructor(private readonly customerService: CustomerService) {
+    this.googleCalendarService = new GoogleCalendarService();
+  }
 
   async createBooking(
     organizationId: string,
@@ -154,7 +159,24 @@ export class BookingService {
 
     await db.insert(servicesBooked).values(servicesBookedData);
 
-    // 10. Retornar el appointment creado con sus servicios
+    // 10. Crear evento en Google Calendar
+    await this.createGoogleCalendarEvent({
+      appointmentId: newAppointment.id,
+      memberUserId: memberRecord.userId,
+      memberName: memberRecord.user.name,
+      memberEmail: memberRecord.user.email,
+      customerName: customer.name + " " + customer.lastName,
+      customerEmail: customer.email,
+      services: serviceRecords,
+      date,
+      startTime,
+      endTime,
+      organizationName: org.name,
+      timezone: org.timezone || "America/Mexico_City",
+      location: org.location || undefined,
+    });
+
+    // 11. Retornar el appointment creado con sus servicios
     const appointmentWithServices = await db.query.appointment.findFirst({
       where: eq(appointment.id, newAppointment.id),
       with: {
@@ -302,5 +324,114 @@ export class BookingService {
       totalAmount: parseFloat(totalAmount.toFixed(2)),
       totalDiscount: parseFloat(totalDiscount.toFixed(2)),
     };
+  }
+
+  /**
+   * Crea un evento en Google Calendar para la cita
+   * Se crea en el calendario del miembro e invita al cliente
+   */
+  private async createGoogleCalendarEvent(params: {
+    appointmentId: string;
+    memberUserId: string;
+    memberName: string;
+    memberEmail: string;
+    customerName: string;
+    customerEmail: string;
+    services: typeof service.$inferSelect[];
+    date: string;
+    startTime: string;
+    endTime: string;
+    organizationName: string;
+    timezone: string;
+    location?: string;
+  }): Promise<void> {
+    const {
+      appointmentId,
+      memberUserId,
+      memberName,
+      memberEmail,
+      customerName,
+      customerEmail,
+      services,
+      date,
+      startTime,
+      endTime,
+      organizationName,
+      timezone,
+      location,
+    } = params;
+
+    try {
+      // Formatear los servicios para la descripción
+      const servicesDescription = services
+        .map((s) => `• ${s.name} (${s.duration} min)`)
+        .join("\n");
+
+      // Construir el título del evento
+      const summary = `${customerName} - ${organizationName}`;
+
+      // Construir la descripción del evento
+      const description = `📅 Cita agendada
+
+👤 Cliente: ${customerName}
+📧 Email: ${customerEmail}
+
+📋 Servicios:
+${servicesDescription}
+
+🏢 ${organizationName}`;
+
+      // Convertir fecha y hora a formato ISO 8601
+      // startTime viene como "HH:MM" y endTime como "HH:MM:SS"
+      const startDateTime = `${date}T${startTime.length === 5 ? startTime + ":00" : startTime}`;
+      const endDateTime = `${date}T${endTime}`;
+
+      // Crear el evento en el calendario del miembro
+      const result = await this.googleCalendarService.createCalendarEvent(
+        memberUserId,
+        {
+          summary,
+          description,
+          location,
+          startDateTime,
+          endDateTime,
+          timezone,
+          organizerEmail: memberEmail,
+          attendees: [
+            // El cliente es invitado al evento
+            {
+              email: customerEmail,
+              displayName: customerName,
+            },
+          ],
+        }
+      );
+
+      if (result.success && result.eventId) {
+        // Guardar el ID del evento de Google Calendar en la cita
+        await db
+          .update(appointment)
+          .set({
+            googleCalendarEventId: result.eventId,
+            updatedAt: new Date().toISOString(),
+          })
+          .where(eq(appointment.id, appointmentId));
+
+        console.log(
+          `✅ Evento de Google Calendar creado para la cita ${appointmentId}: ${result.eventId}`
+        );
+      } else {
+        // Log del error pero no fallar la creación de la cita
+        console.warn(
+          `⚠️ No se pudo crear el evento de Google Calendar para la cita ${appointmentId}: ${result.error}`
+        );
+      }
+    } catch (error) {
+      // Log del error pero no fallar la creación de la cita
+      console.error(
+        `❌ Error al crear evento de Google Calendar para la cita ${appointmentId}:`,
+        error
+      );
+    }
   }
 }
