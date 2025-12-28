@@ -1,4 +1,4 @@
-import { AppointmentTable } from "@/modules/appointments/components/appointment-table";
+import { HistoryTable } from "@/modules/appointments/components/history-table";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 export default function CalendarHistoryPage() {
   return (
     <div>
-      <AppointmentTable />
+      <HistoryTable />
     </div>
   );
 }

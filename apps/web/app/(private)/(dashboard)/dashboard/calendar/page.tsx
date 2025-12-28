@@ -1,4 +1,4 @@
-import { AppointmentsCalendar } from "@/modules/appointments/components/appointments-calendar";
+import { AppointmentsCalendar } from "@/modules/appointments/components/calendar-provider";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {

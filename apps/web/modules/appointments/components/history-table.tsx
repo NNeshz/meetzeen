@@ -9,7 +9,7 @@ import {
   type ColumnDef,
 } from "@tanstack/react-table";
 import { useAppointmentsHistory } from "@/modules/appointments/hooks/use-appointments";
-import { columns } from "./columns";
+import { columns } from "./colums";
 import { RawAppointment } from "@/modules/appointments/types/appointments-types";
 import { Input } from "@meetzeen/ui/components/input";
 import { IconSearch } from "@tabler/icons-react";
@@ -31,7 +31,7 @@ const columnLabels: Record<string, string> = {
   endTime: "Hora de fin",
 };
 
-export function AppointmentTable() {
+export function HistoryTable() {
   const [searchValue, setSearchValue] = React.useState("");
   const [columnVisibility, setColumnVisibility] = React.useState<Record<string, boolean>>({
     customerName: true,
