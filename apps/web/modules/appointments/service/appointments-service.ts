@@ -8,7 +8,8 @@ export class AppointmentsService {
 
   async getAppointments(
     organizationId: string,
-    clientDate: string,
+    startDate: string,
+    endDate: string,
     memberId?: string
   ) {
     const orgId = organizationId || this.getOrganizationId();
@@ -18,7 +19,7 @@ export class AppointmentsService {
     }
 
     const response = await apiClient.appointments.get({
-      query: { organizationId: orgId, clientDate, memberId },
+      query: { organizationId: orgId, startDate, endDate, memberId },
     });
 
     if (response.error) {

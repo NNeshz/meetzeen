@@ -1,0 +1,341 @@
+"use client";
+
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetTrigger,
+} from "@meetzeen/ui/components/sheet";
+import { Button } from "@meetzeen/ui/components/button";
+import { Badge } from "@meetzeen/ui/components/badge";
+import {
+  IconEye,
+} from "@tabler/icons-react";
+import { useState } from "react";
+import { useAppointmentById } from "@/modules/appointments/hooks/use-appointments";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { Separator } from "@meetzeen/ui/components/separator";
+
+interface ServiceBooked {
+  id?: string;
+  serviceName: string;
+  servicePrice: string;
+  serviceDuration: number;
+  serviceDiscount?: number | null;
+  serviceTotal?: string;
+  serviceDiscountTotal?: string;
+  order?: number;
+}
+
+interface HistoryDetailsProps {
+  variant?: "default" | "outline";
+  className?: string;
+  appointmentId?: string | null;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  trigger?: React.ReactNode;
+  showTrigger?: boolean;
+}
+
+export function HistoryDetails({
+  appointmentId,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
+}: HistoryDetailsProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
+
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setOpen = controlledOnOpenChange || setInternalOpen;
+
+  const { data: appointment, isLoading } = useAppointmentById(
+    appointmentId || ""
+  );
+
+  const isViewMode = !!appointmentId;
+  const isCreateMode = !appointmentId;
+
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .slice(0, 2)
+      .join("")
+      .toUpperCase();
+  };
+
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <Button variant="ghost">
+          <IconEye className="size-4" />
+          Ver detalles
+        </Button>
+      </SheetTrigger>
+      <SheetContent className="w-full sm:max-w-xl font-geist overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
+      <SheetHeader>
+          <SheetTitle>Detalles de la cita</SheetTitle>
+          <SheetDescription>La cita con todos sus detalles</SheetDescription>
+        </SheetHeader>
+        {isLoading && isViewMode ? (
+          <div className="flex h-full items-center justify-center text-muted-foreground">
+            Cargando detalles...
+          </div>
+        ) : isViewMode && appointment ? (
+          <div className="flex flex-col h-full overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
+            <div className="px-4 py-4 space-y-8">
+              <div className="space-y-4">
+                <p className="text-xl font-medium tracking-tighter">Estado</p>
+                <Separator />
+                <div className="flex flex-col gap-2">
+                  <div className="flex justify-between items-center">
+                    <p className="text-sm text-muted-foreground">Estado</p>
+                    <p className="text-sm font-medium">
+                      {appointment.status ? (
+                        <Badge variant="outline" className="text-xs capitalize">
+                          {appointment.status}
+                        </Badge>
+                      ) : (
+                        "Sin estado"
+                      )}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <p className="text-xl font-medium tracking-tighter">Cliente</p>
+                <Separator />
+                <div className="flex flex-col gap-2">
+                  <div className="flex justify-between items-center">
+                    <p className="text-sm text-muted-foreground">Nombre</p>
+                    <p className="text-sm font-medium">
+                      {appointment.customer?.name
+                        ? `${appointment.customer.name} ${appointment.customer.lastName || ""}`
+                        : appointment.customerName || "Sin nombre"}
+                    </p>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <p className="text-sm text-muted-foreground">Email</p>
+                    <p className="text-sm font-medium">
+                      {appointment.customer?.email || appointment.customerEmail}
+                    </p>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <p className="text-sm text-muted-foreground">Teléfono</p>
+                    <p className="text-sm font-medium">
+                      {appointment.customer?.phoneNumber ||
+                        appointment.customerPhone ||
+                        "Sin teléfono"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <p className="text-xl font-medium tracking-tighter">Empleado</p>
+                <Separator />
+                <div className="flex flex-col gap-2">
+                  <div className="flex justify-between items-center">
+                    <p className="text-sm text-muted-foreground">Miembro</p>
+                    <p className="text-sm font-medium">
+                      {appointment.memberName || "Sin asignar"}
+                    </p>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <p className="text-sm text-muted-foreground">Rol</p>
+                    <p className="text-sm font-medium">
+                      {appointment.memberRole || "Sin asignar"}
+                    </p>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <p className="text-sm text-muted-foreground">Email</p>
+                    <p className="text-sm font-medium">
+                      {appointment.memberEmail || "Sin asignar"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <p className="text-xl font-medium tracking-tighter">
+                  Información de la cita
+                </p>
+                <Separator />
+                <div className="flex flex-col gap-2">
+                  <div className="flex justify-between items-center">
+                    <p className="text-sm text-muted-foreground">Fecha</p>
+                    <p className="text-sm font-medium">
+                      {format(
+                        new Date(appointment.appointmentDate),
+                        "d MMM yyyy",
+                        {
+                          locale: es,
+                        }
+                      )}
+                    </p>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <p className="text-sm text-muted-foreground">Hora</p>
+                    <p className="text-sm font-medium">
+                      {appointment.startTime} - {appointment.endTime}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <p className="text-xl font-medium tracking-tighter">
+                  Servicios
+                </p>
+                <Separator />
+                <div className="flex flex-col gap-2">
+                  {appointment.servicesBooked &&
+                  Array.isArray(appointment.servicesBooked) &&
+                  appointment.servicesBooked.length > 0 ? (
+                    <div className="space-y-4">
+                      {(appointment.servicesBooked as ServiceBooked[])
+                        .sort((a, b) => (a.order || 0) - (b.order || 0))
+                        .map((service, index) => {
+                          const price = parseFloat(service.servicePrice || "0");
+                          const discount = service.serviceDiscount || 0;
+                          const discountAmount = (price * discount) / 100;
+                          const finalPrice = price - discountAmount;
+                          const duration = service.serviceDuration || 0;
+                          const hours = Math.floor(duration / 60);
+                          const minutes = duration % 60;
+
+                          let durationDisplay = "";
+                          if (hours > 0 && minutes > 0) {
+                            durationDisplay = `${hours}h ${minutes}m`;
+                          } else if (hours > 0 && minutes === 0) {
+                            durationDisplay = `${hours}h`;
+                          } else if (hours === 0 && minutes > 0) {
+                            durationDisplay = `${minutes}m`;
+                          }
+
+                          return (
+                            <div
+                              key={service.id || index}
+                              className="space-y-1"
+                            >
+                              <div className="flex justify-between items-start">
+                                <div className="flex items-center gap-2">
+                                  <p className="font-medium">
+                                    {service.serviceName}
+                                  </p>
+                                  <Badge className="text-xs">
+                                    {durationDisplay ? durationDisplay : "Sin duración"}
+                                  </Badge>
+                                </div>
+                                <div className="text-right">
+                                  {discount > 0 && (
+                                    <p className="text-xs text-muted-foreground line-through">
+                                      $
+                                      {price.toLocaleString("es-ES", {
+                                        minimumFractionDigits: 2,
+                                      })}
+                                    </p>
+                                  )}
+                                  <p className="font-semibold">
+                                    $
+                                    {finalPrice.toLocaleString("es-ES", {
+                                      minimumFractionDigits: 2,
+                                    })}
+                                  </p>
+                                  {discount > 0 && (
+                                    <Badge
+                                      variant="secondary"
+                                      className="text-xs mt-1"
+                                    >
+                                      -{discount}%
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground text-sm">
+                      No hay servicios registrados
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <p className="text-xl font-medium tracking-tighter">Pago</p>
+                <Separator />
+                <div className="flex flex-col gap-2">
+                  <div className="flex justify-between items-center">
+                    <p className="text-sm text-muted-foreground">
+                      Método de pago
+                    </p>
+                    <p className="text-sm font-medium">
+                      {appointment.paymentMethod || "Sin método"}
+                    </p>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <p className="text-sm text-muted-foreground">
+                      Estado de pago
+                    </p>
+                    <p className="text-sm font-medium">
+                      {appointment.paymentStatus || "Sin estado"}
+                    </p>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <p className="text-sm text-muted-foreground">Total</p>
+                    <p className="text-sm font-medium">
+                      {appointment.amountPaid || "Sin total"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Notas */}
+              {appointment.notes && (
+                <div className="space-y-2">
+                  <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    Notas
+                  </h2>
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                    {appointment.notes}
+                  </p>
+                </div>
+              )}
+
+              {/* Footer */}
+              <div className="flex justify-between text-xs text-muted-foreground pt-4">
+                <span>ID: {appointment.id}</span>
+                <span>
+                  Creado:{" "}
+                  {format(new Date(appointment.createdAt), "d MMM yyyy HH:mm", {
+                    locale: es,
+                  })}
+                </span>
+              </div>
+            </div>
+          </div>
+        ) : isCreateMode ? (
+          <div className="flex h-full flex-col p-6">
+            <SheetHeader className="mb-6">
+              <SheetTitle>Nueva Cita</SheetTitle>
+              <SheetDescription>
+                Complete los datos para agendar una cita.
+              </SheetDescription>
+            </SheetHeader>
+            <div className="flex-1 flex items-center justify-center">
+              <p className="text-muted-foreground text-sm">
+                Formulario de creación en construcción
+              </p>
+            </div>
+          </div>
+        ) : null}
+      </SheetContent>
+    </Sheet>
+  );
+}

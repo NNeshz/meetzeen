@@ -6,11 +6,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@meetzeen/ui/components/select";
-import { IconChevronLeft, IconChevronRight, IconZoomIn, IconZoomOut } from "@tabler/icons-react";
+import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
-export type CalendarView = "day" | "week" | "month";
+export type CalendarView = "day" | "week";
 
 interface CalendarHeaderProps {
   currentDate: Date;
@@ -61,7 +61,6 @@ export function CalendarHeader({
           <SelectContent>
             <SelectItem value="day">Día</SelectItem>
             <SelectItem value="week">Semana</SelectItem>
-            <SelectItem value="month">Mes</SelectItem>
           </SelectContent>
         </Select>
       </div>

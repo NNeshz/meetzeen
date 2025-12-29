@@ -11,14 +11,16 @@ export const appointmentsRoutes = new Elysia({
   .get("/", ({ appointmentsService, query }) => {
     return appointmentsService.getAppointments(
       query.organizationId,
-      query.clientDate,
+      query.startDate,
+      query.endDate,
       query.memberId,
     );
   }, {
     auth: true,
     query: t.Object({
       organizationId: t.String(),
-      clientDate: t.String(), // YYYY-MM-DD
+      startDate: t.String(), // YYYY-MM-DD (inicio del rango)
+      endDate: t.String(),   // YYYY-MM-DD (fin del rango)
       memberId: t.Optional(t.String()),
     }),
   })

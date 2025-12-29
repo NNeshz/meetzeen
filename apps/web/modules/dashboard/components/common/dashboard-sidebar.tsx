@@ -8,6 +8,7 @@ import {
   IconSettings,
   IconHeart,
   IconGridDots,
+  IconMessage,
 } from "@tabler/icons-react";
 
 import { NavMain } from "@/modules/dashboard/components/common/nav-main";
@@ -58,6 +59,11 @@ const data = {
       title: "Equipo",
       url: "/dashboard/team",
       icon: IconGridDots,
+    },
+    {
+      title: "Chat",
+      url: "/dashboard/chat",
+      icon: IconMessage,
     },
     {
       title: "Configuración",
