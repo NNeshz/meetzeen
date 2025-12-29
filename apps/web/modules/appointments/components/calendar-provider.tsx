@@ -6,7 +6,7 @@ import {
   GroupedAppointments,
   RawAppointment,
 } from "@/modules/appointments/types/appointments-types";
-import { addDays, addWeeks, subDays, subWeeks } from "date-fns";
+import { Temporal } from "@js-temporal/polyfill";
 import { useMemo, useState } from "react";
 import { CalendarHeader, CalendarView } from "./calendar-header";
 import { DayView } from "./calendar-day";
@@ -21,14 +21,17 @@ const COLORS = [
 ];
 
 export function AppointmentsCalendar() {
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState(() => Temporal.Now.plainDateISO());
   const [view, setView] = useState<CalendarView>("week");
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<
     string | null
   >(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const { data, isLoading } = useAppointments(currentDate);
 
-  const { data, isLoading } = useAppointments();
+  const currentDateAsDate = useMemo(() => {
+    return new Date(currentDate.year, currentDate.month - 1, currentDate.day);
+  }, [currentDate]);
 
   const handleAppointmentClick = (appointmentId: string) => {
     setSelectedAppointmentId(appointmentId);
@@ -38,7 +41,6 @@ export function AppointmentsCalendar() {
   const handleSheetOpenChange = (open: boolean) => {
     setIsSheetOpen(open);
     if (!open) {
-      // Reset appointmentId when sheet closes
       setSelectedAppointmentId(null);
     }
   };
@@ -46,14 +48,16 @@ export function AppointmentsCalendar() {
   const appointments = useMemo<Appointment[]>(() => {
     if (!data) return [];
 
-    const now = new Date();
+    const now = Temporal.Now.zonedDateTimeISO();
 
     return (data as unknown as GroupedAppointments[]).flatMap((group) =>
       group.appointments.map((apt: RawAppointment) => {
         const dateStr = apt.appointmentDate.replace("Date:", "");
-        const startStr = `${dateStr}T${apt.startTime}`;
-        const endStr = `${dateStr}T${apt.endTime}`;
-        const endDate = new Date(endStr);
+        const startDateTime = Temporal.PlainDateTime.from(`${dateStr}T${apt.startTime}`);
+        const endDateTime = Temporal.PlainDateTime.from(`${dateStr}T${apt.endTime}`);
+        
+        const endZoned = endDateTime.toZonedDateTime(now.timeZoneId);
+        const isPast = Temporal.ZonedDateTime.compare(endZoned, now) < 0;
 
         const colorIndex =
           apt.id.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) %
@@ -61,13 +65,13 @@ export function AppointmentsCalendar() {
 
         return {
           id: apt.id,
-          start: new Date(startStr).toISOString(),
-          end: endDate.toISOString(),
+          start: startDateTime.toString(),
+          end: endDateTime.toString(),
           clientId: undefined,
           clientName: apt.customerName,
           serviceName: undefined,
           color: COLORS[colorIndex],
-          isPast: endDate < now,
+          isPast,
         };
       })
     );
@@ -76,10 +80,10 @@ export function AppointmentsCalendar() {
   const handlePrev = () => {
     switch (view) {
       case "week":
-        setCurrentDate(subWeeks(currentDate, 1));
+        setCurrentDate(currentDate.subtract({ weeks: 1 }));
         break;
       case "day":
-        setCurrentDate(subDays(currentDate, 1));
+        setCurrentDate(currentDate.subtract({ days: 1 }));
         break;
     }
   };
@@ -87,23 +91,23 @@ export function AppointmentsCalendar() {
   const handleNext = () => {
     switch (view) {
       case "week":
-        setCurrentDate(addWeeks(currentDate, 1));
+        setCurrentDate(currentDate.add({ weeks: 1 }));
         break;
       case "day":
-        setCurrentDate(addDays(currentDate, 1));
+        setCurrentDate(currentDate.add({ days: 1 }));
         break;
     }
   };
 
   const handleToday = () => {
-    setCurrentDate(new Date());
+    setCurrentDate(Temporal.Now.plainDateISO());
   };
 
   return (
     <>
       <div className="flex flex-col h-[calc(100vh-100px)] w-full min-w-0 border rounded-lg shadow-sm bg-background overflow-hidden">
         <CalendarHeader
-          currentDate={currentDate}
+          currentDate={currentDateAsDate}
           view={view}
           onViewChange={setView}
           onPrev={handlePrev}
@@ -118,14 +122,14 @@ export function AppointmentsCalendar() {
           )}
           {view === "week" && (
             <WeekView
-              currentDate={currentDate}
+              currentDate={currentDateAsDate}
               appointments={appointments}
               onAppointmentClick={handleAppointmentClick}
             />
           )}
           {view === "day" && (
             <DayView
-              currentDate={currentDate}
+              currentDate={currentDateAsDate}
               appointments={appointments}
               onAppointmentClick={handleAppointmentClick}
             />

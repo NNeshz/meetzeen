@@ -3,17 +3,34 @@ import { appointmentsService } from "@/modules/appointments/service/appointments
 import { useDashboardStore } from "@/modules/dashboard/store/dashboard-store";
 import { Temporal } from "@js-temporal/polyfill";
 
-export const useAppointments = () => {
+
+function getDateRange(currentDate: Temporal.PlainDate) {
+  // Inicio: primer día del mes anterior (para no perder citas al navegar)
+  const startDate = currentDate.subtract({ months: 1 }).with({ day: 1 });
+  
+  // Fin: último día de 2 meses adelante (mes actual + 2 meses completos)
+  const endMonth = currentDate.add({ months: 3 }).with({ day: 1 });
+  const endDate = endMonth.subtract({ days: 1 });
+  
+  return {
+    startDate: startDate.toString(),
+    endDate: endDate.toString(),
+  };
+}
+
+export const useAppointments = (currentDate?: Temporal.PlainDate) => {
   const organizationId = useDashboardStore((state) => state.organization?.id);
+  
+  const dateForRange = currentDate ?? Temporal.Now.plainDateISO();
+  const { startDate, endDate } = getDateRange(dateForRange);
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ["appointments", organizationId],
+    queryKey: ["appointments", organizationId, startDate, endDate],
     queryFn: () => {
       if (!organizationId) {
         throw new Error("Organization ID is required");
       }
-      const clientDate = Temporal.Now.plainDateISO().toString(); // Formato YYYY-MM-DD
-      return appointmentsService.getAppointments(organizationId, clientDate);
+      return appointmentsService.getAppointments(organizationId, startDate, endDate);
     },
     enabled: !!organizationId,
   });
@@ -35,7 +52,6 @@ export const useAppointmentsHistory = (search?: string) => {
   const organizationId = useDashboardStore((state) => state.organization?.id);
 
   const clientTimezone = Temporal.Now.timeZoneId();
-  // Usar instant() para obtener un ISO string completo que el backend pueda convertir a Date
   const clientCurrentTime = Temporal.Now.instant().toString();
 
   return useQuery({

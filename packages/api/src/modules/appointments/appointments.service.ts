@@ -1,26 +1,29 @@
 import { db, appointment, customer, member } from "@meetzeen/database";
-import { and, or, eq, desc, count, sql, gte, like } from "drizzle-orm";
+import { and, or, eq, desc, count, sql, gte, lte, like } from "drizzle-orm";
 
 export class AppointmentsService {
   constructor() {}
 
   /**
-   * Obtiene todas las citas desde la fecha del cliente en adelante, agrupadas por fecha
+   * Obtiene todas las citas dentro de un rango de fechas, agrupadas por fecha
    * @param organizationId - ID de la organización
-   * @param clientDate - Fecha del cliente en formato YYYY-MM-DD (hoy)
+   * @param startDate - Fecha de inicio del rango en formato YYYY-MM-DD
+   * @param endDate - Fecha de fin del rango en formato YYYY-MM-DD
    * @param memberId - ID opcional del miembro para filtrar
    * @returns Array de objetos agrupados por fecha con formato { date: "Date:YYYY-MM-DD", appointments: [...] }
    */
   async getAppointments(
     organizationId: string,
-    clientDate: string,
+    startDate: string,
+    endDate: string,
     memberId?: string
   ) {
     // Construir condiciones de filtrado
     const whereConditions = [
       eq(appointment.organizationId, organizationId),
-      // Obtener citas desde hoy en adelante (incluyendo todo el día de hoy)
-      gte(appointment.appointmentDate, clientDate),
+      // Obtener citas dentro del rango de fechas (incluyendo ambos extremos)
+      gte(appointment.appointmentDate, startDate),
+      lte(appointment.appointmentDate, endDate),
     ];
 
     // Filtrar por memberId si se proporciona
