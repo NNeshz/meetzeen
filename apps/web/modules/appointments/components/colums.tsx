@@ -6,10 +6,45 @@ import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
-} from "@meetzeen/ui/src/components/dropdown-menu";
-import { Button } from "@meetzeen/ui/src/components/button";
-import { IconDots } from "@tabler/icons-react";
+  DropdownMenuItem,
+} from "@meetzeen/ui/components/dropdown-menu";
+import { Button } from "@meetzeen/ui/components/button";
+import { IconDots, IconEye } from "@tabler/icons-react";
 import { HistoryDetails } from "@/modules/appointments/components/history-details";
+import { useState } from "react";
+
+function ActionsCell({ appointmentId }: { appointmentId: string }) {
+  const [sheetOpen, setSheetOpen] = useState(false);
+
+  return (
+    <div className="flex items-center justify-end gap-2">
+      <HistoryDetails
+        appointmentId={appointmentId}
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+        showTrigger={false}
+      />
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline">
+            <IconDots className="size-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="max-w-[150px]">
+          <DropdownMenuItem
+            onSelect={(e) => {
+              e.preventDefault();
+              setSheetOpen(true);
+            }}
+          >
+            <IconEye className="size-4" />
+            Ver detalles
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+}
 
 export const columns: ColumnDef<RawAppointment>[] = [
   {
@@ -69,20 +104,7 @@ export const columns: ColumnDef<RawAppointment>[] = [
     accessorKey: "actions",
     header: "",
     cell: ({ row }) => {
-      return (
-        <div className="flex items-center justify-end gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline">
-                <IconDots className="size-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="max-w-[150px]">
-              <HistoryDetails appointmentId={row.original.id} />
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      );
+      return <ActionsCell appointmentId={row.original.id} />;
     },
   },
 ];

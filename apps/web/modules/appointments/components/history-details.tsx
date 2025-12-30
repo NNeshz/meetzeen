@@ -54,6 +54,8 @@ export function HistoryDetails({
   appointmentId,
   open: controlledOpen,
   onOpenChange: controlledOnOpenChange,
+  showTrigger = true,
+  trigger,
 }: HistoryDetailsProps) {
   const [internalOpen, setInternalOpen] = useState(false);
 
@@ -69,12 +71,16 @@ export function HistoryDetails({
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        <Button variant="ghost">
-          <IconEye className="size-4" />
-          Ver detalles
-        </Button>
-      </SheetTrigger>
+      {showTrigger && (
+        <SheetTrigger asChild>
+          {trigger || (
+            <Button variant="ghost">
+              <IconEye className="size-4" />
+              Ver detalles
+            </Button>
+          )}
+        </SheetTrigger>
+      )}
       <SheetContent className="w-full sm:max-w-xl font-geist overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
       <SheetHeader>
           <SheetTitle>Detalles de la cita</SheetTitle>
