@@ -26,7 +26,7 @@ function ActionsCell({
             <IconDots className="size-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="max-w-[150px]">
+        <DropdownMenuContent align="end">
           <DropdownMenuItem
             onSelect={(e) => {
               e.preventDefault();
@@ -62,8 +62,15 @@ export function createColumns(
       header: "Fecha",
       cell: ({ row }) => {
         const dateStr = row.getValue("appointmentDate") as string;
+        if (!dateStr) {
+          return <div className="text-sm min-w-32">Sin fecha</div>;
+        }
         const date = dateStr.replace("Date:", "");
         const dateObj = new Date(date + "T00:00:00");
+        
+        if (isNaN(dateObj.getTime())) {
+          return <div className="text-sm min-w-32">Fecha inválida</div>;
+        }
 
         return (
           <div className="text-sm min-w-32">
@@ -81,8 +88,8 @@ export function createColumns(
       accessorKey: "startTime",
       header: "Hora de inicio",
       cell: ({ row }) => {
-        const time = row.getValue("startTime") as string;
-        const formattedTime = time.length > 5 ? time.substring(0, 5) : time;
+        const time = row.getValue("startTime") as string | undefined;
+        const formattedTime = time && time.length > 5 ? time.substring(0, 5) : (time || "--:--");
         return (
           <div className="text-sm font-medium min-w-24">{formattedTime}</div>
         );
@@ -92,8 +99,8 @@ export function createColumns(
       accessorKey: "endTime",
       header: "Hora de fin",
       cell: ({ row }) => {
-        const time = row.getValue("endTime") as string;
-        const formattedTime = time.length > 5 ? time.substring(0, 5) : time;
+        const time = row.getValue("endTime") as string | undefined;
+        const formattedTime = time && time.length > 5 ? time.substring(0, 5) : (time || "--:--");
         return (
           <div className="text-sm font-medium min-w-24">{formattedTime}</div>
         );
