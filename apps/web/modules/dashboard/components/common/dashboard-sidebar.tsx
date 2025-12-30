@@ -61,11 +61,6 @@ const data = {
       icon: IconGridDots,
     },
     {
-      title: "Chat",
-      url: "/dashboard/chat",
-      icon: IconMessage,
-    },
-    {
       title: "Configuración",
       url: "#",
       icon: IconSettings,

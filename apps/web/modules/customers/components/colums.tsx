@@ -19,14 +19,14 @@ export const columns: ColumnDef<Customer>[] = [
     header: () => <div className="max-w-[42px] text-center">Avatar</div>,
     cell: ({ row }) => {
       const customer = row.original;
-      const name = customer.name.split(" ")[0];
-      const lastName = customer.lastName.split(" ")[0];
+      const name = (customer.name.split(" ")[0] || "").toUpperCase();
+      const lastName = (customer.lastName.split(" ")[0] || "").toUpperCase();
       return (
         <div className="max-w-[42px] flex items-center justify-center">
           <Avatar className="size-8 rounded-none max-w-[40px]">
             <AvatarFallback className="bg-brand text-black rounded-none">
-              {name?.charAt(0)}
-              {lastName?.charAt(0)}
+              {name.charAt(0)}
+              {lastName.charAt(0)}
             </AvatarFallback>
           </Avatar>
         </div>

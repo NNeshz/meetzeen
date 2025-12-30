@@ -102,7 +102,7 @@ export function HistoryTable() {
       />
 
       <div className="flex items-center justify-between gap-4">
-        <div className="relative flex-1 max-w-sm">
+        <div className="relative flex-1 max-w-xs">
           <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
             placeholder="Buscar citas..."
