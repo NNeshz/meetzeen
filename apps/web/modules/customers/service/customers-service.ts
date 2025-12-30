@@ -60,6 +60,22 @@ export class CustomersService {
 
     return response.data;
   }
+
+  async deleteCustomer(id: string, organizationId?: string) {
+    const orgId = organizationId || this.getOrganizationId();
+
+    if (!orgId) {
+      throw new Error("Organization ID is required");
+    }
+
+    const response = await apiClient.customers({ id }).delete({ organizationId: orgId });
+
+    if (response.error) {
+      throw new Error(response.error.value.message);
+    }
+
+    return response.data;
+  }
 }
 
 export const customersService = new CustomersService();
