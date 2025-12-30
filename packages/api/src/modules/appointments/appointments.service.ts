@@ -294,20 +294,25 @@ export class AppointmentsService {
    * @param status - Nuevo estado ("scheduled" | "confirmed" | "in_progress" | "completed" | "cancelled" | "no_show")
    */
   async changeAppointmentStatus(id: string, status: string) {
-    const [updatedAppointment] = await db
-      .update(appointment)
-      .set({
-        status,
-        updatedAt: new Date().toISOString(),
-      })
-      .where(eq(appointment.id, id))
-      .returning();
+    try {
+      const [updatedAppointment] = await db
+        .update(appointment)
+        .set({
+          status,
+          updatedAt: new Date().toISOString(),
+        })
+        .where(eq(appointment.id, id))
+        .returning();
 
-    if (!updatedAppointment) {
-      throw new Error("Appointment not found");
+      if (!updatedAppointment) {
+        throw new Error("Appointment not found");
+      }
+
+      return updatedAppointment;
+    } catch (error) {
+      console.error("[changeAppointmentStatus] Error:", error instanceof Error ? error.message : error);
+      throw error;
     }
-
-    return updatedAppointment;
   }
 
   /**
@@ -316,20 +321,25 @@ export class AppointmentsService {
    * @param status - Nuevo estado de pago ("pending" | "paid" | "refunded")
    */
   async changePaymentStatus(id: string, status: string) {
-    const [updatedAppointment] = await db
-      .update(appointment)
-      .set({
-        paymentStatus: status,
-        updatedAt: new Date().toISOString(),
-      })
-      .where(eq(appointment.id, id))
-      .returning();
+    try {
+      const [updatedAppointment] = await db
+        .update(appointment)
+        .set({
+          paymentStatus: status,
+          updatedAt: new Date().toISOString(),
+        })
+        .where(eq(appointment.id, id))
+        .returning();
 
-    if (!updatedAppointment) {
-      throw new Error("Appointment not found");
+      if (!updatedAppointment) {
+        throw new Error("Appointment not found");
+      }
+
+      return updatedAppointment;
+    } catch (error) {
+      console.error("[changePaymentStatus] Error:", error instanceof Error ? error.message : error);
+      throw error;
     }
-
-    return updatedAppointment;
   }
 
   /**
@@ -338,19 +348,24 @@ export class AppointmentsService {
    * @param method - Nuevo método de pago ("cash" | "card" | "bank_transfer" | "other")
    */
   async changePaymentMethod(id: string, method: string) {
-    const [updatedAppointment] = await db
-      .update(appointment)
-      .set({
-        paymentMethod: method,
-        updatedAt: new Date().toISOString(),
-      })
-      .where(eq(appointment.id, id))
-      .returning();
+    try {
+      const [updatedAppointment] = await db
+        .update(appointment)
+        .set({
+          paymentMethod: method,
+          updatedAt: new Date().toISOString(),
+        })
+        .where(eq(appointment.id, id))
+        .returning();
 
-    if (!updatedAppointment) {
-      throw new Error("Appointment not found");
+      if (!updatedAppointment) {
+        throw new Error("Appointment not found");
+      }
+
+      return updatedAppointment;
+    } catch (error) {
+      console.error("[changePaymentMethod] Error:", error instanceof Error ? error.message : error);
+      throw error;
     }
-
-    return updatedAppointment;
   }
 }

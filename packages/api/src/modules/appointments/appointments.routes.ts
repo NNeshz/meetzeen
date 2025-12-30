@@ -56,8 +56,17 @@ export const appointmentsRoutes = new Elysia({
       }),
     }
   )
-  .put("/changeAppointmentStatus", ({ appointmentsService, body }) => {
-    return appointmentsService.changeAppointmentStatus(body.id, body.status);
+  .put("/changeAppointmentStatus", async ({ appointmentsService, body, set }) => {
+    try {
+      return await appointmentsService.changeAppointmentStatus(body.id, body.status);
+    } catch (error) {
+      console.error("[Route changeAppointmentStatus] Error:", error);
+      set.status = 500;
+      return { 
+        error: true, 
+        message: error instanceof Error ? error.message : "Error updating appointment status" 
+      };
+    }
   }, {
     auth: true,
     body: t.Object({
@@ -65,8 +74,17 @@ export const appointmentsRoutes = new Elysia({
       status: t.String(),
     }),
   })
-  .put("/changePaymentStatus", ({ appointmentsService, body }) => {
-    return appointmentsService.changePaymentStatus(body.id, body.status);
+  .put("/changePaymentStatus", async ({ appointmentsService, body, set }) => {
+    try {
+      return await appointmentsService.changePaymentStatus(body.id, body.status);
+    } catch (error) {
+      console.error("[Route changePaymentStatus] Error:", error);
+      set.status = 500;
+      return { 
+        error: true, 
+        message: error instanceof Error ? error.message : "Error updating payment status" 
+      };
+    }
   }, {
     auth: true,
     body: t.Object({
@@ -74,8 +92,17 @@ export const appointmentsRoutes = new Elysia({
       status: t.String(),
     }),
   })
-  .put("/changePaymentMethod", ({ appointmentsService, body }) => {
-    return appointmentsService.changePaymentMethod(body.id, body.method);
+  .put("/changePaymentMethod", async ({ appointmentsService, body, set }) => {
+    try {
+      return await appointmentsService.changePaymentMethod(body.id, body.method);
+    } catch (error) {
+      console.error("[Route changePaymentMethod] Error:", error);
+      set.status = 500;
+      return { 
+        error: true, 
+        message: error instanceof Error ? error.message : "Error updating payment method" 
+      };
+    }
   }, {
     auth: true,
     body: t.Object({
