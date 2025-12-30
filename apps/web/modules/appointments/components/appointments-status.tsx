@@ -60,6 +60,11 @@ export function AppointmentsStatus({
 
   const handleStatusChange = (newStatus: string) => {
     if (newStatus !== currentStatus) {
+      // Validate appointmentId before making API call
+      if (!appointmentId || appointmentId.trim().length === 0) {
+        toast.error("Error: ID de cita inválido");
+        return;
+      }
       setSelectedStatus(newStatus);
       changeAppointmentStatus({
         id: appointmentId,

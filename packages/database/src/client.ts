@@ -4,18 +4,14 @@ import type { PoolConfig } from "pg";
 import * as schema from "./schema";
 import * as otherSchema from "./other";
 
-// Use DIRECT_URL for direct connections (bypassing pooler) if available
-// Otherwise fall back to DATABASE_URL
 const connectionString = process.env.DIRECT_URL || process.env.DATABASE_URL;
 
 if (!connectionString) {
   throw new Error("DATABASE_URL or DIRECT_URL environment variable is not set");
 }
 
-// Check if we're in production
 const isProduction = process.env.NODE_ENV === "production" || process.env.FLY_APP_NAME;
 
-// Check if URL already has SSL params
 const hasSSLInUrl = connectionString.includes("sslmode=") || connectionString.includes("ssl=");
 
 const poolConfig: PoolConfig = {
@@ -28,7 +24,6 @@ const poolConfig: PoolConfig = {
   allowExitOnIdle: false,
 };
 
-// Only add SSL config if not already in URL and in production
 if (isProduction && !hasSSLInUrl) {
   poolConfig.ssl = { rejectUnauthorized: false };
 }

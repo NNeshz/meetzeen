@@ -294,7 +294,17 @@ export class AppointmentsService {
    * @param status - Nuevo estado ("scheduled" | "confirmed" | "in_progress" | "completed" | "cancelled" | "no_show")
    */
   async changeAppointmentStatus(id: string, status: string) {
+    // Validate inputs
+    if (!id || id.trim().length === 0) {
+      throw new Error("Appointment ID is required");
+    }
+    if (!status || status.trim().length === 0) {
+      throw new Error("Status is required");
+    }
+
     try {
+      console.log(`[changeAppointmentStatus] Updating appointment ${id} to status: ${status}`);
+      
       const [updatedAppointment] = await db
         .update(appointment)
         .set({
@@ -305,12 +315,14 @@ export class AppointmentsService {
         .returning();
 
       if (!updatedAppointment) {
-        throw new Error("Appointment not found");
+        throw new Error(`Appointment not found with ID: ${id}`);
       }
 
+      console.log(`[changeAppointmentStatus] Successfully updated appointment ${id}`);
       return updatedAppointment;
     } catch (error) {
       console.error("[changeAppointmentStatus] Error:", error instanceof Error ? error.message : error);
+      console.error("[changeAppointmentStatus] Stack:", error instanceof Error ? error.stack : "N/A");
       throw error;
     }
   }
@@ -321,7 +333,17 @@ export class AppointmentsService {
    * @param status - Nuevo estado de pago ("pending" | "paid" | "refunded")
    */
   async changePaymentStatus(id: string, status: string) {
+    // Validate inputs
+    if (!id || id.trim().length === 0) {
+      throw new Error("Appointment ID is required");
+    }
+    if (!status || status.trim().length === 0) {
+      throw new Error("Payment status is required");
+    }
+
     try {
+      console.log(`[changePaymentStatus] Updating appointment ${id} to payment status: ${status}`);
+      
       const [updatedAppointment] = await db
         .update(appointment)
         .set({
@@ -332,12 +354,14 @@ export class AppointmentsService {
         .returning();
 
       if (!updatedAppointment) {
-        throw new Error("Appointment not found");
+        throw new Error(`Appointment not found with ID: ${id}`);
       }
 
+      console.log(`[changePaymentStatus] Successfully updated appointment ${id}`);
       return updatedAppointment;
     } catch (error) {
       console.error("[changePaymentStatus] Error:", error instanceof Error ? error.message : error);
+      console.error("[changePaymentStatus] Stack:", error instanceof Error ? error.stack : "N/A");
       throw error;
     }
   }
@@ -348,7 +372,17 @@ export class AppointmentsService {
    * @param method - Nuevo método de pago ("cash" | "card" | "bank_transfer" | "other")
    */
   async changePaymentMethod(id: string, method: string) {
+    // Validate inputs
+    if (!id || id.trim().length === 0) {
+      throw new Error("Appointment ID is required");
+    }
+    if (!method || method.trim().length === 0) {
+      throw new Error("Payment method is required");
+    }
+
     try {
+      console.log(`[changePaymentMethod] Updating appointment ${id} to payment method: ${method}`);
+      
       const [updatedAppointment] = await db
         .update(appointment)
         .set({
@@ -359,12 +393,14 @@ export class AppointmentsService {
         .returning();
 
       if (!updatedAppointment) {
-        throw new Error("Appointment not found");
+        throw new Error(`Appointment not found with ID: ${id}`);
       }
 
+      console.log(`[changePaymentMethod] Successfully updated appointment ${id}`);
       return updatedAppointment;
     } catch (error) {
       console.error("[changePaymentMethod] Error:", error instanceof Error ? error.message : error);
+      console.error("[changePaymentMethod] Stack:", error instanceof Error ? error.stack : "N/A");
       throw error;
     }
   }

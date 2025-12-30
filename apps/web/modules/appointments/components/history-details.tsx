@@ -32,7 +32,12 @@ import {
 function safeFormatDate(dateValue: string | Date | null | undefined, formatStr: string, fallback = "Sin fecha"): string {
   if (!dateValue) return fallback;
   try {
-    const date = typeof dateValue === "string" ? parseISO(dateValue) : dateValue;
+    let dateStr = typeof dateValue === "string" ? dateValue : dateValue.toISOString();
+    // Remove "Date:" prefix if present (from API response)
+    if (dateStr.startsWith("Date:")) {
+      dateStr = dateStr.replace("Date:", "");
+    }
+    const date = parseISO(dateStr);
     if (!isValid(date)) return fallback;
     return format(date, formatStr, { locale: es });
   } catch {

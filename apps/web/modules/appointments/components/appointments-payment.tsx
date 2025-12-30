@@ -92,6 +92,11 @@ export function AppointmentsPayment({
 
   const handlePaymentStatusChange = (newStatus: string) => {
     if (newStatus !== currentPaymentStatus) {
+      // Validate appointmentId before making API call
+      if (!appointmentId || appointmentId.trim().length === 0) {
+        toast.error("Error: ID de cita inválido");
+        return;
+      }
       setSelectedPaymentStatus(newStatus);
       changePaymentStatus({
         id: appointmentId,
@@ -102,6 +107,11 @@ export function AppointmentsPayment({
 
   const handlePaymentMethodChange = (newMethod: string) => {
     if (newMethod !== currentPaymentMethod) {
+      // Validate appointmentId before making API call
+      if (!appointmentId || appointmentId.trim().length === 0) {
+        toast.error("Error: ID de cita inválido");
+        return;
+      }
       setSelectedPaymentMethod(newMethod);
       changePaymentMethod({
         id: appointmentId,
