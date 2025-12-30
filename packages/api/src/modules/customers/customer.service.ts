@@ -81,7 +81,7 @@ export class CustomerService {
     search?: string,
     sortBy?: string
   ) {
-    const finalLimit = limit ?? 3;
+    const finalLimit = limit ?? 50;
     const finalOffset = offset ?? 0;
 
     const whereConditions: Parameters<typeof and>[0][] = [

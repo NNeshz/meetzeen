@@ -2,7 +2,6 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Customer } from "@/modules/customers/types/customer.types";
-import { Badge } from "@meetzeen/ui/components/badge";
 import { Button } from "@meetzeen/ui/components/button";
 import { IconDots } from "@tabler/icons-react";
 import {
@@ -10,6 +9,8 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@meetzeen/ui/components/dropdown-menu";
+import { CustomersUpdate } from "@/modules/customers/components/customers-update";
+import { CustomersDelete } from "@/modules/customers/components/customers-delete";
 
 export const columns: ColumnDef<Customer>[] = [
   {
@@ -28,9 +29,7 @@ export const columns: ColumnDef<Customer>[] = [
     accessorKey: "email",
     header: "Email",
     cell: ({ row }) => {
-      return (
-        <div className="text-sm min-w-48">{row.getValue("email")}</div>
-      );
+      return <div className="text-sm min-w-48">{row.getValue("email")}</div>;
     },
   },
   {
@@ -50,11 +49,7 @@ export const columns: ColumnDef<Customer>[] = [
     header: "Citas",
     cell: ({ row }) => {
       const total = row.getValue("totalAppointments") as number;
-      return (
-        <div className="text-sm font-medium">
-          {total}
-        </div>
-      );
+      return <div className="text-sm font-medium">{total}</div>;
     },
   },
   {
@@ -63,9 +58,7 @@ export const columns: ColumnDef<Customer>[] = [
     cell: ({ row }) => {
       const date = row.getValue("lastAppointmentDate") as string | null;
       if (!date) {
-        return (
-          <div className="text-sm text-muted-foreground min-w-32">-</div>
-        );
+        return <div className="text-sm text-muted-foreground min-w-32">-</div>;
       }
       return (
         <div className="text-sm text-muted-foreground min-w-32">
@@ -92,7 +85,18 @@ export const columns: ColumnDef<Customer>[] = [
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="max-w-[150px]">
-              {/* Aquí puedes agregar acciones como editar, eliminar, etc. */}
+              <CustomersUpdate
+                id={customer.id}
+                name={customer.name}
+                lastName={customer.lastName}
+                email={customer.email}
+                phoneNumber={customer.phoneNumber || ""}
+              />
+              <CustomersDelete
+                id={customer.id}
+                name={customer.name}
+                email={customer.email}
+              />
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

@@ -47,7 +47,7 @@ const columnLabels: Record<string, string> = {
 export function CustomersTable() {
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
-    pageSize: 3,
+    pageSize: 50,
   });
   const [searchValue, setSearchValue] = React.useState("");
   const [debouncedSearch, setDebouncedSearch] = React.useState("");
