@@ -28,7 +28,6 @@ export function MetricsHeader() {
 
     const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)] ?? "Hola";
     
-    // Pequeño delay para una transición más elegante
     const timer = setTimeout(() => {
       setGreeting(randomPhrase);
       setIsVisible(true);
