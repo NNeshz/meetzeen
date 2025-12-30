@@ -49,10 +49,37 @@ export const appointmentsRoutes = new Elysia({
       query: t.Object({
         organizationId: t.String(),
         search: t.Optional(t.String()),
-        clientTimezone: t.String(), // Timezone del cliente (ej: "America/Mexico_City")
-        clientCurrentTime: t.String(), // Hora actual del cliente en formato ISO string (HH:mm:ss)
+        clientTimezone: t.String(), 
+        clientCurrentTime: t.String(),
         limit: t.Optional(t.Number()),
         offset: t.Optional(t.Number()),
       }),
     }
-  );
+  )
+  .put("/changeAppointmentStatus", ({ appointmentsService, body }) => {
+    return appointmentsService.changeAppointmentStatus(body.id, body.status);
+  }, {
+    auth: true,
+    body: t.Object({
+      id: t.String(),
+      status: t.String(),
+    }),
+  })
+  .put("/changePaymentStatus", ({ appointmentsService, body }) => {
+    return appointmentsService.changePaymentStatus(body.id, body.status);
+  }, {
+    auth: true,
+    body: t.Object({
+      id: t.String(),
+      status: t.String(),
+    }),
+  })
+  .put("/changePaymentMethod", ({ appointmentsService, body }) => {
+    return appointmentsService.changePaymentMethod(body.id, body.method);
+  }, {
+    auth: true,
+    body: t.Object({
+      id: t.String(),
+      method: t.String(),
+    }),
+  })

@@ -1,17 +1,14 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { appointmentsService } from "@/modules/appointments/service/appointments-service";
 import { useDashboardStore } from "@/modules/dashboard/store/dashboard-store";
 import { Temporal } from "@js-temporal/polyfill";
 
-
 function getDateRange(currentDate: Temporal.PlainDate) {
-  // Inicio: primer día del mes anterior (para no perder citas al navegar)
   const startDate = currentDate.subtract({ months: 1 }).with({ day: 1 });
-  
-  // Fin: último día de 2 meses adelante (mes actual + 2 meses completos)
+
   const endMonth = currentDate.add({ months: 3 }).with({ day: 1 });
   const endDate = endMonth.subtract({ days: 1 });
-  
+
   return {
     startDate: startDate.toString(),
     endDate: endDate.toString(),
@@ -20,7 +17,7 @@ function getDateRange(currentDate: Temporal.PlainDate) {
 
 export const useAppointments = (currentDate?: Temporal.PlainDate) => {
   const organizationId = useDashboardStore((state) => state.organization?.id);
-  
+
   const dateForRange = currentDate ?? Temporal.Now.plainDateISO();
   const { startDate, endDate } = getDateRange(dateForRange);
 
@@ -30,7 +27,11 @@ export const useAppointments = (currentDate?: Temporal.PlainDate) => {
       if (!organizationId) {
         throw new Error("Organization ID is required");
       }
-      return appointmentsService.getAppointments(organizationId, startDate, endDate);
+      return appointmentsService.getAppointments(
+        organizationId,
+        startDate,
+        endDate
+      );
     },
     enabled: !!organizationId,
   });
@@ -45,6 +46,8 @@ export const useAppointmentById = (id: string) => {
     queryKey: ["appointment", id],
     queryFn: () => appointmentsService.getAppointmentById(id),
     enabled: !!organizationId && !!id,
+    refetchOnWindowFocus: false,
+    refetchOnMount: true,
   });
 };
 
@@ -64,5 +67,73 @@ export const useAppointmentsHistory = (search?: string) => {
         search
       ),
     enabled: !!organizationId,
+  });
+};
+
+import { useQueryClient, UseMutationOptions } from "@tanstack/react-query";
+
+export const useChangeAppointmentStatus = (
+  options?: UseMutationOptions<any, unknown, { id: string; status: string }>
+) => {
+  const queryClient = useQueryClient();
+  const { onSuccess, onError, ...restOptions } = options || {};
+  return useMutation({
+    mutationFn: ({ id, status }: { id: string; status: string }) =>
+      appointmentsService.changeAppointmentStatus(id, status),
+    onSuccess: async (...args) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["appointments"] }),
+        queryClient.invalidateQueries({ queryKey: ["appointment"] }),
+        queryClient.invalidateQueries({ queryKey: ["appointments-history"] }),
+        queryClient.invalidateQueries({ queryKey: ["customers"] }),
+      ]);
+      onSuccess?.(...args);
+    },
+    onError,
+    ...restOptions,
+  });
+};
+
+export const useChangePaymentStatus = (
+  options?: UseMutationOptions<any, unknown, { id: string; status: string }>
+) => {
+  const queryClient = useQueryClient();
+  const { onSuccess, onError, ...restOptions } = options || {};
+  return useMutation({
+    mutationFn: ({ id, status }: { id: string; status: string }) =>
+      appointmentsService.changePaymentStatus(id, status),
+    onSuccess: async (...args) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["appointments"] }),
+        queryClient.invalidateQueries({ queryKey: ["appointment"] }),
+        queryClient.invalidateQueries({ queryKey: ["appointments-history"] }),
+        queryClient.invalidateQueries({ queryKey: ["customers"] }),
+      ]);
+      onSuccess?.(...args);
+    },
+    onError,
+    ...restOptions,
+  });
+};
+
+export const useChangePaymentMethod = (
+  options?: UseMutationOptions<any, unknown, { id: string; method: string }>
+) => {
+  const queryClient = useQueryClient();
+  const { onSuccess, onError, ...restOptions } = options || {};
+  return useMutation({
+    mutationFn: ({ id, method }: { id: string; method: string }) =>
+      appointmentsService.changePaymentMethod(id, method),
+    onSuccess: async (...args) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["appointments"] }),
+        queryClient.invalidateQueries({ queryKey: ["appointment"] }),
+        queryClient.invalidateQueries({ queryKey: ["appointments-history"] }),
+        queryClient.invalidateQueries({ queryKey: ["customers"] }),
+      ]);
+      onSuccess?.(...args);
+    },
+    onError,
+    ...restOptions,
   });
 };

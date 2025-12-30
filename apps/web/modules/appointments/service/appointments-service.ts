@@ -67,6 +67,42 @@ export class AppointmentsService {
     }
     return response.data;
   }
+
+  async changeAppointmentStatus(id: string, status: string) {
+    const response = await apiClient.appointments.changeAppointmentStatus.put({ id, status }, {
+      query: { organizationId: this.getOrganizationId() },
+    });
+
+    if (response.error) {
+      throw new Error(response.error.value.message);
+    }
+
+    return response.data;
+  }
+
+  async changePaymentStatus(id: string, status: string) {
+    const response = await apiClient.appointments.changePaymentStatus.put({ id, status }, {
+      query: { organizationId: this.getOrganizationId() },
+    });
+
+    if (response.error) {
+      throw new Error(response.error.value.message);
+    }
+
+    return response.data;
+  }
+
+  async changePaymentMethod(id: string, method: string) {
+    const response = await apiClient.appointments.changePaymentMethod.put({ id, method }, {
+      query: { organizationId: this.getOrganizationId() },
+    });
+
+    if (response.error) {
+      throw new Error(response.error.value.message);
+    }
+
+    return response.data;
+  }
 }
 
 export const appointmentsService = new AppointmentsService();

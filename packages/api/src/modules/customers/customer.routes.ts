@@ -9,7 +9,13 @@ export const customerRoutes = new Elysia({
   .use(betterAuthPlugin)
   .use(customerModule)
   .get("/", ({ customerService, query }) => {
-    return customerService.getAllCustomers(query.organizationId);
+    return customerService.getAllCustomers(
+      query.organizationId,
+      query.limit,
+      query.offset,
+      query.search,
+      query.sortBy
+    );
   }, {
     auth: true,
     query: t.Object({

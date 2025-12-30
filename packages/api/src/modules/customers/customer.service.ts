@@ -1,4 +1,4 @@
-import { db, customer, appointment } from "@meetzeen/database";
+import { db, customer } from "@meetzeen/database";
 import { and, desc, asc, eq, or, ilike, count, sql } from "drizzle-orm";
 
 export class CustomerService {
@@ -81,12 +81,12 @@ export class CustomerService {
     search?: string,
     sortBy?: string
   ) {
-    const finalLimit = limit ?? 50;
+    const finalLimit = limit ?? 3;
     const finalOffset = offset ?? 0;
 
     const whereConditions: Parameters<typeof and>[0][] = [
       eq(customer.organizationId, organizationId),
-      eq(customer.isActive, true), // Solo clientes activos
+      eq(customer.isActive, true),
     ];
 
     if (search && search.trim() !== "") {
@@ -131,8 +131,27 @@ export class CustomerService {
         lastName: customer.lastName,
         email: customer.email,
         phoneNumber: customer.phoneNumber,
-        totalAppointments: customer.totalAppointments,
-        lastAppointmentDate: customer.lastAppointmentDate,
+        totalAppointments: sql<number>`
+          COALESCE(
+            (
+              SELECT COUNT(*)::int
+              FROM "Appointment" a
+              WHERE a."customerId" = "Customer"."id"
+                AND a."status" = 'completed'
+            ),
+            0
+          )
+        `.as("totalAppointments"),
+        lastAppointmentDate: sql<string | null>`
+          (
+            SELECT MAX(
+              (a."appointmentDate" || ' ' || a."startTime")::timestamp
+            )
+            FROM "Appointment" a
+            WHERE a."customerId" = "Customer"."id"
+              AND a."status" = 'completed'
+          )
+        `.as("lastAppointmentDate"),
         isActive: customer.isActive,
       })
       .from(customer)

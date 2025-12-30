@@ -18,6 +18,16 @@ import { useAppointmentById } from "@/modules/appointments/hooks/use-appointment
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Separator } from "@meetzeen/ui/components/separator";
+import { AppointmentsPayment } from "@/modules/appointments/components/appointments-payment";
+import { AppointmentsStatus } from "@/modules/appointments/components/appointments-status";
+import { APPOINTMENT_STATUS_LABELS } from "@/modules/appointments/constants/appointment-status";
+import { PAYMENT_STATUS_LABELS } from "@/modules/appointments/constants/payment-status";
+import { PAYMENT_METHOD_LABELS } from "@/modules/appointments/constants/payment-method";
+import {
+  getAppointmentStatusBadgeColor,
+  getPaymentStatusBadgeColor,
+  getPaymentMethodBadgeColor,
+} from "@/modules/appointments/utils/badge-color";
 
 interface ServiceBooked {
   id?: string;
@@ -50,21 +60,12 @@ export function HistoryDetails({
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
   const setOpen = controlledOnOpenChange || setInternalOpen;
 
-  const { data: appointment, isLoading } = useAppointmentById(
+  const { data: appointment, isLoading, refetch } = useAppointmentById(
     appointmentId || ""
   );
 
   const isViewMode = !!appointmentId;
   const isCreateMode = !appointmentId;
-
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .slice(0, 2)
-      .join("")
-      .toUpperCase();
-  };
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -87,15 +88,27 @@ export function HistoryDetails({
           <div className="flex flex-col h-full overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
             <div className="px-4 py-4 space-y-8">
               <div className="space-y-4">
-                <p className="text-xl font-medium tracking-tighter">Estado</p>
+                <div className="flex justify-between items-center">
+                  <p className="text-xl font-medium tracking-tighter">Estado</p>
+                  <AppointmentsStatus
+                    appointmentId={appointment.id}
+                    currentStatus={appointment.status}
+                    onSuccess={() => {
+                      refetch();
+                    }}
+                  />
+                </div>
                 <Separator />
                 <div className="flex flex-col gap-2">
                   <div className="flex justify-between items-center">
                     <p className="text-sm text-muted-foreground">Estado</p>
                     <p className="text-sm font-medium">
                       {appointment.status ? (
-                        <Badge variant="outline" className="text-xs capitalize">
-                          {appointment.status}
+                        <Badge
+                          variant="outline"
+                          className={`text-xs capitalize ${getAppointmentStatusBadgeColor(appointment.status)}`}
+                        >
+                          {APPOINTMENT_STATUS_LABELS[appointment.status as keyof typeof APPOINTMENT_STATUS_LABELS] || appointment.status}
                         </Badge>
                       ) : (
                         "Sin estado"
@@ -180,7 +193,7 @@ export function HistoryDetails({
                   <div className="flex justify-between items-center">
                     <p className="text-sm text-muted-foreground">Hora</p>
                     <p className="text-sm font-medium">
-                      {appointment.startTime} - {appointment.endTime}
+                      {appointment.startTime?.slice(0, 5)} - {appointment.endTime?.slice(0, 5)}
                     </p>
                   </div>
                 </div>
@@ -268,7 +281,17 @@ export function HistoryDetails({
               </div>
 
               <div className="space-y-4">
-                <p className="text-xl font-medium tracking-tighter">Pago</p>
+                <div className="flex justify-between items-center">
+                  <p className="text-xl font-medium tracking-tighter">Pago</p>
+                  <AppointmentsPayment
+                    appointmentId={appointment.id}
+                    currentPaymentStatus={appointment.paymentStatus}
+                    currentPaymentMethod={appointment.paymentMethod || undefined}
+                    onSuccess={() => {
+                      refetch();
+                    }}
+                  />
+                </div>
                 <Separator />
                 <div className="flex flex-col gap-2">
                   <div className="flex justify-between items-center">
@@ -276,7 +299,16 @@ export function HistoryDetails({
                       Método de pago
                     </p>
                     <p className="text-sm font-medium">
-                      {appointment.paymentMethod || "Sin método"}
+                      {appointment.paymentMethod ? (
+                        <Badge
+                          variant="outline"
+                          className={`text-xs capitalize ${getPaymentMethodBadgeColor(appointment.paymentMethod)}`}
+                        >
+                          {PAYMENT_METHOD_LABELS[appointment.paymentMethod as keyof typeof PAYMENT_METHOD_LABELS] || appointment.paymentMethod}
+                        </Badge>
+                      ) : (
+                        "Sin método"
+                      )}
                     </p>
                   </div>
                   <div className="flex justify-between items-center">
@@ -284,7 +316,16 @@ export function HistoryDetails({
                       Estado de pago
                     </p>
                     <p className="text-sm font-medium">
-                      {appointment.paymentStatus || "Sin estado"}
+                      {appointment.paymentStatus ? (
+                        <Badge
+                          variant="outline"
+                          className={`text-xs capitalize ${getPaymentStatusBadgeColor(appointment.paymentStatus)}`}
+                        >
+                          {PAYMENT_STATUS_LABELS[appointment.paymentStatus as keyof typeof PAYMENT_STATUS_LABELS] || appointment.paymentStatus}
+                        </Badge>
+                      ) : (
+                        "Sin estado"
+                      )}
                     </p>
                   </div>
                   <div className="flex justify-between items-center">
