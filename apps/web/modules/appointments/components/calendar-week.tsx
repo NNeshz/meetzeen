@@ -7,10 +7,32 @@ import {
   format,
   isSameDay,
   isToday,
+  isValid,
+  parseISO,
   startOfWeek,
 } from "date-fns";
 import { es } from "date-fns/locale";
 import { useEffect, useRef } from "react";
+
+function safeParseDate(dateValue: string | Date | null | undefined): Date | null {
+  if (!dateValue) return null;
+  try {
+    const date = typeof dateValue === "string" ? parseISO(dateValue) : dateValue;
+    return isValid(date) ? date : null;
+  } catch {
+    return null;
+  }
+}
+
+function safeFormatTime(dateValue: string | Date | null | undefined, fallback = "--:--"): string {
+  const date = safeParseDate(dateValue);
+  if (!date) return fallback;
+  try {
+    return format(date, "HH:mm");
+  } catch {
+    return fallback;
+  }
+}
 
 interface WeekViewProps {
   currentDate: Date;
@@ -42,9 +64,10 @@ export function WeekView({ currentDate, appointments = [], zoom, onAppointmentCl
     if (!appointments) return [];
 
     // Filter appointments for this day
-    const dayAppointments = appointments.filter((apt) =>
-      isSameDay(new Date(apt.start), day)
-    );
+    const dayAppointments = appointments.filter((apt) => {
+      const startDate = safeParseDate(apt.start);
+      return startDate ? isSameDay(startDate, day) : false;
+    });
 
     // Calculate layout
     return calculateLayout(dayAppointments);
@@ -161,8 +184,8 @@ export function WeekView({ currentDate, appointments = [], zoom, onAppointmentCl
                                   : "text-current/70"
                               )}
                             >
-                              {format(new Date(apt.start), "HH:mm")} -{" "}
-                              {format(new Date(apt.end), "HH:mm")}
+                              {safeFormatTime(apt.start)} -{" "}
+                              {safeFormatTime(apt.end)}
                             </div>
                           )}
                         </div>

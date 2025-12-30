@@ -15,7 +15,7 @@ import {
 } from "@tabler/icons-react";
 import { useState } from "react";
 import { useAppointmentById } from "@/modules/appointments/hooks/use-appointments";
-import { format } from "date-fns";
+import { format, isValid, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { Separator } from "@meetzeen/ui/components/separator";
 import { AppointmentsPayment } from "@/modules/appointments/components/appointments-payment";
@@ -28,6 +28,17 @@ import {
   getPaymentStatusBadgeColor,
   getPaymentMethodBadgeColor,
 } from "@/modules/appointments/utils/badge-color";
+
+function safeFormatDate(dateValue: string | Date | null | undefined, formatStr: string, fallback = "Sin fecha"): string {
+  if (!dateValue) return fallback;
+  try {
+    const date = typeof dateValue === "string" ? parseISO(dateValue) : dateValue;
+    if (!isValid(date)) return fallback;
+    return format(date, formatStr, { locale: es });
+  } catch {
+    return fallback;
+  }
+}
 
 interface ServiceBooked {
   id?: string;
@@ -193,13 +204,7 @@ export function HistoryDetails({
                   <div className="flex justify-between items-center">
                     <p className="text-sm text-muted-foreground">Fecha</p>
                     <p className="text-sm font-medium">
-                      {format(
-                        new Date(appointment.appointmentDate),
-                        "d MMM yyyy",
-                        {
-                          locale: es,
-                        }
-                      )}
+                      {safeFormatDate(appointment.appointmentDate, "d MMM yyyy")}
                     </p>
                   </div>
                   <div className="flex justify-between items-center">
@@ -366,9 +371,7 @@ export function HistoryDetails({
                 <span>ID: {appointment.id}</span>
                 <span>
                   Creado:{" "}
-                  {format(new Date(appointment.createdAt), "d MMM yyyy HH:mm", {
-                    locale: es,
-                  })}
+                  {safeFormatDate(appointment.createdAt, "d MMM yyyy HH:mm")}
                 </span>
               </div>
             </div>

@@ -1,5 +1,5 @@
 import { Appointment } from "@/modules/appointments/types/appointments-types";
-import { differenceInMinutes } from "date-fns";
+import { differenceInMinutes, isValid, parseISO } from "date-fns";
 
 export interface LayoutAppointment extends Appointment {
   top: number;
@@ -8,20 +8,46 @@ export interface LayoutAppointment extends Appointment {
   width: number;
 }
 
+function safeParseDate(dateValue: string | Date | null | undefined): Date | null {
+  if (!dateValue) return null;
+  try {
+    const date = typeof dateValue === "string" ? parseISO(dateValue) : dateValue;
+    return isValid(date) ? date : null;
+  } catch {
+    return null;
+  }
+}
+
 export function calculateLayout(appointments: Appointment[]): LayoutAppointment[] {
     if (appointments.length === 0) return [];
     
+    // Filter out appointments with invalid dates
+    const validAppointments = appointments.filter(apt => {
+        const start = safeParseDate(apt.start);
+        const end = safeParseDate(apt.end);
+        return start !== null && end !== null;
+    });
+
+    if (validAppointments.length === 0) return [];
+    
     // 1. Sort by start time, then end time
-    const sorted = [...appointments].sort((a, b) => {
-        const startDiff = new Date(a.start).getTime() - new Date(b.start).getTime();
+    const sorted = [...validAppointments].sort((a, b) => {
+        const aStart = safeParseDate(a.start);
+        const bStart = safeParseDate(b.start);
+        const aEnd = safeParseDate(a.end);
+        const bEnd = safeParseDate(b.end);
+        
+        if (!aStart || !bStart || !aEnd || !bEnd) return 0;
+        
+        const startDiff = aStart.getTime() - bStart.getTime();
         if (startDiff !== 0) return startDiff;
-        return new Date(b.end).getTime() - new Date(a.end).getTime();
+        return bEnd.getTime() - aEnd.getTime();
     });
 
     // 2. Add layout properties (top, height)
     const withVerticals = sorted.map(apt => {
-        const start = new Date(apt.start);
-        const end = new Date(apt.end);
+        const start = safeParseDate(apt.start)!;
+        const end = safeParseDate(apt.end)!;
         
         // Calculate minutes from midnight
         const startMinutes = start.getHours() * 60 + start.getMinutes();

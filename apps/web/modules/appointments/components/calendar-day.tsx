@@ -1,9 +1,29 @@
 import { Appointment } from "@/modules/appointments/types/appointments-types";
 import { cn } from "@meetzeen/ui/src/lib/utils";
-import { format, isSameDay, isToday } from "date-fns";
+import { format, isSameDay, isToday, isValid, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { useEffect, useMemo, useRef } from "react";
 import { calculateLayout } from "../utils/layout-utils";
+
+function safeParseDate(dateValue: string | Date | null | undefined): Date | null {
+  if (!dateValue) return null;
+  try {
+    const date = typeof dateValue === "string" ? parseISO(dateValue) : dateValue;
+    return isValid(date) ? date : null;
+  } catch {
+    return null;
+  }
+}
+
+function safeFormatTime(dateValue: string | Date | null | undefined, fallback = "--:--"): string {
+  const date = safeParseDate(dateValue);
+  if (!date) return fallback;
+  try {
+    return format(date, "HH:mm");
+  } catch {
+    return fallback;
+  }
+}
 
 interface DayViewProps {
   currentDate: Date;
@@ -33,9 +53,10 @@ export function DayView({
 
   const dayAppointments = useMemo(() => {
     if (!appointments) return [];
-    const filtered = appointments.filter((apt) =>
-      isSameDay(new Date(apt.start), currentDate)
-    );
+    const filtered = appointments.filter((apt) => {
+      const startDate = safeParseDate(apt.start);
+      return startDate ? isSameDay(startDate, currentDate) : false;
+    });
     return calculateLayout(filtered);
   }, [appointments, currentDate]);
 
@@ -122,8 +143,8 @@ export function DayView({
                         apt.isPast ? "text-muted-foreground" : "text-current/70"
                       )}
                     >
-                      {format(new Date(apt.start), "HH:mm")} -{" "}
-                      {format(new Date(apt.end), "HH:mm")}
+                      {safeFormatTime(apt.start)} -{" "}
+                      {safeFormatTime(apt.end)}
                     </div>
                   )}
                 </div>
