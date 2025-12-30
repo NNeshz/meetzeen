@@ -151,6 +151,7 @@ export class AppointmentsService {
         appointmentDate: appointment.appointmentDate,
         startTime: appointment.startTime,
         endTime: appointment.endTime,
+        status: appointment.status,
       })
       .from(appointment)
       .where(and(...whereConditions))
@@ -260,9 +261,6 @@ export class AppointmentsService {
     };
   }
 
-  /**
-   * Obtiene la fecha en el timezone especificado basado en la fecha proporcionada
-   */
   private getTodayInTimezone(timezone: string, date: Date): string {
     const formatter = new Intl.DateTimeFormat("en-CA", {
       timeZone: timezone,
@@ -274,9 +272,6 @@ export class AppointmentsService {
     return formatter.format(date);
   }
 
-  /**
-   * Obtiene la hora en el timezone especificado basado en la fecha proporcionada (formato HH:MM)
-   */
   private getCurrentTimeInTimezone(timezone: string, date: Date): string {
     const formatter = new Intl.DateTimeFormat("en-US", {
       timeZone: timezone,
@@ -288,13 +283,8 @@ export class AppointmentsService {
     return formatter.format(date);
   }
 
-  /**
-   * Cambia el estado de una cita
-   * @param id - ID de la cita
-   * @param status - Nuevo estado ("scheduled" | "confirmed" | "in_progress" | "completed" | "cancelled" | "no_show")
-   */
+  
   async changeAppointmentStatus(id: string, status: string) {
-    // Validate inputs
     if (!id || id.trim().length === 0) {
       throw new Error("Appointment ID is required");
     }
@@ -303,7 +293,6 @@ export class AppointmentsService {
     }
 
     try {
-      console.log(`[changeAppointmentStatus] Updating appointment ${id} to status: ${status}`);
       
       const [updatedAppointment] = await db
         .update(appointment)
@@ -318,22 +307,13 @@ export class AppointmentsService {
         throw new Error(`Appointment not found with ID: ${id}`);
       }
 
-      console.log(`[changeAppointmentStatus] Successfully updated appointment ${id}`);
       return updatedAppointment;
     } catch (error) {
-      console.error("[changeAppointmentStatus] Error:", error instanceof Error ? error.message : error);
-      console.error("[changeAppointmentStatus] Stack:", error instanceof Error ? error.stack : "N/A");
       throw error;
     }
   }
 
-  /**
-   * Cambia el estado de pago de una cita
-   * @param id - ID de la cita
-   * @param status - Nuevo estado de pago ("pending" | "paid" | "refunded")
-   */
   async changePaymentStatus(id: string, status: string) {
-    // Validate inputs
     if (!id || id.trim().length === 0) {
       throw new Error("Appointment ID is required");
     }
@@ -342,7 +322,6 @@ export class AppointmentsService {
     }
 
     try {
-      console.log(`[changePaymentStatus] Updating appointment ${id} to payment status: ${status}`);
       
       const [updatedAppointment] = await db
         .update(appointment)
@@ -357,22 +336,13 @@ export class AppointmentsService {
         throw new Error(`Appointment not found with ID: ${id}`);
       }
 
-      console.log(`[changePaymentStatus] Successfully updated appointment ${id}`);
       return updatedAppointment;
     } catch (error) {
-      console.error("[changePaymentStatus] Error:", error instanceof Error ? error.message : error);
-      console.error("[changePaymentStatus] Stack:", error instanceof Error ? error.stack : "N/A");
       throw error;
     }
   }
 
-  /**
-   * Cambia el método de pago de una cita
-   * @param id - ID de la cita
-   * @param method - Nuevo método de pago ("cash" | "card" | "bank_transfer" | "other")
-   */
   async changePaymentMethod(id: string, method: string) {
-    // Validate inputs
     if (!id || id.trim().length === 0) {
       throw new Error("Appointment ID is required");
     }
@@ -381,7 +351,6 @@ export class AppointmentsService {
     }
 
     try {
-      console.log(`[changePaymentMethod] Updating appointment ${id} to payment method: ${method}`);
       
       const [updatedAppointment] = await db
         .update(appointment)
@@ -396,11 +365,8 @@ export class AppointmentsService {
         throw new Error(`Appointment not found with ID: ${id}`);
       }
 
-      console.log(`[changePaymentMethod] Successfully updated appointment ${id}`);
       return updatedAppointment;
     } catch (error) {
-      console.error("[changePaymentMethod] Error:", error instanceof Error ? error.message : error);
-      console.error("[changePaymentMethod] Stack:", error instanceof Error ? error.stack : "N/A");
       throw error;
     }
   }

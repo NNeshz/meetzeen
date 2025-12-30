@@ -11,16 +11,53 @@ import {
 } from "@meetzeen/ui/components/dropdown-menu";
 import { CustomersUpdate } from "@/modules/customers/components/customers-update";
 import { CustomersDelete } from "@/modules/customers/components/customers-delete";
+import { Avatar, AvatarFallback } from "@meetzeen/ui/components/avatar";
 
 export const columns: ColumnDef<Customer>[] = [
+  {
+    accessorKey: "avatar",
+    header: () => <div className="max-w-[42px] text-center">Avatar</div>,
+    cell: ({ row }) => {
+      const customer = row.original;
+      const name = customer.name.split(" ")[0];
+      const lastName = customer.lastName.split(" ")[0];
+      return (
+        <div className="max-w-[42px] flex items-center justify-center">
+          <Avatar className="size-8 rounded-none max-w-[40px]">
+            <AvatarFallback className="bg-brand text-black rounded-none">
+              {name?.charAt(0)}
+              {lastName?.charAt(0)}
+            </AvatarFallback>
+          </Avatar>
+        </div>
+      );
+    },
+  },
   {
     accessorKey: "name",
     header: "Nombre",
     cell: ({ row }) => {
       const customer = row.original;
+
+      // Función para capitalizar cada parte del nombre/apellido
+      function capitalizeWords(text?: string) {
+        if (!text) return "";
+        return text
+          .split(" ")
+          .filter(Boolean)
+          .map(
+            part =>
+              part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
+          )
+          .join(" ");
+      }
+
+      const formattedName = capitalizeWords(customer.name);
+      const formattedLastName = capitalizeWords(customer.lastName);
+
       return (
         <div className="font-medium min-w-48">
-          {customer.name} {customer.lastName}
+          {formattedName} {formattedLastName}
         </div>
       );
     },
