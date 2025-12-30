@@ -62,12 +62,14 @@ export function HistoryDetails({
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
   const setOpen = controlledOnOpenChange || setInternalOpen;
 
+  const shouldFetch = !!appointmentId && appointmentId.trim().length > 0;
+  
   const { data: appointment, isLoading, refetch } = useAppointmentById(
-    appointmentId || ""
+    shouldFetch ? appointmentId : ""
   );
 
-  const isViewMode = !!appointmentId;
-  const isCreateMode = !appointmentId;
+  const isViewMode = shouldFetch;
+  const isCreateMode = !shouldFetch;
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -82,11 +84,15 @@ export function HistoryDetails({
         </SheetTrigger>
       )}
       <SheetContent className="w-full sm:max-w-xl font-geist overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
-      <SheetHeader>
+        <SheetHeader>
           <SheetTitle>Detalles de la cita</SheetTitle>
           <SheetDescription>La cita con todos sus detalles</SheetDescription>
         </SheetHeader>
-        {isLoading && isViewMode ? (
+        {!shouldFetch ? (
+          <div className="flex h-full items-center justify-center text-muted-foreground">
+            No se ha seleccionado ninguna cita
+          </div>
+        ) : isLoading && isViewMode ? (
           <div className="flex h-full items-center justify-center text-muted-foreground">
             Cargando detalles...
           </div>
