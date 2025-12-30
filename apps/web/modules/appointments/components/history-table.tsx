@@ -9,8 +9,9 @@ import {
   type ColumnDef,
 } from "@tanstack/react-table";
 import { useAppointmentsHistory } from "@/modules/appointments/hooks/use-appointments";
-import { columns } from "./colums";
+import { createColumns } from "./colums";
 import { RawAppointment } from "@/modules/appointments/types/appointments-types";
+import { HistoryDetails } from "@/modules/appointments/components/history-details";
 import { Input } from "@meetzeen/ui/components/input";
 import { IconSearch } from "@tabler/icons-react";
 import {
@@ -39,6 +40,7 @@ export function HistoryTable() {
     startTime: true,
     endTime: true,
   });
+  const [selectedAppointmentId, setSelectedAppointmentId] = React.useState<string | null>(null);
 
   // Debounce search to avoid too many API calls
   const [debouncedSearch, setDebouncedSearch] = React.useState("");
@@ -58,6 +60,14 @@ export function HistoryTable() {
   const appointments: RawAppointment[] = React.useMemo(() => {
     return data?.results?.appointments || [];
   }, [data]);
+
+  const columns = React.useMemo(
+    () =>
+      createColumns((id: string) => {
+        setSelectedAppointmentId(id);
+      }),
+    []
+  );
 
   const table = useReactTable({
     data: appointments,
@@ -79,6 +89,17 @@ export function HistoryTable() {
 
   return (
     <div className="space-y-4">
+      {/* Sheet compartido para detalles */}
+      <HistoryDetails
+        appointmentId={selectedAppointmentId}
+        open={selectedAppointmentId !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedAppointmentId(null);
+          }
+        }}
+        showTrigger={false}
+      />
       {/* Barra superior con búsqueda y botón */}
       <div className="flex items-center justify-between gap-4">
         <div className="relative flex-1 max-w-sm">
@@ -195,7 +216,7 @@ export function HistoryTable() {
                   // Sin resultados de búsqueda
                   <tr>
                     <td
-                      colSpan={columns.length}
+                      colSpan={table.getAllColumns().length}
                       className="h-24 text-center text-muted-foreground"
                     >
                       <div className="flex flex-col items-center justify-center gap-2">
