@@ -100,9 +100,9 @@ export function HistoryTable() {
         }}
         showTrigger={false}
       />
-      {/* Barra superior con búsqueda y botón */}
+
       <div className="flex items-center justify-between gap-4">
-        <div className="relative flex-1 max-w-sm">
+        <div className="relative flex-1 max-w-xs">
           <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
             placeholder="Buscar citas..."
@@ -141,9 +141,7 @@ export function HistoryTable() {
         </div>
       </div>
 
-      {/* Contenido condicional */}
       {isLoading ? (
-        // Estado de carga
         <div className="py-32 flex items-center justify-center">
           <div className="flex flex-col items-center justify-center gap-2 animate-pulse">
             <p className="text-base font-medium">Buscando citas</p>
@@ -151,7 +149,6 @@ export function HistoryTable() {
           </div>
         </div>
       ) : error ? (
-        // Estado de error
         <div className="py-32 flex items-center justify-center">
           <div className="flex flex-col items-center justify-center gap-3">
             <div className="text-center">
@@ -171,7 +168,6 @@ export function HistoryTable() {
           </div>
         </div>
       ) : appointments.length === 0 ? (
-        // Estado vacío
         <div className="py-32 flex items-center justify-center">
           <div className="flex flex-col items-center justify-center gap-4">
             <div className="text-center">
@@ -185,7 +181,6 @@ export function HistoryTable() {
           </div>
         </div>
       ) : (
-        // Tabla con datos
         <div className="rounded-lg border">
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -213,7 +208,6 @@ export function HistoryTable() {
               </thead>
               <tbody>
                 {table.getRowModel().rows.length === 0 ? (
-                  // Sin resultados de búsqueda
                   <tr>
                     <td
                       colSpan={table.getAllColumns().length}
@@ -228,7 +222,6 @@ export function HistoryTable() {
                     </td>
                   </tr>
                 ) : (
-                  // Datos normales
                   table.getRowModel().rows.map((row) => (
                     <tr
                       key={row.id}

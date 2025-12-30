@@ -10,6 +10,9 @@ import {
 } from "@meetzeen/ui/components/dropdown-menu";
 import { Button } from "@meetzeen/ui/components/button";
 import { IconDots, IconEye } from "@tabler/icons-react";
+import { Badge } from "@meetzeen/ui/src/components/badge";
+import { getAppointmentStatusBadgeColor } from "@/modules/appointments/utils/badge-color";
+import { APPOINTMENT_STATUS_LABELS } from "@/modules/appointments/constants/appointment-status";
 
 function ActionsCell({
   appointmentId,
@@ -47,14 +50,48 @@ export function createColumns(
 ): ColumnDef<RawAppointment>[] {
   return [
     {
+      accessorKey: "status",
+      header: "Estado",
+      cell: ({ row }) => {
+        const status = row.getValue("status") as string;
+        return (
+          <div className="text-sm min-w-24 max-w-24">
+            <Badge
+              variant="secondary"
+              className={getAppointmentStatusBadgeColor(status)}
+            >
+              {APPOINTMENT_STATUS_LABELS[
+                status as keyof typeof APPOINTMENT_STATUS_LABELS
+              ] || status}
+            </Badge>
+          </div>
+        );
+      },
+    },
+    {
       accessorKey: "customerName",
       header: "Cliente",
       cell: ({ row }) => {
-        return (
-          <div className="font-medium min-w-48">
-            {row.getValue("customerName")}
-          </div>
-        );
+        const customerName = row.getValue("customerName") as string | undefined;
+
+        function formatFullName(fullName?: string) {
+          if (!fullName || fullName.trim() === "") return "";
+          return fullName
+            .split(" ")
+            .filter(Boolean)
+            .map(
+              (part) =>
+                part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
+            )
+            .join(" ");
+        }
+
+        const displayName = formatFullName(customerName);
+
+        if (!displayName) {
+          return <div className="text-sm min-w-48">Sin nombre</div>;
+        }
+        return <div className="font-medium min-w-48">{displayName}</div>;
       },
     },
     {
@@ -67,7 +104,7 @@ export function createColumns(
         }
         const date = dateStr.replace("Date:", "");
         const dateObj = new Date(date + "T00:00:00");
-        
+
         if (isNaN(dateObj.getTime())) {
           return <div className="text-sm min-w-32">Fecha inválida</div>;
         }
@@ -85,24 +122,24 @@ export function createColumns(
       },
     },
     {
-      accessorKey: "startTime",
-      header: "Hora de inicio",
+      accessorKey: "horary",
+      header: "Horario",
       cell: ({ row }) => {
-        const time = row.getValue("startTime") as string | undefined;
-        const formattedTime = time && time.length > 5 ? time.substring(0, 5) : (time || "--:--");
+        const appointment = row.original;
+        const startTime = appointment.startTime
+          ? appointment.startTime.length > 5
+            ? appointment.startTime.substring(0, 5)
+            : appointment.startTime
+          : "--:--";
+        const endTime = appointment.endTime
+          ? appointment.endTime.length > 5
+            ? appointment.endTime.substring(0, 5)
+            : appointment.endTime
+          : "--:--";
         return (
-          <div className="text-sm font-medium min-w-24">{formattedTime}</div>
-        );
-      },
-    },
-    {
-      accessorKey: "endTime",
-      header: "Hora de fin",
-      cell: ({ row }) => {
-        const time = row.getValue("endTime") as string | undefined;
-        const formattedTime = time && time.length > 5 ? time.substring(0, 5) : (time || "--:--");
-        return (
-          <div className="text-sm font-medium min-w-24">{formattedTime}</div>
+          <div className="text-sm font-medium font-geist-mono min-w-24">
+            {startTime} - {endTime}
+          </div>
         );
       },
     },
@@ -120,4 +157,3 @@ export function createColumns(
     },
   ];
 }
-
