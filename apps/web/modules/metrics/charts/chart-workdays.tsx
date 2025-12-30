@@ -17,35 +17,36 @@ import {
 } from "@meetzeen/ui/components/chart";
 
 const chartData = [
-  { month: "January", actual: 186, previous: 80 },
-  { month: "February", actual: 305, previous: 200 },
-  { month: "March", actual: 237, previous: 120 },
-  { month: "April", actual: 73, previous: 190 },
-  { month: "May", actual: 209, previous: 130 },
-  { month: "June", actual: 214, previous: 140 },
+  { day: "Monday", appointments: 186, previousAppointments: 80 },
+  { day: "Tuesday", appointments: 305, previousAppointments: 200 },
+  { day: "Wednesday", appointments: 237, previousAppointments: 120 },
+  { day: "Thursday", appointments: 73, previousAppointments: 190 },
+  { day: "Friday", appointments: 209, previousAppointments: 130 },
+  { day: "Saturday", appointments: 214, previousAppointments: 140 },
+  { day: "Sunday", appointments: 214, previousAppointments: 140 },
 ];
 
 const chartConfig = {
-  actual: {
+  appointments: {
     label: "Actual",
     color: "var(--chart-1)",
   },
-  previous: {
+  previousAppointments: {
     label: "Previous",
     color: "var(--chart-2)",
   },
 } satisfies ChartConfig;
 
-export function ChartRevenue() {
+export function ChartWorkdays() {
   return (
     <Card className="pt-0">
       <CardHeader className="flex items-center gap-2 space-y-0 py-5 sm:flex-row">
         <div className="space-y-2">
           <CardTitle className="text-sm font-medium text-muted-foreground">
-            Ingresos
+            Días de trabajo
           </CardTitle>
           <CardDescription className="text-4xl font-semibold text-primary">
-            $1040
+            7 días
           </CardDescription>
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <span className="flex items-center gap-2">
@@ -74,7 +75,7 @@ export function ChartRevenue() {
           >
             <CartesianGrid vertical={false} />
             <XAxis
-              dataKey="month"
+              dataKey="day"
               tickLine={false}
               axisLine={false}
               tickMargin={8}
@@ -82,16 +83,16 @@ export function ChartRevenue() {
             />
             <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
             <Line
-              dataKey="actual"
+              dataKey="appointments"
               type="monotone"
-              stroke="var(--color-actual)"
+              stroke="var(--color-appointments)"
               strokeWidth={2}
               dot={false}
             />
             <Line
-              dataKey="previous"
+              dataKey="previousAppointments"
               type="monotone"
-              stroke="var(--color-previous)"
+              stroke="var(--color-previousAppointments)"
               strokeWidth={2}
               dot={false}
             />

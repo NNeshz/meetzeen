@@ -17,35 +17,35 @@ import {
 } from "@meetzeen/ui/components/chart";
 
 const chartData = [
-  { month: "January", actual: 186, previous: 80 },
-  { month: "February", actual: 305, previous: 200 },
-  { month: "March", actual: 237, previous: 120 },
-  { month: "April", actual: 73, previous: 190 },
-  { month: "May", actual: 209, previous: 130 },
-  { month: "June", actual: 214, previous: 140 },
+  { month: "January", actual: 24, previous: 18 },
+  { month: "February", actual: 31, previous: 22 },
+  { month: "March", actual: 28, previous: 20 },
+  { month: "April", actual: 19, previous: 25 },
+  { month: "May", actual: 35, previous: 21 },
+  { month: "June", actual: 42, previous: 28 },
 ];
 
 const chartConfig = {
   actual: {
-    label: "Actual",
+    label: "Este período",
     color: "var(--chart-1)",
   },
   previous: {
-    label: "Previous",
+    label: "Período anterior",
     color: "var(--chart-2)",
   },
 } satisfies ChartConfig;
 
-export function ChartRevenue() {
+export function ChartNewClients() {
   return (
     <Card className="pt-0">
       <CardHeader className="flex items-center gap-2 space-y-0 py-5 sm:flex-row">
         <div className="space-y-2">
           <CardTitle className="text-sm font-medium text-muted-foreground">
-            Ingresos
+            Nuevos clientes
           </CardTitle>
           <CardDescription className="text-4xl font-semibold text-primary">
-            $1040
+            179 clientes
           </CardDescription>
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <span className="flex items-center gap-2">

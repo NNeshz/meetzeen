@@ -172,4 +172,60 @@ export class CustomerService {
       },
     };
   }
+
+  async updateCustomer(
+    organizationId: string,
+    data: {
+      id: string;
+      name: string;
+      lastName: string;
+      email: string;
+      phoneNumber?: string;
+    }
+  ) {
+    const existingCustomer = await db.query.customer.findFirst({
+      where: and(
+        eq(customer.id, data.id),
+        eq(customer.organizationId, organizationId),
+        eq(customer.isActive, true)
+      ),
+    });
+
+    if (!existingCustomer) {
+      throw new Error("Cliente no encontrado");
+    }
+
+    const updatedCustomer = await db
+      .update(customer)
+      .set(data)
+      .where(eq(customer.id, existingCustomer.id))
+      .returning();
+
+    if (!updatedCustomer) {
+      throw new Error("Error al actualizar el cliente");
+    }
+
+    return updatedCustomer;
+  }
+
+  async deleteCustomer(id: string, organizationId: string) {
+    const existingCustomer = await db.query.customer.findFirst({
+      where: and(
+        eq(customer.id, id),
+        eq(customer.organizationId, organizationId),
+        eq(customer.isActive, true)
+      ),
+    });
+
+    if (!existingCustomer) {
+      throw new Error("Cliente no encontrado");
+    }
+
+    const deletedCustomer = await db.update(customer).set({
+      isActive: false,
+      updatedAt: new Date().toISOString(),
+    }).where(eq(customer.id, existingCustomer.id)).returning();
+
+    return deletedCustomer;
+  }
 }
