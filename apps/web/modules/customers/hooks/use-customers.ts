@@ -10,7 +10,7 @@ interface UseAllCustomersParams {
 }
 
 export const useAllCustomers = (params?: UseAllCustomersParams) => {
-  const organizationId = useDashboardStore.getState().organization?.id;
+  const organizationId = useDashboardStore((state) => state.organization?.id);
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: [

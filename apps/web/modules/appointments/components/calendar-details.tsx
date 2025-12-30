@@ -10,20 +10,22 @@ import {
 } from "@meetzeen/ui/components/sheet";
 import { Button } from "@meetzeen/ui/components/button";
 import { Badge } from "@meetzeen/ui/components/badge";
-import {
-  IconPlus,
-  IconCalendar,
-  IconClock,
-  IconMail,
-  IconPhone,
-  IconNotes,
-} from "@tabler/icons-react";
+import { IconPlus } from "@tabler/icons-react";
 import { useState } from "react";
 import { useAppointmentById } from "@/modules/appointments/hooks/use-appointments";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Avatar, AvatarFallback } from "@meetzeen/ui/components/avatar";
 import { Separator } from "@meetzeen/ui/components/separator";
+import { AppointmentsStatus } from "@/modules/appointments/components/appointments-status";
+import { AppointmentsPayment } from "@/modules/appointments/components/appointments-payment";
+import { APPOINTMENT_STATUS_LABELS } from "@/modules/appointments/constants/appointment-status";
+import { PAYMENT_STATUS_LABELS } from "@/modules/appointments/constants/payment-status";
+import { PAYMENT_METHOD_LABELS } from "@/modules/appointments/constants/payment-method";
+import {
+  getAppointmentStatusBadgeColor,
+  getPaymentStatusBadgeColor,
+  getPaymentMethodBadgeColor,
+} from "@/modules/appointments/utils/badge-color";
 
 interface ServiceBooked {
   id?: string;
@@ -62,21 +64,12 @@ export function AppointmentSheet({
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
   const setOpen = controlledOnOpenChange || setInternalOpen;
 
-  const { data: appointment, isLoading } = useAppointmentById(
+  const { data: appointment, isLoading, refetch } = useAppointmentById(
     appointmentId || ""
   );
 
   const isViewMode = !!appointmentId;
   const isCreateMode = !appointmentId;
-
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .slice(0, 2)
-      .join("")
-      .toUpperCase();
-  };
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -103,28 +96,40 @@ export function AppointmentSheet({
         ) : isViewMode && appointment ? (
           <div className="flex flex-col h-full overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
             <div className="px-4 py-4 space-y-8">
-              
               <div className="space-y-4">
-                <p className="text-xl font-medium tracking-tighter">
-                  Estado
-                </p>
+                <div className="flex justify-between items-center">
+                  <p className="text-xl font-medium tracking-tighter">Estado</p>
+                  <AppointmentsStatus
+                    appointmentId={appointment.id}
+                    currentStatus={appointment.status}
+                    onSuccess={() => {
+                      // Refetch appointment data to get the latest status
+                      refetch();
+                    }}
+                  />
+                </div>
                 <Separator />
                 <div className="flex flex-col gap-2">
                   <div className="flex justify-between items-center">
                     <p className="text-sm text-muted-foreground">Estado</p>
                     <p className="text-sm font-medium">
-                      {appointment.status ? <Badge variant="outline" className="text-xs capitalize">
-                        {appointment.status}
-                      </Badge> : "Sin estado"}
+                      {appointment.status ? (
+                        <Badge
+                          variant="outline"
+                          className={`text-xs capitalize ${getAppointmentStatusBadgeColor(appointment.status)}`}
+                        >
+                          {APPOINTMENT_STATUS_LABELS[appointment.status as keyof typeof APPOINTMENT_STATUS_LABELS] || appointment.status}
+                        </Badge>
+                      ) : (
+                        "Sin estado"
+                      )}
                     </p>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-4">
-                <p className="text-xl font-medium tracking-tighter">
-                  Cliente
-                </p>
+                <p className="text-xl font-medium tracking-tighter">Cliente</p>
                 <Separator />
                 <div className="flex flex-col gap-2">
                   <div className="flex justify-between items-center">
@@ -144,16 +149,16 @@ export function AppointmentSheet({
                   <div className="flex justify-between items-center">
                     <p className="text-sm text-muted-foreground">Teléfono</p>
                     <p className="text-sm font-medium">
-                      {appointment.customer?.phoneNumber || appointment.customerPhone || "Sin teléfono"}
+                      {appointment.customer?.phoneNumber ||
+                        appointment.customerPhone ||
+                        "Sin teléfono"}
                     </p>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-4">
-                <p className="text-xl font-medium tracking-tighter">
-                  Empleado
-                </p>
+                <p className="text-xl font-medium tracking-tighter">Empleado</p>
                 <Separator />
                 <div className="flex flex-col gap-2">
                   <div className="flex justify-between items-center">
@@ -186,15 +191,19 @@ export function AppointmentSheet({
                   <div className="flex justify-between items-center">
                     <p className="text-sm text-muted-foreground">Fecha</p>
                     <p className="text-sm font-medium">
-                      {format(new Date(appointment.appointmentDate), "d MMM yyyy", {
-                        locale: es,
-                      })}
+                      {format(
+                        new Date(appointment.appointmentDate),
+                        "d MMM yyyy",
+                        {
+                          locale: es,
+                        }
+                      )}
                     </p>
                   </div>
                   <div className="flex justify-between items-center">
                     <p className="text-sm text-muted-foreground">Hora</p>
                     <p className="text-sm font-medium">
-                      {appointment.startTime} - {appointment.endTime}
+                      {appointment.startTime?.slice(0, 5)} - {appointment.endTime?.slice(0, 5)}
                     </p>
                   </div>
                 </div>
@@ -206,69 +215,74 @@ export function AppointmentSheet({
                 </p>
                 <Separator />
                 <div className="flex flex-col gap-2">
-                {appointment.servicesBooked &&
-                Array.isArray(appointment.servicesBooked) &&
-                appointment.servicesBooked.length > 0 ? (
-                  <div className="space-y-4">
-                    {(appointment.servicesBooked as ServiceBooked[])
-                      .sort((a, b) => (a.order || 0) - (b.order || 0))
-                      .map((service, index) => {
-                        const price = parseFloat(service.servicePrice || "0");
-                        const discount = service.serviceDiscount || 0;
-                        const discountAmount = (price * discount) / 100;
-                        const finalPrice = price - discountAmount;
-                        const duration = service.serviceDuration || 0;
-                        const hours = Math.floor(duration / 60);
-                        const minutes = duration % 60;
+                  {appointment.servicesBooked &&
+                  Array.isArray(appointment.servicesBooked) &&
+                  appointment.servicesBooked.length > 0 ? (
+                    <div className="space-y-4">
+                      {(appointment.servicesBooked as ServiceBooked[])
+                        .sort((a, b) => (a.order || 0) - (b.order || 0))
+                        .map((service, index) => {
+                          const price = parseFloat(service.servicePrice || "0");
+                          const discount = service.serviceDiscount || 0;
+                          const discountAmount = (price * discount) / 100;
+                          const finalPrice = price - discountAmount;
+                          const duration = service.serviceDuration || 0;
+                          const hours = Math.floor(duration / 60);
+                          const minutes = duration % 60;
 
-                        let durationDisplay = "";
-                        if (hours > 0 && minutes > 0) {
-                          durationDisplay = `${hours}h ${minutes}m`;
-                        } else if (hours > 0 && minutes === 0) {
-                          durationDisplay = `${hours}h`;
-                        } else if (hours === 0 && minutes > 0) {
-                          durationDisplay = `${minutes}m`;
-                        }
+                          let durationDisplay = "";
+                          if (hours > 0 && minutes > 0) {
+                            durationDisplay = `${hours}h ${minutes}m`;
+                          } else if (hours > 0 && minutes === 0) {
+                            durationDisplay = `${hours}h`;
+                          } else if (hours === 0 && minutes > 0) {
+                            durationDisplay = `${minutes}m`;
+                          }
 
-                        return (
-                          <div key={service.id || index} className="space-y-1">
-                            <div className="flex justify-between items-start">
-                            <div className="flex items-center gap-2">
+                          return (
+                            <div
+                              key={service.id || index}
+                              className="space-y-1"
+                            >
+                              <div className="flex justify-between items-start">
+                                <div className="flex items-center gap-2">
                                   <p className="font-medium">
                                     {service.serviceName}
                                   </p>
                                   <Badge className="text-xs">
-                                    {durationDisplay ? durationDisplay : "Sin duración"}
+                                    {durationDisplay
+                                      ? durationDisplay
+                                      : "Sin duración"}
                                   </Badge>
                                 </div>
-                              <div className="text-right">
-                                {discount > 0 && (
-                                  <p className="text-xs text-muted-foreground line-through">
+                                <div className="text-right">
+                                  {discount > 0 && (
+                                    <p className="text-xs text-muted-foreground line-through">
+                                      $
+                                      {price.toLocaleString("es-ES", {
+                                        minimumFractionDigits: 2,
+                                      })}
+                                    </p>
+                                  )}
+                                  <p className="font-semibold">
                                     $
-                                    {price.toLocaleString("es-ES", {
+                                    {finalPrice.toLocaleString("es-ES", {
                                       minimumFractionDigits: 2,
                                     })}
                                   </p>
-                                )}
-                                <p className="font-semibold">
-                                  $
-                                  {finalPrice.toLocaleString("es-ES", {
-                                    minimumFractionDigits: 2,
-                                  })}
-                                </p>
-                                {discount > 0 && (
-                                  <Badge
-                                    variant="secondary"
-                                    className="text-xs mt-1"
-                                  >
-                                    -{discount}%
-                                  </Badge>
-                                )}
+                                  {discount > 0 && (
+                                    <Badge
+                                      variant="secondary"
+                                      className="text-xs mt-1"
+                                    >
+                                      -{discount}%
+                                    </Badge>
+                                  )}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        })}
                     </div>
                   ) : (
                     <p className="text-muted-foreground text-sm">
@@ -279,21 +293,52 @@ export function AppointmentSheet({
               </div>
 
               <div className="space-y-4">
-                <p className="text-xl font-medium tracking-tighter">
-                  Pago
-                </p>
+                <div className="flex justify-between items-center">
+                  <p className="text-xl font-medium tracking-tighter">Pago</p>
+                  <AppointmentsPayment
+                    appointmentId={appointment.id}
+                    currentPaymentStatus={appointment.paymentStatus}
+                    currentPaymentMethod={appointment.paymentMethod || undefined}
+                    onSuccess={() => {
+                      // Refetch appointment data to get the latest payment info
+                      refetch();
+                    }}
+                  />
+                </div>
                 <Separator />
                 <div className="flex flex-col gap-2">
                   <div className="flex justify-between items-center">
-                    <p className="text-sm text-muted-foreground">Método de pago</p>
+                    <p className="text-sm text-muted-foreground">
+                      Método de pago
+                    </p>
                     <p className="text-sm font-medium">
-                      {appointment.paymentMethod || "Sin método"}
+                      {appointment.paymentMethod ? (
+                        <Badge
+                          variant="outline"
+                          className={`text-xs capitalize ${getPaymentMethodBadgeColor(appointment.paymentMethod)}`}
+                        >
+                          {PAYMENT_METHOD_LABELS[appointment.paymentMethod as keyof typeof PAYMENT_METHOD_LABELS] || appointment.paymentMethod}
+                        </Badge>
+                      ) : (
+                        "Sin método"
+                      )}
                     </p>
                   </div>
                   <div className="flex justify-between items-center">
-                    <p className="text-sm text-muted-foreground">Estado de pago</p>
+                    <p className="text-sm text-muted-foreground">
+                      Estado de pago
+                    </p>
                     <p className="text-sm font-medium">
-                      {appointment.paymentStatus || "Sin estado"}
+                      {appointment.paymentStatus ? (
+                        <Badge
+                          variant="outline"
+                          className={`text-xs capitalize ${getPaymentStatusBadgeColor(appointment.paymentStatus)}`}
+                        >
+                          {PAYMENT_STATUS_LABELS[appointment.paymentStatus as keyof typeof PAYMENT_STATUS_LABELS] || appointment.paymentStatus}
+                        </Badge>
+                      ) : (
+                        "Sin estado"
+                      )}
                     </p>
                   </div>
                   <div className="flex justify-between items-center">
@@ -304,7 +349,7 @@ export function AppointmentSheet({
                   </div>
                 </div>
               </div>
-              
+
               {/* Notas */}
               {appointment.notes && (
                 <div className="space-y-2">
@@ -316,7 +361,6 @@ export function AppointmentSheet({
                   </p>
                 </div>
               )}
-
 
               {/* Footer */}
               <div className="flex justify-between text-xs text-muted-foreground pt-4">

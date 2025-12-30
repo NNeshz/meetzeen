@@ -40,18 +40,20 @@ export default async function DashboardLayout({
     <div className="font-geist">
       <SidebarProvider defaultOpen={false}>
         <AppSidebar />
-        <SidebarInset>
-          <header className="flex shrink-0 items-center gap-2">
-            <div className="flex items-center gap-2 px-4 py-4">
-              <SidebarTrigger className="-ml-1 block lg:hidden" />
+        <SidebarInset className="overflow-x-hidden">
+          <header className="sticky top-0 z-10 flex shrink-0 items-center gap-2 bg-background">
+            <div className="flex items-center gap-2 px-4 py-4 w-full">
+              <SidebarTrigger className="-ml-1" />
               <Separator
                 orientation="vertical"
-                className="mr-2 data-[orientation=vertical]:h-4 block lg:hidden"
+                className="mr-2 h-4"
               />
               <DashboardCommand />
             </div>
           </header>
-          <div className="flex flex-1 flex-col gap-4 p-4 pt-4">{children}</div>
+          <div className="flex flex-1 flex-col gap-4 p-4 pt-4 min-w-0">
+            {children}
+          </div>
         </SidebarInset>
       </SidebarProvider>
     </div>

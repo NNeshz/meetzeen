@@ -7,13 +7,17 @@ import {
   flexRender,
   type ColumnDef,
   type PaginationState,
-  type SortingState,
 } from "@tanstack/react-table";
 import { useAllCustomers } from "@/modules/customers/hooks/use-customers";
 import { columns } from "./colums";
 import { Customer } from "@/modules/customers/types/customer.types";
 import { Input } from "@meetzeen/ui/components/input";
-import { IconSearch, IconRefresh, IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
+import {
+  IconSearch,
+  IconRefresh,
+  IconChevronLeft,
+  IconChevronRight,
+} from "@tabler/icons-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,12 +47,14 @@ const columnLabels: Record<string, string> = {
 export function CustomersTable() {
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
-    pageSize: 50,
+    pageSize: 3,
   });
   const [searchValue, setSearchValue] = React.useState("");
   const [debouncedSearch, setDebouncedSearch] = React.useState("");
   const [sortBy, setSortBy] = React.useState<string>("recent");
-  const [columnVisibility, setColumnVisibility] = React.useState<Record<string, boolean>>({
+  const [columnVisibility, setColumnVisibility] = React.useState<
+    Record<string, boolean>
+  >({
     name: true,
     email: true,
     phoneNumber: true,
@@ -56,15 +62,18 @@ export function CustomersTable() {
     lastAppointmentDate: true,
   });
 
-  // Debounce para la búsqueda
   React.useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchValue);
-      setPagination((prev) => ({ ...prev, pageIndex: 0 })); // Reset a la primera página al buscar
+      setPagination((prev) => ({ ...prev, pageIndex: 0 }));
     }, 500);
 
     return () => clearTimeout(timer);
   }, [searchValue]);
+
+  React.useEffect(() => {
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+  }, [sortBy]);
 
   const { data, isLoading, error, refetch } = useAllCustomers({
     limit: pagination.pageSize,
@@ -75,13 +84,16 @@ export function CustomersTable() {
 
   const customers = (data?.results as Customer[]) || [];
   const meta = data?.meta;
+  const pageSize = meta?.limit || pagination.pageSize;
 
   const table = useReactTable({
     data: customers,
     columns: columns as ColumnDef<Customer>[],
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
-    pageCount: meta ? Math.ceil(meta.filteredCustomers / pagination.pageSize) : -1,
+    pageCount: meta
+      ? Math.ceil(meta.filteredCustomers / pageSize)
+      : -1,
     state: {
       pagination,
       columnVisibility,
@@ -99,9 +111,8 @@ export function CustomersTable() {
 
   return (
     <div className="space-y-4">
-      {/* Barra superior con búsqueda y controles */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="relative flex-1 max-w-sm">
+        <div className="relative flex-1 max-w-xs">
           <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
             placeholder="Buscar clientes..."
@@ -149,21 +160,26 @@ export function CustomersTable() {
         </div>
       </div>
 
-      {/* Contenido condicional */}
       {isLoading ? (
         <div className="py-32 flex items-center justify-center">
           <div className="flex flex-col items-center justify-center gap-2 animate-pulse">
             <p className="text-base font-medium">Buscando clientes</p>
-            <p className="text-sm text-muted-foreground">Cargando información...</p>
+            <p className="text-sm text-muted-foreground">
+              Cargando información...
+            </p>
           </div>
         </div>
       ) : error ? (
         <div className="py-32 flex items-center justify-center">
           <div className="flex flex-col items-center justify-center gap-3">
             <div className="text-center">
-              <p className="text-base font-medium text-destructive">Error al cargar clientes</p>
+              <p className="text-base font-medium text-destructive">
+                Error al cargar clientes
+              </p>
               <p className="text-sm text-muted-foreground mt-1">
-                {error instanceof Error ? error.message : "Ocurrió un error al cargar los clientes"}
+                {error instanceof Error
+                  ? error.message
+                  : "Ocurrió un error al cargar los clientes"}
               </p>
             </div>
             <Button
@@ -191,16 +207,12 @@ export function CustomersTable() {
         </div>
       ) : (
         <>
-          {/* Tabla con datos */}
           <div className="rounded-lg border">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   {table.getHeaderGroups().map((headerGroup) => (
-                    <tr
-                      key={headerGroup.id}
-                      className="border-b bg-muted/50"
-                    >
+                    <tr key={headerGroup.id} className="border-b bg-muted/50">
                       {headerGroup.headers.map((header) => (
                         <th
                           key={header.id}
@@ -241,13 +253,12 @@ export function CustomersTable() {
             </div>
           </div>
 
-          {/* Paginación */}
           {meta && meta.filteredCustomers > 0 && (
             <div className="flex items-center justify-between px-2 flex-wrap gap-4">
               <div className="flex-1 text-sm text-muted-foreground">
-                Mostrando {pagination.pageIndex * pagination.pageSize + 1} a{" "}
+                Mostrando {pagination.pageIndex * pageSize + 1} a{" "}
                 {Math.min(
-                  (pagination.pageIndex + 1) * pagination.pageSize,
+                  (pagination.pageIndex + 1) * pageSize,
                   meta.filteredCustomers
                 )}{" "}
                 de {meta.filteredCustomers} clientes
@@ -260,12 +271,14 @@ export function CustomersTable() {
                   disabled={!table.getCanPreviousPage()}
                 >
                   <IconChevronLeft className="size-4" />
-                  Anterior
                 </Button>
                 <div className="flex items-center gap-1">
                   <span className="text-sm text-muted-foreground">
                     Página {pagination.pageIndex + 1} de{" "}
-                    {Math.max(1, Math.ceil(meta.filteredCustomers / pagination.pageSize))}
+                    {Math.max(
+                      1,
+                      Math.ceil(meta.filteredCustomers / pageSize)
+                    )}
                   </span>
                 </div>
                 <Button
@@ -274,7 +287,6 @@ export function CustomersTable() {
                   onClick={() => table.nextPage()}
                   disabled={!table.getCanNextPage()}
                 >
-                  Siguiente
                   <IconChevronRight className="size-4" />
                 </Button>
               </div>
