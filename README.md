@@ -1,60 +1,41 @@
-# NextJS + Elysia + Better Auth + Supabase
+# Meetzeen
 
-![Screenshot del proyecto](./Screenshot.png)
+![Meetzeen](./apps/web/app/icon.png)
 
-This is a meetzeen for a NextJS + Elysia + Better Auth + Supabase project. It uses the following technologies:
+**Meetzeen** is a modern, comprehensive scheduling and booking platform designed to streamline appointment management for businesses and teams. Built with performance and scalability in mind, it offers a seamless experience for both service providers and their clients.
 
-- [NextJS](https://nextjs.org/) for the frontend
-- [Elysia](https://elysiajs.com/) for the backend
-- [Better Auth](https://better-auth.com/) for authentication
-- [Supabase](https://supabase.com/) for the database
+## Features
 
-## Using this example
+Meetzeen comes packed with essential tools to manage your business operations efficiently:
 
-Run the following command:
+-   **Smart Scheduling**: Flexible calendar management with day and week views.
+-   **Online Booking**: Customizable booking flow for clients to schedule appointments 24/7.
+-   **Team Management**: Invite team members, manage roles, and coordinate schedules.
+-   **Service Management**: Organize services into categories and define custom durations and pricing.
+-   **Customer CRM**: Maintain a database of your clients with history and details.
+-   **Business Customization**: Tailor your public booking page with your brand colors, logo, and social links.
+-   **Analytics & Metrics**: Visual insights into revenue, new clients, and appointment trends.
+-   **Global Readiness**: Support for multiple timezones and currencies.
+-   **Google Calendar Integration**: Sync appointments to avoid double bookings.
+-   **File Management**: Secure upload and management for logos and other assets.
 
-```sh
-bun install
-```
+## Tech Stack
 
-## What's inside?
+This project is built using a cutting-edge, type-safe stack:
 
-This project includes the following packages/apps:
+-   **Frontend**: [Next.js](https://nextjs.org/) with [Tailwind CSS](https://tailwindcss.com/) and [Shadcn UI](https://ui.shadcn.com/).
+-   **Backend**: [ElysiaJS](https://elysiajs.com/) for high-performance APIs.
+-   **Database**: [PostgreSQL](https://www.postgresql.org/) with [Drizzle ORM](https://orm.drizzle.team/).
+-   **Authentication**: [Better Auth](https://better-auth.com/) for secure user management.
+-   **Monorepo**: Managed with [Turborepo](https://turbo.build/) and [Bun](https://bun.sh/).
 
-### Apps and Packages
+## Project Structure
 
-- `web`: an [Next.js](https://nextjs.org/) app
-- `backend_worker`: an [Elysia](https://elysiajs.com/) app
-- `api`: another [Elysia](https://elysiajs.com/) app
-- `auth`: a custom authentication module using [Better Auth](https://better-auth.com/)
-- `database`: a custom database module using [Supabase](https://supabase.com/) with Prisma
+The codebase is organized as a monorepo containing:
 
-- `@meetzeen/ui`: a stub React component library shared by both `web` and `backend_worker` applications
-- `@meetzeen/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@meetzeen/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Develop
-
-To develop all apps and packages, run the following command:
-
-```
-cd meetzeen
-
-# Install dependencies
-bun install
-
-# Change the .env.local file with your credentials
-
-# Start the development server
-bun dev
-```
+-   `apps/web`: The main Next.js web application.
+-   `apps/backend_worker`: Background worker services.
+-   `packages/api`: Core API logic and business rules.
+-   `packages/auth`: Shared authentication module.
+-   `packages/database`: Database schema and client.
+-   `packages/ui`: Shared UI component library.
